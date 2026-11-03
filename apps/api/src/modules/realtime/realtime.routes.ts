@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { prisma } from "@collab/db";
+import { presenceFileMessageSchema } from "@collab/shared";
 import { requireProjectRole } from "../../lib/authorization.js";
 import { verifyAccessToken } from "../../lib/jwt.js";
 import { hub } from "../../lib/hub.js";
@@ -45,6 +46,14 @@ export const realtimeRoutes: FastifyPluginAsync = async (app) => {
     if (socket.readyState !== socket.OPEN) return;
 
     const unsubscribe = hub.subscribe(parsed.data.projectId, socket, user);
+    socket.on("message", (raw: Buffer) => {
+      try {
+        const message = presenceFileMessageSchema.safeParse(JSON.parse(raw.toString()));
+        if (message.success) hub.setFile(parsed.data.projectId, socket, message.data.fileId);
+      } catch {
+        // not ours: nothing else is expected on this socket
+      }
+    });
     socket.on("close", unsubscribe);
     socket.on("error", unsubscribe);
   });

@@ -2,6 +2,8 @@ import { Worker } from "bullmq";
 import Docker from "dockerode";
 import { Redis } from "ioredis";
 import {
+  ACCESS_CHANGES_CHANNEL,
+  accessChangeSchema,
   RUN_EVENTS_CHANNEL,
   RUN_QUEUE_NAME,
   TERMINAL_MAX_MINUTES,
@@ -52,7 +54,18 @@ const terminals =
       })
     : null;
 
+// The API announces when access is taken away; a terminal already open must not outlive it.
+const accessChanges = new Redis(env.REDIS_URL);
 if (terminals) {
+  void accessChanges.subscribe(ACCESS_CHANGES_CHANNEL);
+  accessChanges.on("message", (_channel, raw) => {
+    try {
+      const change = accessChangeSchema.safeParse(JSON.parse(raw));
+      if (change.success) terminals.closeFor(change.data.projectId, change.data.userId);
+    } catch {
+      // a malformed message changes nothing
+    }
+  });
   terminals.listen(env.TERMINAL_PORT, env.TERMINAL_HOST, () => {
     console.log(`terminals on ws://${env.TERMINAL_HOST}:${env.TERMINAL_PORT}`);
   });
@@ -63,6 +76,7 @@ if (terminals) {
 async function shutdown() {
   terminals?.close();
   await tickets.quit();
+  await accessChanges.quit();
   await worker.close();
   await publisher.quit();
   await connection.quit();

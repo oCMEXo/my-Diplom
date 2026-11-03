@@ -29,17 +29,38 @@ function loadFromStorage(): StoredAuth | null {
   }
 }
 
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
 function persist() {
   if (current) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
   } else {
     localStorage.removeItem(STORAGE_KEY);
   }
-  listeners.forEach((listener) => listener());
+  notify();
 }
+
+// Signing in or out in one tab, or renewing the tokens there, applies to the other tabs too.
+globalThis.addEventListener?.("storage", (event) => {
+  const { key } = event as StorageEvent;
+  if (key !== null && key !== STORAGE_KEY) return;
+  current = loadFromStorage();
+  notify();
+});
 
 export const tokenStore = {
   get(): StoredAuth | null {
+    return current;
+  },
+  /** Reads the saved copy, which another tab may have renewed a moment ago. */
+  reload(): StoredAuth | null {
+    const stored = loadFromStorage();
+    if (stored?.tokens.refreshToken !== current?.tokens.refreshToken) {
+      current = stored;
+      notify();
+    }
     return current;
   },
   set(auth: StoredAuth) {

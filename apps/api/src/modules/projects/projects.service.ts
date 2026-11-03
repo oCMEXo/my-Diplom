@@ -4,6 +4,7 @@ import { AppError } from "../../lib/errors.js";
 import { requireProjectRole } from "../../lib/authorization.js";
 import { generateInviteCode } from "../../lib/invite-code.js";
 import { announceAccessChange } from "../../lib/access-changes.js";
+import { hub } from "../../lib/hub.js";
 
 interface ProjectLike {
   id: string;
@@ -24,7 +25,8 @@ function toProjectDto(project: ProjectLike, myRole: ProjectRole) {
     ownerId: project.ownerId,
     createdAt: project.createdAt.toISOString(),
     myRole,
-    inviteCode: project.inviteCode,
+    // With the code a viewer could join again under another account and get the link's role.
+    inviteCode: myRole === "viewer" ? null : project.inviteCode,
     inviteRole: project.inviteRole as InviteRole,
     github:
       project.githubOwner && project.githubRepo
@@ -68,7 +70,6 @@ export async function getProject(userId: string, projectId: string) {
     ...toProjectDto(project, myRole),
     members: project.members.map((m) => ({
       userId: m.userId,
-      email: m.user.email,
       name: m.user.name,
       role: m.role,
     })),
@@ -104,7 +105,7 @@ export async function inviteMember(
     data: { projectId, userId: user.id, role: input.role },
   });
 
-  return { userId: user.id, email: user.email, name: user.name, role: input.role };
+  return { userId: user.id, name: user.name, role: input.role };
 }
 
 export async function updateMemberRole(
@@ -131,6 +132,8 @@ export async function updateMemberRole(
     where: { projectId_userId: { projectId, userId: targetUserId } },
     data: { role },
   });
+  // Someone just demoted has seen the invitation link and could use it to come back as an editor.
+  if (role === "viewer") await rotateInviteCode(projectId);
   // Open documents keep the role they connected with; reconnecting gives them the new one.
   await announceAccessChange({ projectId, userId: targetUserId, reason: "role" });
 }
@@ -161,11 +164,17 @@ export async function removeMember(
   await prisma.projectMember.delete({
     where: { projectId_userId: { projectId, userId: targetUserId } },
   });
+  // Otherwise whoever was removed could walk straight back in with the link they already have.
+  if (requesterId !== targetUserId) await rotateInviteCode(projectId);
   await announceAccessChange({
     projectId,
     userId: targetUserId,
     reason: requesterId === targetUserId ? "left" : "removed",
   });
+}
+
+async function rotateInviteCode(projectId: string) {
+  await prisma.project.update({ where: { id: projectId }, data: { inviteCode: generateInviteCode() } });
 }
 
 export async function regenerateInviteLink(requesterId: string, projectId: string) {
@@ -182,9 +191,14 @@ export async function regenerateInviteLink(requesterId: string, projectId: strin
 export async function updateInviteRole(requesterId: string, projectId: string, role: InviteRole) {
   await requireProjectRole(projectId, requesterId, "owner");
 
+  const current = await prisma.project.findUniqueOrThrow({ where: { id: projectId }, select: { inviteRole: true } });
   const project = await prisma.project.update({
     where: { id: projectId },
-    data: { inviteRole: role },
+    data: {
+      inviteRole: role,
+      // A link handed out as read-only must not start giving write access by itself.
+      ...(current.inviteRole === "viewer" && role === "editor" ? { inviteCode: generateInviteCode() } : {}),
+    },
   });
 
   return { inviteCode: project.inviteCode, inviteRole: project.inviteRole as InviteRole };
@@ -220,6 +234,7 @@ export async function joinViaInvite(userId: string, inviteCode: string) {
     await prisma.projectMember.create({
       data: { projectId: project.id, userId, role },
     });
+    hub.broadcast(project.id, { type: "project.members", projectId: project.id });
   }
 
   return toProjectDto(project, role);

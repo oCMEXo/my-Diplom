@@ -154,11 +154,11 @@ export function BoardEditor({
     [board],
   );
 
-  function pointer(event: Konva.KonvaEventObject<MouseEvent>) {
+  function pointer(event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     return event.target.getStage()?.getPointerPosition() ?? { x: 0, y: 0 };
   }
 
-  function handleMouseDown(event: Konva.KonvaEventObject<MouseEvent>) {
+  function handleMouseDown(event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     if (!board || !canEdit) return;
     const onEmptySpace = event.target === event.target.getStage();
 
@@ -188,7 +188,7 @@ export function BoardEditor({
     setSelectedId(id);
   }
 
-  function handleMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
+  function handleMouseMove(event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     const { x, y } = pointer(event);
 
     const now = performance.now();
@@ -284,15 +284,17 @@ export function BoardEditor({
   const draggable = canEdit && tool === "select";
 
   function selectable(id: string) {
+    const pickShape = (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+      if (tool === "select") {
+        event.cancelBubble = true;
+        setSelectedId(id);
+      }
+    };
     return {
       id,
       draggable,
-      onMouseDown: (event: Konva.KonvaEventObject<MouseEvent>) => {
-        if (tool === "select") {
-          event.cancelBubble = true;
-          setSelectedId(id);
-        }
-      },
+      onMouseDown: pickShape,
+      onTouchStart: pickShape,
     };
   }
 
@@ -420,60 +422,63 @@ export function BoardEditor({
     >
       <div ref={containerRef} className="board-paper absolute inset-0 overflow-hidden">
         {canEdit && (
-          <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-2xl bg-surface/95 p-1.5 shadow-pop backdrop-blur animate-pop">
-            {TOOLS.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setTool(item.id)}
-                aria-label={item.label}
-                aria-pressed={tool === item.id}
-                title={item.label}
-                className={toolButton(tool === item.id)}
-              >
-                <item.icon size={18} />
-              </button>
-            ))}
-            <span className="mx-1.5 h-6 w-px bg-line" />
-            <span className="flex items-center gap-1.5 px-1">
-              {PALETTE.map((swatch) => (
+          // Centred by the wrapper: a transform here would be overridden by the appearing animation.
+          <div className="pointer-events-none absolute inset-x-2 bottom-5 z-10 flex justify-center">
+            <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl bg-surface/95 p-1.5 shadow-pop backdrop-blur [scrollbar-width:none] animate-pop">
+              {TOOLS.map((item) => (
                 <button
-                  key={swatch}
-                  aria-label={`цвет ${swatch}`}
-                  onClick={() => chooseColor(swatch)}
-                  style={{ backgroundColor: swatch }}
-                  className={cn(
-                    "h-5 w-5 rounded-full border border-white/25 transition hover:scale-110",
-                    (selected?.fill ?? color) === swatch ? "scale-110 ring-2 ring-accent ring-offset-2 ring-offset-surface" : "",
-                  )}
-                />
+                  key={item.id}
+                  onClick={() => setTool(item.id)}
+                  aria-label={item.label}
+                  aria-pressed={tool === item.id}
+                  title={item.label}
+                  className={toolButton(tool === item.id)}
+                >
+                  <item.icon size={18} />
+                </button>
               ))}
-            </span>
-            <span className="mx-1.5 h-6 w-px bg-line" />
-            <button
-              onClick={() => undoManager.current?.undo()}
-              aria-label="Отменить"
-              title="Отменить"
-              className={toolButton(false)}
-            >
-              <Undo2 size={17} />
-            </button>
-            <button
-              onClick={() => undoManager.current?.redo()}
-              aria-label="Повторить"
-              title="Повторить"
-              className={toolButton(false)}
-            >
-              <Redo2 size={17} />
-            </button>
-            <button
-              onClick={deleteSelected}
-              disabled={!selectedId}
-              aria-label="Удалить"
-              title="Удалить выбранное"
-              className={cn(toolButton(false), "disabled:opacity-30 enabled:hover:text-bad")}
-            >
-              <Trash2 size={17} />
-            </button>
+              <span className="mx-1.5 h-6 w-px bg-line" />
+              <span className="flex items-center gap-1.5 px-1">
+                {PALETTE.map((swatch) => (
+                  <button
+                    key={swatch}
+                    aria-label={`Цвет ${PALETTE.indexOf(swatch) + 1} из ${PALETTE.length}`}
+                    onClick={() => chooseColor(swatch)}
+                    style={{ backgroundColor: swatch }}
+                    className={cn(
+                      "h-5 w-5 rounded-full border border-white/25 transition hover:scale-110",
+                      (selected?.fill ?? color) === swatch ? "scale-110 ring-2 ring-accent ring-offset-2 ring-offset-surface" : "",
+                    )}
+                  />
+                ))}
+              </span>
+              <span className="mx-1.5 h-6 w-px bg-line" />
+              <button
+                onClick={() => undoManager.current?.undo()}
+                aria-label="Отменить"
+                title="Отменить"
+                className={toolButton(false)}
+              >
+                <Undo2 size={17} />
+              </button>
+              <button
+                onClick={() => undoManager.current?.redo()}
+                aria-label="Повторить"
+                title="Повторить"
+                className={toolButton(false)}
+              >
+                <Redo2 size={17} />
+              </button>
+              <button
+                onClick={deleteSelected}
+                disabled={!selectedId}
+                aria-label="Удалить"
+                title="Удалить выбранное"
+                className={cn(toolButton(false), "disabled:opacity-30 enabled:hover:text-bad")}
+              >
+                <Trash2 size={17} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -510,8 +515,12 @@ export function BoardEditor({
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchMove={handleMouseMove}
+          onTouchEnd={handleMouseUp}
           onMouseLeave={() => provider?.setAwarenessField("cursor", null)}
-          style={{ cursor: tool === "select" ? "default" : "crosshair" }}
+          // A finger on the board draws; it must not scroll the page at the same time.
+          style={{ cursor: tool === "select" ? "default" : "crosshair", touchAction: "none" }}
         >
           <Layer ref={shapesLayerRef}>{shapes.map(renderShape)}</Layer>
           <Layer>
@@ -545,7 +554,7 @@ export function BoardEditor({
               <Group key={cursor.clientId} x={cursor.x} y={cursor.y} listening={false}>
                 <Line points={[0, 0, 0, 16, 5, 12, 11, 12]} closed fill={cursor.color} stroke="#ffffff" strokeWidth={1} />
                 <Rect x={12} y={14} width={cursor.name.length * 7 + 10} height={18} cornerRadius={4} fill={cursor.color} />
-                <Text x={17} y={18} text={cursor.name} fontSize={11} fill="#ffffff" />
+                <Text x={17} y={18} text={cursor.name} fontSize={11} fill="#111827" />
               </Group>
             ))}
           </Layer>
@@ -571,7 +580,7 @@ export function BoardEditor({
               fontSize: TEXT_SIZE,
               lineHeight: 1,
             }}
-            className="resize-none rounded border border-blue-400 bg-white/90 p-0 outline-none"
+            className="resize-none rounded border border-blue-400 bg-white/90 p-0 text-slate-900 outline-none"
             rows={2}
           />
         )}

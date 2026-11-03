@@ -103,7 +103,7 @@ describe("messages.service", () => {
     const joiner = await user();
     const p = await project(owner.id);
     const other = await project(owner.id);
-    await joinViaInvite(joiner.id, p.inviteCode);
+    await joinViaInvite(joiner.id, p.inviteCode!);
 
     const received: string[] = [];
     const unsubscribe = hub.subscribe(p.id, { send: (data) => received.push(data) });

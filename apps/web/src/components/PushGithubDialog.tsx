@@ -189,7 +189,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                 href={result.commitUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="mt-2 inline-flex items-center gap-1.5 font-medium text-accent hover:underline"
+                className="mt-2 inline-flex items-center gap-1.5 font-medium text-accent-ink hover:underline"
               >
                 Открыть коммит на GitHub <ExternalLink size={13} />
               </a>
@@ -230,7 +230,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     href="https://github.com/settings/personal-access-tokens/new"
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="text-accent hover:underline"
+                    className="text-accent-ink hover:underline"
                   >
                     Создать токен
                   </a>
@@ -422,7 +422,7 @@ function PreviewBlock({
   return (
     <div className="space-y-3 rounded-xl border border-line bg-canvas p-3">
       <p className="text-xs font-semibold uppercase tracking-wider text-faint">Что будет отправлено</p>
-      <FileList title="Изменены" tone="text-accent" paths={modified} />
+      <FileList title="Изменены" tone="text-accent-ink" paths={modified} />
       <FileList title="Новые" tone="text-ok" paths={added} />
       {conflicts.length > 0 && (
         <div className="space-y-2 rounded-lg bg-warn/10 p-2.5">

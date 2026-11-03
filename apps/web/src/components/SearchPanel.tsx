@@ -98,7 +98,7 @@ export function SearchPanel({
     <div className="flex h-full flex-col bg-surface">
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-line pl-4 pr-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          <TextSearch size={16} className="text-accent" />
+          <TextSearch size={16} className="text-accent-ink" />
           Поиск по проекту
         </h2>
         <IconButton label="Закрыть поиск" onClick={onClose}>

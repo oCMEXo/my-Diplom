@@ -1,11 +1,20 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { Link } from "react-router-dom";
 import { SendHorizontal } from "lucide-react";
-import { MESSAGE_PAGE_SIZE, type Message } from "@collab/shared";
+import { MESSAGE_PAGE_SIZE, type FileRecord, type Message } from "@collab/shared";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { createFileRefParser } from "../lib/file-refs";
 import { useRealtimeEvents, useRealtimeStatus } from "../lib/RealtimeContext";
+import { Spinner } from "./ui/Spinner";
 import { Avatar } from "./ui/Avatar";
 import { IconButton } from "./ui/Button";
+
+/** Text to add to the message being written; `key` tells two identical requests apart. */
+export interface ChatInsert {
+  text: string;
+  key: number;
+}
 
 function mergeById(existing: Message[], incoming: Message[]) {
   const byId = new Map(existing.map((m) => [m.id, m]));
@@ -28,9 +37,23 @@ function formatDay(iso: string) {
 
 const GROUP_GAP_MS = 5 * 60 * 1000;
 
-export function ChatPanel({ projectId }: { projectId: string }) {
+export function ChatPanel({
+  projectId,
+  files,
+  insert,
+  onInsertDone,
+  onFileLink,
+}: {
+  projectId: string;
+  files: FileRecord[];
+  insert: ChatInsert | null;
+  onInsertDone: () => void;
+  /** A link to a file line was followed. */
+  onFileLink: () => void;
+}) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "failed">("loading");
   const [hasMore, setHasMore] = useState(false);
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState<string | null>(null);
@@ -38,12 +61,15 @@ export function ChatPanel({ projectId }: { projectId: string }) {
   const stickToBottom = useRef(true);
   const loadedOnce = useRef(false);
   const composer = useRef<HTMLTextAreaElement>(null);
+  const insertedKey = useRef<number | null>(null);
+  const parseRefs = useMemo(() => createFileRefParser(files.filter((file) => file.type !== "board")), [files]);
 
   const loadLatest = useCallback(async () => {
     const latest = await api.get<Message[]>(
       `/projects/${projectId}/messages?limit=${MESSAGE_PAGE_SIZE}`,
     );
     setMessages((prev) => mergeById(prev, latest));
+    setLoadState("ready");
     if (!loadedOnce.current) {
       loadedOnce.current = true;
       setHasMore(latest.length === MESSAGE_PAGE_SIZE);
@@ -59,13 +85,28 @@ export function ChatPanel({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     setMessages([]);
+    setLoadState("loading");
     loadedOnce.current = false;
-    loadLatest().catch(() => undefined);
+    loadLatest().catch(() => setLoadState("failed"));
   }, [loadLatest]);
 
   useEffect(() => {
     if (status === "open" && loadedOnce.current) loadLatest().catch(() => undefined);
   }, [status, loadLatest]);
+
+  useEffect(() => {
+    if (!insert || insertedKey.current === insert.key) return;
+    insertedKey.current = insert.key;
+    setDraft((current) => `${current}${current && !/\s$/.test(current) ? " " : ""}${insert.text} `);
+    onInsertDone();
+    // The panel has only just been shown: wait for it before moving the caret to the end of the text.
+    requestAnimationFrame(() => {
+      const el = composer.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
+  }, [insert, onInsertDone]);
 
   useLayoutEffect(() => {
     const el = listRef.current;
@@ -136,8 +177,27 @@ export function ChatPanel({ projectId }: { projectId: string }) {
         )}
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-1 px-6 text-center">
-            <p className="text-sm font-medium">Здесь пока тихо</p>
-            <p className="text-xs text-muted">Напишите первое сообщение — его увидят все участники проекта.</p>
+            {loadState === "loading" && <Spinner />}
+            {loadState === "failed" && (
+              <>
+                <p className="text-sm font-medium">Не удалось загрузить чат</p>
+                <button
+                  onClick={() => {
+                    setLoadState("loading");
+                    loadLatest().catch(() => setLoadState("failed"));
+                  }}
+                  className="text-xs font-medium text-accent-ink hover:underline"
+                >
+                  Повторить
+                </button>
+              </>
+            )}
+            {loadState === "ready" && (
+              <>
+                <p className="text-sm font-medium">Здесь пока тихо</p>
+                <p className="text-xs text-muted">Напишите первое сообщение — его увидят все участники проекта.</p>
+              </>
+            )}
           </div>
         )}
         {messages.map((m, index) => {
@@ -169,7 +229,23 @@ export function ChatPanel({ projectId }: { projectId: string }) {
                       <span className="text-faint">{formatTime(m.createdAt)}</span>
                     </p>
                   )}
-                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-fg/90">{m.body}</p>
+                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-fg/90">
+                    {parseRefs(m.body).map((part, partIndex) =>
+                      part.kind === "text" ? (
+                        part.text
+                      ) : (
+                        <Link
+                          key={partIndex}
+                          to={`/projects/${projectId}/files/${part.fileId}?line=${part.line}${part.column ? `&col=${part.column}` : ""}`}
+                          onClick={onFileLink}
+                          title="Открыть файл на этой строке"
+                          className="rounded bg-accent/10 px-1 font-mono text-[0.92em] text-accent-ink hover:underline"
+                        >
+                          {part.text}
+                        </Link>
+                      ),
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -180,9 +256,11 @@ export function ChatPanel({ projectId }: { projectId: string }) {
       <form onSubmit={onSubmit} className="border-t border-line p-3">
         {sendError && <p className="mb-2 text-xs text-bad">{sendError}</p>}
         {status !== "open" && (
-          <p className="mb-2 text-xs text-warn">{status === "connecting" ? "Подключаемся к чату…" : "Нет связи — сообщения могут приходить с задержкой"}</p>
+          <p role="status" className="mb-2 text-xs text-warn">
+            {status === "connecting" ? "Подключаемся к чату…" : "Нет связи — сообщения могут приходить с задержкой"}
+          </p>
         )}
-        <div className="flex items-end gap-2 rounded-xl border border-line bg-canvas px-3 py-2 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
+        <div className="flex items-end gap-2 rounded-xl border border-faint/80 bg-canvas px-3 py-2 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
           <textarea
             ref={composer}
             value={draft}
@@ -194,7 +272,7 @@ export function ChatPanel({ projectId }: { projectId: string }) {
             aria-label="Сообщение"
             className="max-h-32 min-h-[1.5rem] min-w-0 flex-1 resize-none bg-transparent text-sm leading-6 placeholder:text-faint focus:outline-none"
           />
-          <IconButton label="Отправить" type="submit" disabled={!draft.trim()} className="-mr-1 h-7 w-7 text-accent">
+          <IconButton label="Отправить" type="submit" disabled={!draft.trim()} className="-mr-1 h-7 w-7 text-accent-ink">
             <SendHorizontal size={17} />
           </IconButton>
         </div>

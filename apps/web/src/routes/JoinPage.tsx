@@ -54,7 +54,7 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
     setError(null);
     setLoading(true);
     try {
-      await continueAsGuest(name.trim() || undefined);
+      await continueAsGuest(name.trim());
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Не удалось войти как гость");
       setLoading(false);
@@ -86,13 +86,21 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
           <Field
             label="Как вас зовут?"
             placeholder="Например, Влад"
+            required
             maxLength={100}
             autoComplete="given-name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            hint="Имя увидят остальные участники. Регистрация не нужна."
+            hint={
+              <>
+                Имя увидят остальные участники. Регистрация не нужна.{" "}
+                <Link to="/privacy" className="underline hover:text-fg">
+                  Какие данные мы храним
+                </Link>
+              </>
+            }
           />
-          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
+          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading || !name.trim()}>
             <Sparkles size={16} />
             {loading ? "Заходим…" : "Присоединиться как гость"}
           </Button>
@@ -100,11 +108,11 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
 
         <p className="text-center text-sm text-muted">
           Уже есть аккаунт?{" "}
-          <Link to={`/login?redirect=${redirect}`} className="font-medium text-accent hover:underline">
+          <Link to={`/login?redirect=${redirect}`} className="font-medium text-accent-ink hover:underline">
             Войти
           </Link>{" "}
           или{" "}
-          <Link to={`/register?redirect=${redirect}`} className="font-medium text-accent hover:underline">
+          <Link to={`/register?redirect=${redirect}`} className="font-medium text-accent-ink hover:underline">
             создать
           </Link>
         </p>
@@ -141,7 +149,7 @@ export function JoinPage() {
     return (
       <Shell>
         <div className="text-center">
-          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent-ink">
             <LinkIcon size={22} />
           </span>
           <p className="font-semibold">Присоединяемся к проекту</p>

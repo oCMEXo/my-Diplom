@@ -6,6 +6,8 @@ import { api, ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { RealtimeProvider, useRealtimeEvents } from "../lib/RealtimeContext";
 import { BranchDialog, refreshProjectFiles } from "../components/BranchDialog";
+import type { ChatInsert } from "../components/ChatPanel";
+import { FollowBar } from "../components/FollowBar";
 import { TerminalPanel } from "../components/TerminalPanel";
 import { useRunMode } from "../lib/features";
 import { CreateFileDialog } from "../components/CreateFileDialog";
@@ -17,8 +19,9 @@ import { QuickOpen } from "../components/QuickOpen";
 import { RenameFileDialog } from "../components/RenameFileDialog";
 import { SearchPanel } from "../components/SearchPanel";
 import { InviteDialog } from "../components/InviteDialog";
+import { UnreadWatcher } from "../components/UnreadWatcher";
 import { ProjectNav } from "../components/layout/ProjectNav";
-import { SidePanel } from "../components/layout/SidePanel";
+import { SidePanel, type PanelTab } from "../components/layout/SidePanel";
 import type { ShellActions } from "../components/layout/ProjectHeader";
 import { ErrorScreen } from "../components/ui/ErrorScreen";
 import { FullScreenLoader } from "../components/ui/Spinner";
@@ -59,6 +62,17 @@ function MembersWatcher({ projectId }: { projectId: string }) {
   return null;
 }
 
+/** Somebody created, renamed or deleted a file: everybody's tree and trash stay current. */
+function FilesWatcher({ projectId }: { projectId: string }) {
+  const queryClient = useQueryClient();
+  useRealtimeEvents((event) => {
+    if (event.type !== "project.files") return;
+    queryClient.invalidateQueries({ queryKey: ["files", projectId] });
+    queryClient.invalidateQueries({ queryKey: ["trash", projectId] });
+  });
+  return null;
+}
+
 /** What the projects page says after the server took the open project away. */
 function revokedNotice(reason: AccessChangeReason, projectName: string) {
   if (reason === "deleted") return `Проект «${projectName}» удалён владельцем.`;
@@ -74,6 +88,9 @@ export function ProjectPage() {
 
   const [navOpen, setNavOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(() => window.matchMedia(WIDE).matches);
+  const [panelTab, setPanelTab] = useState<PanelTab>("chat");
+  const [unread, setUnread] = useState(0);
+  const [chatInsert, setChatInsert] = useState<ChatInsert | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [creatingFile, setCreatingFile] = useState<FileType | null>(null);
   const [creatingProject, setCreatingProject] = useState(false);
@@ -96,9 +113,21 @@ export function ProjectPage() {
     if (!window.matchMedia(WIDE).matches) setPanelOpen(false);
   }, []);
 
-  // Ctrl+P (or Ctrl+K) opens "go to file" instead of the browser's print dialog.
+  const closePanelIfDrawer = useCallback(() => {
+    if (!window.matchMedia(WIDE).matches) setPanelOpen(false);
+  }, []);
+
+  const clearChatInsert = useCallback(() => setChatInsert(null), []);
+
+  const shareInChat = useCallback((text: string) => {
+    setPanelOpen(true);
+    setPanelTab("chat");
+    setChatInsert((previous) => ({ text, key: (previous?.key ?? 0) + 1 }));
+  }, []);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      // Ctrl+P (or Ctrl+K) opens "go to file" instead of the browser's print dialog.
       if ((event.ctrlKey || event.metaKey) && !event.altKey && ["p", "k"].includes(event.key.toLowerCase())) {
         event.preventDefault();
         setSearching(true);
@@ -113,10 +142,15 @@ export function ProjectPage() {
         event.preventDefault();
         setTerminalOpen((open) => !open);
       }
+      // Escape closes a drawer that covers the page; a dialog on top closes first.
+      if (event.key === "Escape" && !document.querySelector('[role="dialog"]')) {
+        setNavOpen(false);
+        closePanelIfDrawer();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openFind]);
+  }, [openFind, closePanelIfDrawer]);
 
   // The mobile drawers should not stay open after moving to another page.
   useEffect(() => setNavOpen(false), [location.pathname]);
@@ -138,13 +172,14 @@ export function ProjectPage() {
       api.post<FileRecord>(`/projects/${projectId}/files`, input),
     onSuccess: (file) => {
       queryClient.invalidateQueries({ queryKey: ["files", projectId] });
-      navigate(`/projects/${projectId}/files/${file.id}`);
+      navigate(`/projects/${projectId}/files/${file.id}`, { state: { focusEditor: true } });
     },
   });
 
   const loadError = projectError ?? filesError;
   if ((!project || !files) && loadError) {
-    const missing = loadError instanceof ApiError && (loadError.status === 404 || loadError.status === 403);
+    // 400 is what the server says about an address that is not a project id at all.
+    const missing = loadError instanceof ApiError && [400, 403, 404].includes(loadError.status);
     return (
       <ErrorScreen
         title={missing ? "Проект недоступен" : "Не удалось открыть проект"}
@@ -167,11 +202,15 @@ export function ProjectPage() {
   if (!project || !files) return <FullScreenLoader label="Открываем проект…" />;
 
   const canEdit = project.myRole === "owner" || project.myRole === "editor";
+  // The server gives the link only to those who may hand it out; a viewer gets none.
+  const openInvite = project.inviteCode ? () => setInviteOpen(true) : undefined;
   const shell: ShellActions = {
     openNav: () => setNavOpen(true),
     togglePanel: () => setPanelOpen((value) => !value),
     panelOpen,
-    openInvite: () => setInviteOpen(true),
+    openInvite,
+    shareInChat,
+    unread,
   };
 
   return (
@@ -186,14 +225,17 @@ export function ProjectPage() {
     >
       <BranchWatcher projectId={project.id} />
       <MembersWatcher projectId={project.id} />
-      <div className="flex h-screen overflow-hidden">
+      <FilesWatcher projectId={project.id} />
+      <UnreadWatcher projectId={project.id} chatShown={panelOpen && panelTab === "chat"} setUnread={setUnread} />
+      <div className="flex h-dvh overflow-hidden">
         {navOpen && (
           <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-fade-in lg:hidden" onClick={() => setNavOpen(false)} />
         )}
         <div
           className={cn(
-            "fixed inset-y-0 left-0 z-40 shrink-0 transition-transform duration-200 lg:static lg:translate-x-0",
-            navOpen ? "translate-x-0" : "-translate-x-full",
+            "fixed inset-y-0 left-0 z-40 shrink-0 transition-transform duration-200 lg:visible lg:static lg:translate-x-0",
+            // Off-screen is not enough: its buttons would still catch the keyboard focus.
+            navOpen ? "translate-x-0" : "invisible -translate-x-full",
           )}
         >
           <ProjectNav
@@ -202,7 +244,7 @@ export function ProjectPage() {
             canEdit={canEdit}
             onCreateFile={setCreatingFile}
             onCreateProject={() => setCreatingProject(true)}
-            onInvite={() => setInviteOpen(true)}
+            onInvite={openInvite}
             onImport={() => setImporting(true)}
             onPush={() => setPushing(true)}
             onDeleteFile={setDeletingFile}
@@ -239,6 +281,7 @@ export function ProjectPage() {
         )}
 
         <main className="flex min-w-0 flex-1 flex-col">
+          <FollowBar projectId={project.id} />
           <Outlet
             context={
               {
@@ -260,7 +303,18 @@ export function ProjectPage() {
           <>
             <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-fade-in xl:hidden" onClick={shell.togglePanel} />
             <aside className="fixed inset-y-0 right-0 z-40 w-80 max-w-[90vw] border-l border-line animate-slide-in xl:static xl:z-auto">
-              <SidePanel project={project} onInvite={shell.openInvite} onClose={shell.togglePanel} />
+              <SidePanel
+                project={project}
+                files={files}
+                tab={panelTab}
+                unread={unread}
+                chatInsert={chatInsert}
+                onTabChange={setPanelTab}
+                onChatInsertDone={clearChatInsert}
+                onFileLink={closePanelIfDrawer}
+                onInvite={openInvite}
+                onClose={shell.togglePanel}
+              />
             </aside>
           </>
         )}
@@ -300,7 +354,9 @@ export function ProjectPage() {
           initialType={creatingFile}
           files={files}
           onClose={() => setCreatingFile(null)}
-          onCreate={(path, type) => createFile.mutate({ path, type })}
+          onCreate={async (path, type) => {
+            await createFile.mutateAsync({ path, type });
+          }}
         />
       )}
       {creatingProject && (

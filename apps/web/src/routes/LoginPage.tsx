@@ -70,14 +70,14 @@ export function LoginPage() {
         </div>
 
         <Button size="lg" onClick={onGuest} disabled={loading} className="w-full">
-          <Sparkles size={16} className="text-accent" />
+          <Sparkles size={16} className="text-accent-ink" />
           Продолжить как гость
         </Button>
         <p className="text-center text-xs text-faint">Гостю не нужны ни почта, ни пароль — достаточно открыть ссылку.</p>
 
         <p className="pt-2 text-center text-sm text-muted">
           Нет аккаунта?{" "}
-          <Link to={registerLink} className="font-medium text-accent hover:underline">
+          <Link to={registerLink} className="font-medium text-accent-ink hover:underline">
             Зарегистрироваться
           </Link>
         </p>

@@ -67,10 +67,12 @@ export function EmptyProjectView() {
                 Импортировать из GitHub
               </Button>
             )}
-            <Button onClick={shell.openInvite}>
-              <UserPlus size={15} />
-              Пригласить участников
-            </Button>
+            {shell.openInvite && (
+              <Button onClick={shell.openInvite}>
+                <UserPlus size={15} />
+                Пригласить участников
+              </Button>
+            )}
           </div>
         </div>
       </div>

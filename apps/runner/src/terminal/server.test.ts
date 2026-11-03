@@ -132,6 +132,67 @@ describe("terminal server", () => {
     first.socket.close();
   });
 
+  it("frees the place when the browser leaves while the ticket is being read", async () => {
+    const sessions = fakeSessions();
+    let letTicketThrough = () => {};
+    const tickets = [ticketData(), ticketData()];
+    const server = createTerminalServer({
+      takeTicket: async () => {
+        await new Promise<void>((resolve) => (letTicketThrough = resolve));
+        return tickets.shift() ?? null;
+      },
+      openSession: sessions.openSession,
+      maxMs: 60_000,
+      maxPerUser: 1,
+      maxTotal: 10,
+    });
+    servers.push(server);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const port = (server.address() as AddressInfo).port;
+
+    const leaving = connect(`ws://127.0.0.1:${port}/?ticket=a`);
+    await new Promise((resolve) => leaving.socket.on("open", resolve));
+    leaving.socket.terminate();
+    await leaving.closed;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    letTicketThrough();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(sessions.opened).toHaveLength(0);
+    const next = connect(`ws://127.0.0.1:${port}/?ticket=b`);
+    await new Promise((resolve) => next.socket.on("open", resolve));
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    letTicketThrough();
+    await next.until((all) => all.some((m) => m.type === "ready"));
+    next.socket.close();
+  });
+
+  it("closes the terminals of a person whose access changed, and only theirs", async () => {
+    const other: TerminalTicketData = { ...ticketData(), userId: "33333333-3333-4333-8333-333333333333" };
+    const sessions = fakeSessions();
+    const server = createTerminalServer({
+      takeTicket: async (ticket) => (ticket === "mine" ? ticketData() : other),
+      openSession: sessions.openSession,
+      maxMs: 60_000,
+      maxPerUser: 2,
+      maxTotal: 10,
+    });
+    servers.push(server);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const port = (server.address() as AddressInfo).port;
+    const mine = connect(`ws://127.0.0.1:${port}/?ticket=mine`);
+    const theirs = connect(`ws://127.0.0.1:${port}/?ticket=theirs`);
+    await mine.until((all) => all.some((m) => m.type === "ready"));
+    await theirs.until((all) => all.some((m) => m.type === "ready"));
+
+    server.closeFor(PROJECT, USER);
+    await mine.closed;
+
+    expect(mine.messages.at(-1)).toMatchObject({ type: "exit", message: expect.stringContaining("доступ") });
+    expect(theirs.socket.readyState).toBe(WebSocket.OPEN);
+    theirs.socket.close();
+  });
+
   it("explains when the sandbox cannot start", async () => {
     const server = await start({ t1: ticketData() }, {
       opened: [],

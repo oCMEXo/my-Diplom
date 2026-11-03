@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { missingModule } from "./run-hints";
+import { missingModule, wantsInput } from "./run-hints";
 
 describe("missingModule", () => {
   it("names a missing node package", () => {
@@ -19,5 +19,16 @@ describe("missingModule", () => {
   it("is null for ordinary errors", () => {
     expect(missingModule("ZeroDivisionError: division by zero")).toBeNull();
     expect(missingModule("")).toBeNull();
+  });
+});
+
+describe("wantsInput", () => {
+  it("recognises a Python program left without keyboard input", () => {
+    expect(wantsInput('  File "/tmp/p/main.py", line 1\nEOFError: EOF when reading a line')).toBe(true);
+  });
+
+  it("does not react to other errors or to the word inside a name", () => {
+    expect(wantsInput("ZeroDivisionError: division by zero")).toBe(false);
+    expect(wantsInput("MyEOFErrorHandler is fine")).toBe(false);
   });
 });

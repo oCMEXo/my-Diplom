@@ -3,7 +3,7 @@ import { cn } from "../../lib/cn";
 
 const ROLES = {
   owner: { label: "владелец", icon: Crown, tone: "bg-warn/15 text-warn" },
-  editor: { label: "редактор", icon: Pencil, tone: "bg-accent/15 text-accent" },
+  editor: { label: "редактор", icon: Pencil, tone: "bg-accent/15 text-accent-ink" },
   viewer: { label: "наблюдатель", icon: Eye, tone: "bg-raised text-muted" },
 } as const;
 

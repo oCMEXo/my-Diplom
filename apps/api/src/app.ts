@@ -1,9 +1,10 @@
-import Fastify, { type FastifyError } from "fastify";
+import Fastify, { type FastifyError, type FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import rateLimit from "@fastify/rate-limit";
+import { withoutToken } from "./lib/log-url.js";
 import {
   jsonSchemaTransform,
   serializerCompiler,
@@ -25,6 +26,7 @@ import { importRoutes } from "./modules/import/import.routes.js";
 import { githubRoutes } from "./modules/github/github.routes.js";
 import { branchesRoutes } from "./modules/branches/branches.routes.js";
 import { terminalRoutes } from "./modules/terminal/terminal.routes.js";
+import { exportRoutes } from "./modules/export/export.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
 import { closeTerminalTickets } from "./lib/terminal-tickets.js";
 import { codeMatches, runMode } from "./lib/run-access.js";
@@ -42,13 +44,32 @@ export interface AppOptions {
 }
 
 /** Endpoints that cost a password hash or create an account: the ones worth limiting harder. */
-const AUTH_LIMITED_URLS = new Set(["/auth/register", "/auth/login", "/auth/guest", "/auth/refresh", "/run-access"]);
+const AUTH_LIMITED_URLS = new Set([
+  "/auth/register",
+  "/auth/login",
+  "/auth/guest",
+  "/auth/refresh",
+  "/auth/upgrade",
+  "/auth/delete-account",
+  "/run-access",
+]);
 
 export async function buildApp(options: AppOptions = {}) {
   const limits = options.rateLimit ?? { perMinute: env.RATE_LIMIT_PER_MINUTE, authPerMinute: env.RATE_LIMIT_AUTH_PER_MINUTE };
   const runEnabled = options.runEnabled ?? env.RUN_ENABLED;
   const runAccessCode = "runAccessCode" in options ? options.runAccessCode : env.RUN_ACCESS_CODE;
-  const app = Fastify({ logger: true, trustProxy: options.trustProxy ?? env.TRUST_PROXY });
+  const app = Fastify({
+    logger: {
+      serializers: {
+        req: (request: FastifyRequest) => ({
+          method: request.method,
+          url: withoutToken(request.url),
+          remoteAddress: request.ip,
+        }),
+      },
+    },
+    trustProxy: options.trustProxy ?? env.TRUST_PROXY,
+  });
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
@@ -64,7 +85,7 @@ export async function buildApp(options: AppOptions = {}) {
       return reply.code(error.statusCode).send({ message: error.message });
     }
     request.log.error(error);
-    return reply.code(500).send({ message: "Internal Server Error" });
+    return reply.code(500).send({ message: "Ошибка на сервере. Попробуйте ещё раз." });
   });
 
   await app.register(cors, { origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true });
@@ -136,6 +157,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(importRoutes, { prefix: "/projects" });
   await app.register(githubRoutes, { prefix: "/projects" });
   await app.register(branchesRoutes, { prefix: "/projects" });
+  await app.register(exportRoutes, { prefix: "/projects" });
   await app.register(realtimeRoutes);
 
   app.addHook("onClose", closeRunQueue);

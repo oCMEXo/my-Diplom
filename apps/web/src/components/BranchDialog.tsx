@@ -114,8 +114,8 @@ export function BranchDialog({
                       {data.loaded.includes(name) && !active && (
                         <span className="rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted">открывалась</span>
                       )}
-                      {pending && <LoaderCircle size={15} className="animate-spin text-accent" />}
-                      {active && <Check size={15} className="text-accent" />}
+                      {pending && <LoaderCircle size={15} className="animate-spin text-accent-ink" />}
+                      {active && <Check size={15} className="text-accent-ink" />}
                     </button>
                   </li>
                 );

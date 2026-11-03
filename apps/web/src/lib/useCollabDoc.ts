@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { IndexeddbPersistence } from "y-indexeddb";
+import { freshAccessToken } from "./api";
 import { colorForUser } from "./colors";
 import { wsUrl } from "./endpoints";
 import { tokenStore } from "./tokenStore";
@@ -21,12 +22,13 @@ export function useCollabDoc(fileId: string) {
     const next = new HocuspocusProvider({
       url: wsUrl(COLLAB_URL, window.location.origin),
       name: fileId,
-      token: auth.tokens.accessToken,
+      // Asked for again on every reconnect: after a long time offline the old token has expired.
+      token: freshAccessToken,
       onStatus: ({ status: value }) =>
         setStatus(value === "connected" ? "connected" : value === "connecting" ? "connecting" : "offline"),
     });
     const persistence = new IndexeddbPersistence(fileId, next.document);
-    next.setAwarenessField("user", { name: auth.user.name, color: colorForUser(auth.user.id) });
+    next.setAwarenessField("user", { id: auth.user.id, name: auth.user.name, color: colorForUser(auth.user.id) });
     setProvider(next);
 
     return () => {

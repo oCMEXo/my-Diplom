@@ -4,10 +4,12 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { AuthProvider } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LoginPage } from "./routes/LoginPage";
 import { RegisterPage } from "./routes/RegisterPage";
 import { JoinPage } from "./routes/JoinPage";
+import { PrivacyPage } from "./routes/PrivacyPage";
 import { ProjectsPage } from "./routes/ProjectsPage";
 import { ProjectPage } from "./routes/ProjectPage";
 import { FileEditorPage } from "./routes/FileEditorPage";
@@ -41,19 +43,22 @@ export function App() {
       <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/join/:code" element={<JoinPage />} />
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<ProjectsPage />} />
-              <Route path="/projects/:projectId" element={<ProjectPage />}>
-                <Route index element={<EmptyProjectView />} />
-                <Route path="files/:fileId" element={<FileEditorPage />} />
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/join/:code" element={<JoinPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<ProjectsPage />} />
+                <Route path="/projects/:projectId" element={<ProjectPage />}>
+                  <Route index element={<EmptyProjectView />} />
+                  <Route path="files/:fileId" element={<FileEditorPage />} />
+                </Route>
               </Route>
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ErrorBoundary>
         </BrowserRouter>
       </AuthProvider>
       </ThemeProvider>

@@ -96,6 +96,15 @@ let terminal: http.Server;
     expect(seen.forwardedFor).toContain("127.0.0.1");
   });
 
+  it("ignores an address forged by the visitor and uses the one the tunnel reports", async () => {
+    await get("/api/ping", { headers: { "X-Forwarded-For": "1.2.3.4" } });
+    expect(String(seen.forwardedFor)).not.toContain("1.2.3.4");
+
+    await get("/api/ping", { headers: { "X-Forwarded-For": "1.2.3.4", "CF-Connecting-IP": "5.6.7.8" } });
+    expect(String(seen.forwardedFor).split(",")[0]).toBe("5.6.7.8");
+    expect(String(seen.forwardedFor)).not.toContain("1.2.3.4");
+  });
+
   it("does not mistake a similar-looking path for the API", async () => {
     const response = await get("/apiary");
     expect(await response.text()).toContain("<title>app</title>");
