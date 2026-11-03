@@ -64,4 +64,42 @@ describe("hub.disconnect", () => {
   it("does nothing for a project nobody has open", () => {
     expect(hub.disconnect(randomUUID(), randomUUID(), 4410, "removed")).toBe(0);
   });
+
+describe("hub.setFile", () => {
+  const person = { id: "11111111-1111-4111-8111-111111111111", name: "Аня", isGuest: false };
+  const socket = () => ({ sent: [] as string[], send(data: string) { this.sent.push(data); }, readyState: 1 });
+
+  it("shares which file a person has open, once per change", () => {
+    const projectId = "22222222-2222-4222-8222-222222222222";
+    const fileId = "33333333-3333-4333-8333-333333333333";
+    const mine = socket();
+    const other = socket();
+    const stopMine = hub.subscribe(projectId, mine, person);
+    const stopOther = hub.subscribe(projectId, other, null);
+    const before = other.sent.length;
+
+    hub.setFile(projectId, mine, fileId);
+    hub.setFile(projectId, mine, fileId);
+
+    expect(other.sent.length).toBe(before + 1);
+    expect(hub.presence(projectId)).toEqual([{ ...person, fileId }]);
+    stopMine();
+    stopOther();
+  });
+
+  it("prefers the tab that has a file over another tab of the same person", () => {
+    const projectId = "44444444-4444-4444-8444-444444444444";
+    const fileId = "33333333-3333-4333-8333-333333333333";
+    const first = socket();
+    const second = socket();
+    const stopFirst = hub.subscribe(projectId, first, person);
+    const stopSecond = hub.subscribe(projectId, second, person);
+
+    hub.setFile(projectId, first, fileId);
+
+    expect(hub.presence(projectId)).toEqual([{ ...person, fileId }]);
+    stopFirst();
+    stopSecond();
+  });
+});
 });

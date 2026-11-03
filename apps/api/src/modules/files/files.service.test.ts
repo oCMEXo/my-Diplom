@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { prisma } from "@collab/db";
+import type { RealtimeEvent } from "@collab/shared";
 import { env } from "../../env.js";
+import { hub } from "../../lib/hub.js";
 import { createProject, inviteMember } from "../projects/projects.service.js";
 import {
   createFile,
@@ -251,5 +253,31 @@ describe("files.service", () => {
       await purgeExpiredTrash(now, 7);
       expect(await exists(weekOld)).toBe(false);
     });
+  });
+
+  it("tells everybody in the project when the list of files changes", async () => {
+    const owner = await createTestUser();
+    const project = await createProject(owner.id, { name: "Live list" });
+    const events: RealtimeEvent[] = [];
+    const unsubscribe = hub.subscribe(project.id, { send: (data: string) => events.push(JSON.parse(data)), readyState: 1 });
+    const seen = () => events.filter((event) => event.type === "project.files").length;
+
+    try {
+      const file = await createFile(owner.id, project.id, { path: "a.js", type: "code" });
+      expect(seen()).toBe(1);
+      await updateFile(owner.id, project.id, file.id, { path: "b.js" });
+      expect(seen()).toBe(2);
+      await deleteFile(owner.id, project.id, file.id);
+      expect(seen()).toBe(3);
+      await restoreFile(owner.id, project.id, file.id);
+      expect(seen()).toBe(4);
+      await deleteFile(owner.id, project.id, file.id);
+      await purgeFile(owner.id, project.id, file.id);
+      expect(seen()).toBe(6);
+    } finally {
+      unsubscribe();
+      await prisma.project.delete({ where: { id: project.id } });
+      await prisma.user.delete({ where: { id: owner.id } });
+    }
   });
 });

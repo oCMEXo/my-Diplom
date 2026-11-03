@@ -32,7 +32,7 @@ export function ProjectsPage() {
   const [link, setLink] = useState("");
   const [removing, setRemoving] = useState<Project | null>(null);
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, isError, refetch } = useQuery({
     queryKey: ["projects"],
     queryFn: () => api.get<Project[]>("/projects"),
   });
@@ -100,8 +100,16 @@ export function ProjectsPage() {
           </div>
         )}
 
+        {isError && !projects && (
+          <div className="py-12 text-center">
+            <p className="text-sm font-medium">Не удалось загрузить проекты</p>
+            <p className="mb-4 mt-1 text-sm text-muted">Похоже, нет связи с сервером.</p>
+            <Button onClick={() => void refetch()}>Повторить</Button>
+          </div>
+        )}
+
         {projects && (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
               <li key={project.id} className="group/card relative">
                 <Link
@@ -115,21 +123,21 @@ export function ProjectsPage() {
                     {initials(project.name)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{project.name}</p>
+                    <p title={project.name} className="truncate font-semibold">{project.name}</p>
                     <p className="mt-1 text-xs text-faint">
                       создан {new Date(project.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
                     <RoleBadge role={project.myRole} />
-                    <ArrowRight size={16} className="text-faint transition group-hover:translate-x-1 group-hover:text-accent" />
+                    <ArrowRight size={16} className="text-faint transition group-hover:translate-x-1 group-hover:text-accent-ink" />
                   </div>
                 </Link>
                 <button
                   onClick={() => setRemoving(project)}
                   aria-label={project.myRole === "owner" ? `Удалить проект ${project.name}` : `Покинуть проект ${project.name}`}
                   title={project.myRole === "owner" ? "Удалить проект" : "Покинуть проект"}
-                  className="absolute right-3 top-3 rounded-lg p-1.5 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/card:opacity-100"
+                  className="touch-visible absolute right-3 top-3 rounded-lg p-1.5 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/card:opacity-100"
                 >
                   {project.myRole === "owner" ? <Trash2 size={16} /> : <LogOut size={16} />}
                 </button>
@@ -138,7 +146,7 @@ export function ProjectsPage() {
             <li>
               <button
                 onClick={() => setCreating(true)}
-                className="flex h-full min-h-[11rem] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line text-sm text-muted transition hover:border-accent hover:text-accent"
+                className="flex h-full min-h-[11rem] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line text-sm text-muted transition hover:border-accent hover:text-accent-ink"
               >
                 <Plus size={22} />
                 Создать проект

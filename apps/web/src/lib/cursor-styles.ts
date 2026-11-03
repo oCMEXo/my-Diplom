@@ -25,7 +25,7 @@ export function remoteCursorCss(awareness: Awareness): string {
       `.yRemoteSelection-${clientId}{background-color:${color}33}`,
       `.yRemoteSelectionHead-${clientId}{position:absolute;box-sizing:border-box;height:100%;border-left:2px solid ${color}}`,
       `.yRemoteSelectionHead-${clientId}::after{content:"${name}";position:absolute;top:-1.5em;left:-2px;z-index:10;` +
-        `padding:1px 5px;border-radius:3px 3px 3px 0;background:${color};color:#fff;font:600 10px/1.3 system-ui,sans-serif;white-space:nowrap}`,
+        `padding:1px 5px;border-radius:3px 3px 3px 0;background:${color};color:#000;font:600 10px/1.3 system-ui,sans-serif;white-space:nowrap}`,
     );
   });
   return rules.join("\n");

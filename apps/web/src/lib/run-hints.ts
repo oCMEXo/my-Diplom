@@ -8,3 +8,8 @@ export function missingModule(output: string): string | null {
   const python = output.match(/ModuleNotFoundError: No module named '([^']+)'/);
   return python?.[1] ?? null;
 }
+
+/** The program asked for keyboard input, which a run started with the button cannot give it. */
+export function wantsInput(output: string): boolean {
+  return /\bEOFError\b/.test(output);
+}

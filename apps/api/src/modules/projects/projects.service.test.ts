@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { Redis } from "ioredis";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { prisma } from "@collab/db";
 import { ACCESS_CHANGES_CHANNEL, type AccessChange } from "@collab/shared";
 import { env } from "../../env.js";
 import { closeAccessChanges } from "../../lib/access-changes.js";
+import { hub } from "../../lib/hub.js";
 import {
   createProject,
   deleteProject,
@@ -169,7 +170,7 @@ describe("projects.service", () => {
     const joiner = await user();
     const p = await project(owner.id);
 
-    const joined = await joinViaInvite(joiner.id, p.inviteCode);
+    const joined = await joinViaInvite(joiner.id, p.inviteCode!);
     expect(joined.id).toBe(p.id);
     expect(joined.myRole).toBe("editor");
 
@@ -177,15 +178,32 @@ describe("projects.service", () => {
     expect(fetched.members.find((m) => m.userId === joiner.id)?.role).toBe("editor");
   });
 
+  it("tells the people in the project about a newcomer, once", async () => {
+    const owner = await user();
+    const joiner = await user();
+    const p = await project(owner.id);
+    const events: unknown[] = [];
+    const broadcast = vi.spyOn(hub, "broadcast").mockImplementation((_projectId, event) => {
+      events.push(event);
+    });
+
+    await joinViaInvite(joiner.id, p.inviteCode!);
+    await joinViaInvite(joiner.id, p.inviteCode!);
+    broadcast.mockRestore();
+
+    expect(events).toEqual([{ type: "project.members", projectId: p.id }]);
+  });
+
   it("joining twice with the same code is idempotent and keeps the existing role", async () => {
     const owner = await user();
     const joiner = await user();
     const p = await project(owner.id);
 
-    await joinViaInvite(joiner.id, p.inviteCode);
+    await joinViaInvite(joiner.id, p.inviteCode!);
     await updateMemberRole(owner.id, p.id, joiner.id, "viewer");
 
-    const rejoined = await joinViaInvite(joiner.id, p.inviteCode);
+    const { inviteCode } = await getProject(owner.id, p.id);
+    const rejoined = await joinViaInvite(joiner.id, inviteCode!);
     expect(rejoined.myRole).toBe("viewer");
 
     const fetched = await getProject(owner.id, p.id);
@@ -212,7 +230,7 @@ describe("projects.service", () => {
     const regenerated = await regenerateInviteLink(owner.id, p.id);
     expect(regenerated.inviteCode).not.toBe(p.inviteCode);
 
-    await expect(joinViaInvite((await user()).id, p.inviteCode)).rejects.toMatchObject({
+    await expect(joinViaInvite((await user()).id, p.inviteCode!)).rejects.toMatchObject({
       statusCode: 404,
     });
 
@@ -300,5 +318,55 @@ describe("projects.service", () => {
 
       expect(await changesFor(p.id, 1)).toEqual([{ projectId: p.id, userId: editor.id, reason: "role" }]);
     });
+  });
+
+  it("gives the invitation link to owners and editors, but not to viewers", async () => {
+    const owner = await user();
+    const editor = await user();
+    const viewer = await user();
+    const p = await project(owner.id);
+    await inviteMember(owner.id, p.id, { email: editor.email, role: "editor" });
+    await inviteMember(owner.id, p.id, { email: viewer.email, role: "viewer" });
+
+    expect((await getProject(owner.id, p.id)).inviteCode).toBe(p.inviteCode);
+    expect((await getProject(editor.id, p.id)).inviteCode).toBe(p.inviteCode);
+    expect((await getProject(viewer.id, p.id)).inviteCode).toBeNull();
+  });
+
+  it("does not show members' e-mail addresses to each other", async () => {
+    const owner = await user();
+    const p = await project(owner.id);
+    const fetched = await getProject(owner.id, p.id);
+    expect(fetched.members[0]).not.toHaveProperty("email");
+  });
+
+  it("makes the old link useless when somebody is removed or demoted", async () => {
+    const owner = await user();
+    const member = await user();
+    const stranger = await user();
+    const p = await project(owner.id);
+    await joinViaInvite(member.id, p.inviteCode!);
+
+    // Demoted: they saw the link and must not come back as an editor under another account.
+    await updateMemberRole(owner.id, p.id, member.id, "viewer");
+    await expect(joinViaInvite(stranger.id, p.inviteCode!)).rejects.toMatchObject({ statusCode: 404 });
+
+    // Removed: the link they still have does not let them back in.
+    const afterDemotion = (await getProject(owner.id, p.id)).inviteCode!;
+    await updateMemberRole(owner.id, p.id, member.id, "editor");
+    await removeMember(owner.id, p.id, member.id);
+    await expect(joinViaInvite(member.id, afterDemotion)).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("changes the link when a read-only link starts giving write access", async () => {
+    const owner = await user();
+    const p = await project(owner.id);
+
+    const readOnly = await updateInviteRole(owner.id, p.id, "viewer");
+    expect(readOnly.inviteCode).toBe(p.inviteCode);
+
+    const editing = await updateInviteRole(owner.id, p.id, "editor");
+    expect(editing.inviteCode).not.toBe(readOnly.inviteCode);
+    await expect(joinViaInvite((await user()).id, readOnly.inviteCode)).rejects.toMatchObject({ statusCode: 404 });
   });
 });

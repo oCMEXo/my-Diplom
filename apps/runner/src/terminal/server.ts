@@ -30,6 +30,7 @@ export function createTerminalServer(options: TerminalServerOptions) {
   const wss = new WebSocketServer({ server, maxPayload: 64 * 1024 });
   const perUser = new Map<string, number>();
   let total = 0;
+  const open = new Set<{ socket: WebSocket; userId: string; projectId: string }>();
 
   wss.on("connection", async (socket: WebSocket & { alive?: boolean }, request) => {
     const send = (message: TerminalServerMessage) => {
@@ -42,9 +43,21 @@ export function createTerminalServer(options: TerminalServerOptions) {
     socket.alive = true;
     socket.on("pong", () => (socket.alive = true));
 
+    // Before anything asynchronous: a browser that leaves while the ticket is being read must still be
+    // noticed, or its container and its place in the limits would stay taken for half an hour.
+    let gone = false;
+    let session: TerminalSession | null = null;
+    let release = () => {};
+    socket.on("close", () => {
+      gone = true;
+      session?.close();
+      release();
+    });
+
     const url = new URL(request.url ?? "/", "http://terminal");
     const ticket = url.searchParams.get("ticket") ?? "";
     const data = ticket ? await options.takeTicket(ticket).catch(() => null) : null;
+    if (gone) return;
     if (!data) return end("Ссылка на терминал устарела. Откройте терминал заново.");
     if ((perUser.get(data.userId) ?? 0) >= options.maxPerUser) {
       return end(`Открыто слишком много терминалов (не больше ${options.maxPerUser}). Закройте лишние вкладки.`);
@@ -54,7 +67,7 @@ export function createTerminalServer(options: TerminalServerOptions) {
     perUser.set(data.userId, (perUser.get(data.userId) ?? 0) + 1);
     total += 1;
     let released = false;
-    const release = () => {
+    release = () => {
       if (released) return;
       released = true;
       total -= 1;
@@ -62,11 +75,12 @@ export function createTerminalServer(options: TerminalServerOptions) {
       if (left > 0) perUser.set(data.userId, left);
       else perUser.delete(data.userId);
     };
+    const owner = { socket, userId: data.userId, projectId: data.projectId };
+    open.add(owner);
+    socket.on("close", () => open.delete(owner));
 
     // Keystrokes typed while the container starts are kept and sent once the shell is there.
     const early: string[] = [];
-    let session: TerminalSession | null = null;
-    let gone = false;
     socket.on("message", (raw) => {
       let parsed: unknown;
       try {
@@ -83,12 +97,6 @@ export function createTerminalServer(options: TerminalServerOptions) {
         session?.resize(message.data.cols, message.data.rows);
       }
     });
-    socket.on("close", () => {
-      gone = true;
-      session?.close();
-      release();
-    });
-
     send({ type: "status", message: "Запускаем песочницу…" });
     try {
       const opened = await options.openSession({
@@ -128,5 +136,15 @@ export function createTerminalServer(options: TerminalServerOptions) {
     for (const socket of wss.clients) socket.terminate();
     wss.close();
   });
-  return server;
+
+  /** Access to the project changed: the person's terminals close (everybody's when no user is given). */
+  const closeFor = (projectId: string, userId?: string) => {
+    for (const entry of open) {
+      if (entry.projectId !== projectId || (userId && entry.userId !== userId)) continue;
+      const message: TerminalServerMessage = { type: "exit", message: "Ваш доступ к проекту изменился, терминал закрыт." };
+      if (entry.socket.readyState === entry.socket.OPEN) entry.socket.send(JSON.stringify(message));
+      entry.socket.close(1000);
+    }
+  };
+  return Object.assign(server, { closeFor });
 }

@@ -60,7 +60,7 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
               onClick={() => closeTab(file.id)}
               aria-label={`Закрыть вкладку ${file.path}`}
               title="Закрыть вкладку"
-              className="mr-1.5 rounded p-0.5 text-faint opacity-0 transition hover:bg-raised hover:text-fg focus-visible:opacity-100 group-hover/tab:opacity-100"
+              className="touch-visible mr-1.5 rounded p-0.5 text-faint opacity-0 transition hover:bg-raised hover:text-fg focus-visible:opacity-100 group-hover/tab:opacity-100"
             >
               <X size={13} />
             </button>

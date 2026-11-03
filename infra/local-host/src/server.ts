@@ -19,6 +19,17 @@ const PREFIXES = [
   { prefix: "/terminal", key: "terminalTarget" },
 ] as const;
 
+/**
+ * The API limits requests per address and trusts X-Forwarded-For, so a value sent by the visitor must
+ * not reach it. This server listens only on 127.0.0.1: what comes through the tunnel carries the real
+ * address in CF-Connecting-IP, which Cloudflare sets itself.
+ */
+function setClientAddress(request: http.IncomingMessage) {
+  const real = request.headers["cf-connecting-ip"];
+  if (typeof real === "string" && real) request.headers["x-forwarded-for"] = real;
+  else delete request.headers["x-forwarded-for"];
+}
+
 /** `/api`, `/api/x` and `/api?x` belong to the API; `/apiary` does not. */
 function match(url: string, prefix: string) {
   return url === prefix || url.startsWith(`${prefix}/`) || url.startsWith(`${prefix}?`);
@@ -72,6 +83,7 @@ export function createHostServer(options: HostOptions) {
     const routed = route(request.url ?? "/", options);
     if (routed) {
       request.url = routed.rest;
+      setClientAddress(request);
       proxy.web(request, response, { target: routed.target });
       return;
     }
@@ -88,6 +100,7 @@ export function createHostServer(options: HostOptions) {
       return;
     }
     request.url = routed.rest;
+    setClientAddress(request);
     proxy.ws(request, socket, head, { target: routed.target });
   });
 

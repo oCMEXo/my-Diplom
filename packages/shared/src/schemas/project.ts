@@ -10,7 +10,6 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 export const projectMemberSchema = z.object({
   userId: z.string().uuid(),
-  email: z.string().email(),
   name: z.string(),
   role: projectRoleSchema,
 });
@@ -33,7 +32,8 @@ export const projectSchema = z.object({
   ownerId: z.string().uuid(),
   createdAt: z.string().datetime(),
   myRole: projectRoleSchema,
-  inviteCode: z.string(),
+  /** Null for viewers: with the code they could come back as editors under another account. */
+  inviteCode: z.string().nullable(),
   inviteRole: inviteRoleSchema,
   github: githubLinkSchema.nullable(),
 });

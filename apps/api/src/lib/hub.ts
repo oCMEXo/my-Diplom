@@ -29,6 +29,15 @@ class Hub {
     };
   }
 
+  /** Remembers which file a connection has open and tells the room, so that others can follow. */
+  setFile(projectId: string, socket: HubSocket, fileId: string | null) {
+    const room = this.rooms.get(projectId);
+    const user = room?.get(socket);
+    if (!room || !user || (user.fileId ?? null) === fileId) return;
+    room.set(socket, { ...user, fileId });
+    this.broadcastPresence(projectId);
+  }
+
   broadcast(projectId: string, event: RealtimeEvent) {
     const room = this.rooms.get(projectId);
     if (!room) return;
@@ -63,7 +72,8 @@ class Hub {
   presence(projectId: string): PresenceUser[] {
     const unique = new Map<string, PresenceUser>();
     for (const user of this.rooms.get(projectId)?.values() ?? []) {
-      if (user) unique.set(user.id, user);
+      // With several tabs open, the one that has a file says more than the one that has not.
+      if (user && (user.fileId || !unique.get(user.id)?.fileId)) unique.set(user.id, user);
     }
     return [...unique.values()].sort((a, b) => a.name.localeCompare(b.name));
   }

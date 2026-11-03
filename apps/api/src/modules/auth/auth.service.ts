@@ -1,7 +1,15 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { prisma } from "@collab/db";
 import { REFRESH_TOKEN_TTL_SECONDS } from "@collab/shared";
-import type { GuestLoginInput, LoginInput, RegisterInput, UpdateProfileInput } from "@collab/shared";
+import type {
+  DeleteAccountInput,
+  GuestLoginInput,
+  LoginInput,
+  RegisterInput,
+  UpdateProfileInput,
+  UpgradeGuestInput,
+} from "@collab/shared";
+import { announceAccessChange } from "../../lib/access-changes.js";
 import { hashPassword, verifyPassword } from "../../lib/password.js";
 import { signAccessToken } from "../../lib/jwt.js";
 import { generateRefreshToken, hashRefreshToken } from "../../lib/refresh-token.js";
@@ -63,7 +71,8 @@ export async function loginAsGuest(input: GuestLoginInput) {
   const user = await prisma.user.create({
     data: {
       email: `guest-${randomUUID()}@guest.local`,
-      name: input.name?.trim() || "Гость",
+      // Without a number every nameless guest would look the same on the cursors and in the chat.
+      name: input.name?.trim() || `Гость ${randomInt(1000, 10000)}`,
       passwordHash,
       isGuest: true,
     },
@@ -89,10 +98,55 @@ export async function refreshSession(refreshToken: string) {
     throw new AppError("Сессия истекла. Войдите снова.", 401);
   }
 
-  await prisma.refreshToken.delete({ where: { id: stored.id } });
+  // Two tabs can present the same token at once: only one of them gets a new one.
+  const { count } = await prisma.refreshToken.deleteMany({ where: { id: stored.id } });
+  if (count === 0) throw new AppError("Сессия истекла. Войдите снова.", 401);
 
   const tokens = await issueTokens(stored.user);
   return { user: toAuthUser(stored.user), tokens };
+}
+
+/** A guest keeps the account, and with it the projects and the chat history, by adding a login. */
+export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  if (!user.isGuest) throw new AppError("Это уже постоянный аккаунт", 400);
+
+  const taken = await prisma.user.findUnique({ where: { email: input.email } });
+  if (taken) throw new AppError("Этот email уже зарегистрирован", 409);
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { email: input.email, passwordHash: await hashPassword(input.password), isGuest: false },
+  });
+  return toAuthUser(updated);
+}
+
+/**
+ * The right to erasure: the account, its own messages and the projects it owns go for good. Files
+ * history stays anonymous in other people's projects (the author is set to null by the database).
+ */
+export async function deleteAccount(userId: string, input: DeleteAccountInput) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  if (!user.isGuest && !(input.password && (await verifyPassword(user.passwordHash, input.password)))) {
+    throw new AppError("Неверный пароль", 403);
+  }
+
+  const memberships = await prisma.projectMember.findMany({
+    where: { userId },
+    select: { projectId: true, role: true },
+  });
+
+  await prisma.$transaction([
+    prisma.message.deleteMany({ where: { authorId: userId } }),
+    prisma.project.deleteMany({ where: { ownerId: userId } }),
+    prisma.user.delete({ where: { id: userId } }),
+  ]);
+
+  for (const { projectId, role } of memberships) {
+    await announceAccessChange(
+      role === "owner" ? { projectId, reason: "deleted" } : { projectId, userId, reason: "left" },
+    );
+  }
 }
 
 export async function revokeRefreshToken(refreshToken: string) {

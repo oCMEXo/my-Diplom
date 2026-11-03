@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Editor, { type Monaco, type OnMount } from "@monaco-editor/react";
 import { MonacoBinding } from "y-monaco";
+import * as Y from "yjs";
 import { MONACO_THEME } from "../lib/monaco-setup";
 import { installRemoteCursorStyles } from "../lib/cursor-styles";
 import { useCollabDoc, type CollabStatus } from "../lib/useCollabDoc";
@@ -14,6 +15,15 @@ export interface EditorController {
   setErrorLine: (line: number | null) => void;
   /** Puts the cursor at the line (and column) and scrolls it into view; returns a function that cancels a pending move. */
   revealLine: (line: number, column?: number) => () => void;
+  getCursorLine: () => number;
+}
+
+type CodeEditor = Parameters<OnMount>[0];
+
+/** What y-monaco and useCollabDoc publish about each participant. */
+interface PeerState {
+  user?: { id?: unknown };
+  selection?: { head?: Y.RelativePosition | null } | null;
 }
 
 /** Below this height (px) the editor is still being laid out, so scrolling it would not stick. */
@@ -27,14 +37,24 @@ export function CollabEditor({
   fileId,
   language,
   readOnly,
+  autoFocus,
+  following,
   onStatusChange,
   onReady,
+  onTyped,
+  onShareLine,
 }: {
   fileId: string;
   language: string | null;
   readOnly: boolean;
+  autoFocus?: boolean;
+  /** The participant whose cursor to keep in view. */
+  following?: string | null;
   onStatusChange?: (status: CollabStatus) => void;
   onReady?: (controller: EditorController) => void;
+  /** This person pressed a key in the editor. */
+  onTyped?: () => void;
+  onShareLine?: (line: number) => void;
 }) {
   const { provider, status } = useCollabDoc(fileId);
   const { theme } = useTheme();
@@ -42,6 +62,11 @@ export function CollabEditor({
   const providerRef = useRef<HocuspocusProvider | null>(null);
   providerRef.current = provider;
   const monacoRef = useRef<Monaco | null>(null);
+  const [editor, setEditor] = useState<CodeEditor | null>(null);
+  const onTypedRef = useRef(onTyped);
+  onTypedRef.current = onTyped;
+  const onShareLineRef = useRef(onShareLine);
+  onShareLineRef.current = onShareLine;
 
   useEffect(() => onStatusChange?.(status), [status, onStatusChange]);
 
@@ -52,21 +77,51 @@ export function CollabEditor({
       stop?.();
       bindingRef.current?.destroy();
       bindingRef.current = null;
+      setEditor(null);
     };
   }, [provider]);
 
-  const handleMount: OnMount = (editor, monaco) => {
+  // While following somebody, their cursor stays on the screen.
+  useEffect(() => {
+    const awareness = provider?.awareness;
+    const model = editor?.getModel();
+    if (!following || !provider || !awareness || !editor || !model) return;
+    const reveal = () => {
+      awareness.getStates().forEach((value) => {
+        const state = value as PeerState;
+        if (state.user?.id !== following || !state.selection?.head) return;
+        const head = Y.createAbsolutePositionFromRelativePosition(state.selection.head, provider.document);
+        if (head && !model.isDisposed()) editor.revealPositionInCenterIfOutsideViewport(model.getPositionAt(head.index));
+      });
+    };
+    awareness.on("change", reveal);
+    reveal();
+    return () => awareness.off("change", reveal);
+  }, [following, provider, editor]);
+
+  const handleMount: OnMount = (mounted, monaco) => {
     monacoRef.current = monaco;
     const current = providerRef.current;
-    const model = editor.getModel();
+    const model = mounted.getModel();
     if (!current || !model) return;
 
     const yText = current.document.getText("monaco");
-    bindingRef.current = new MonacoBinding(yText, model, new Set([editor]), current.awareness ?? undefined);
+    bindingRef.current = new MonacoBinding(yText, model, new Set([mounted]), current.awareness ?? undefined);
+    setEditor(mounted);
+    if (autoFocus) mounted.focus();
+    mounted.onKeyDown(() => onTypedRef.current?.());
+    mounted.addAction({
+      id: "collab.share-line",
+      label: "Сослаться на эту строку в чате",
+      contextMenuGroupId: "9_cutcopypaste",
+      keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyL],
+      run: () => onShareLineRef.current?.(mounted.getPosition()?.lineNumber ?? 1),
+    });
 
-    const errorMarks = editor.createDecorationsCollection();
+    const errorMarks = mounted.createDecorationsCollection();
     onReady?.({
       getCode: () => yText.toString(),
+      getCursorLine: () => mounted.getPosition()?.lineNumber ?? 1,
       subscribe: (handler) => {
         const listener = () => handler(yText.toString());
         yText.observe(listener);
@@ -89,14 +144,14 @@ export function CollabEditor({
           if (model.isDisposed()) return true; // the page already moved on to another file
           if (model.getLineCount() < line) return false;
           const position = { lineNumber: line, column };
-          const reveal = () => editor.revealPositionInCenter(position, monaco.editor.ScrollType.Immediate);
-          editor.setPosition(position);
-          editor.focus();
+          const reveal = () => mounted.revealPositionInCenter(position, monaco.editor.ScrollType.Immediate);
+          mounted.setPosition(position);
+          mounted.focus();
           // Just after mounting the editor has no size yet and a scroll made then is lost: wait for the layout.
-          if (editor.getLayoutInfo().height >= MIN_REVEAL_HEIGHT) {
+          if (mounted.getLayoutInfo().height >= MIN_REVEAL_HEIGHT) {
             reveal();
           } else {
-            const sized = editor.onDidLayoutChange((layout) => {
+            const sized = mounted.onDidLayoutChange((layout) => {
               if (layout.height < MIN_REVEAL_HEIGHT) return;
               sized.dispose();
               reveal();
@@ -132,6 +187,7 @@ export function CollabEditor({
       options={{
         readOnly,
         readOnlyMessage: { value: "Только чтение: менять файлы могут редакторы и владелец проекта." },
+        ariaLabel: "Редактор файла",
         minimap: { enabled: false },
         fontSize: 13.5,
         fontFamily: '"JetBrains Mono Variable", ui-monospace, monospace',

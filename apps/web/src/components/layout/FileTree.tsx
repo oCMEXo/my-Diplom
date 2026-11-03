@@ -86,7 +86,7 @@ export function FileTree({
             <span className="truncate">{node.name}</span>
           </NavLink>
           {canEdit && (
-            <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center opacity-0 transition focus-within:opacity-100 group-hover/file:opacity-100">
+            <span className="touch-visible absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center opacity-0 transition focus-within:opacity-100 group-hover/file:opacity-100">
               <button
                 onClick={() => onRenameFile(node.file)}
                 aria-label={`Переименовать ${node.file.path}`}

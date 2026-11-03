@@ -57,7 +57,7 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
     >
       <div className="space-y-6">
         <section className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               readOnly
               value={link}
@@ -65,7 +65,7 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
               onClick={(event) => event.currentTarget.select()}
               className="field font-mono text-xs"
             />
-            <Button variant="primary" onClick={copyLink} className="w-36 shrink-0">
+            <Button variant="primary" onClick={copyLink} className="shrink-0 sm:w-36">
               {copied ? <Check size={16} /> : <Copy size={16} />}
               {copied ? "Скопировано" : "Копировать"}
             </Button>
@@ -83,8 +83,14 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
                   { value: "viewer", label: "Только смотреть", icon: <Eye size={18} /> },
                 ]}
               />
-              <Button size="sm" variant="ghost" onClick={() => regenerate.mutate()} disabled={regenerate.isPending}>
-                <RefreshCw size={13} className={regenerate.isPending ? "animate-spin" : undefined} />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => regenerate.mutate()}
+                disabled={regenerate.isPending}
+                className="!h-auto min-h-7 !whitespace-normal py-1 text-left"
+              >
+                <RefreshCw size={13} className={regenerate.isPending ? "shrink-0 animate-spin" : "shrink-0"} />
                 Сделать новую ссылку (старая перестанет работать)
               </Button>
             </div>
@@ -105,7 +111,7 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
               </ErrorNote>
             )}
             {inviteByEmail.isSuccess && !inviteByEmail.isPending && <p className="text-xs text-ok">Участник добавлен</p>}
-            <form onSubmit={submitEmail} className="flex gap-2">
+            <form onSubmit={submitEmail} className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="email"
                 value={email}
@@ -118,7 +124,7 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
                 value={emailRole}
                 onChange={(event) => setEmailRole(event.target.value as InviteRole)}
                 aria-label="Роль"
-                className="field w-36 shrink-0"
+                className="field shrink-0 sm:w-36"
               >
                 <option value="editor">редактор</option>
                 <option value="viewer">наблюдатель</option>

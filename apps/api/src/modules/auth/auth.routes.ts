@@ -3,20 +3,24 @@ import { z } from "zod";
 import {
   authResponseSchema,
   authUserSchema,
+  deleteAccountSchema,
   errorResponseSchema,
   guestLoginSchema,
   loginSchema,
   refreshSchema,
   registerSchema,
   updateProfileSchema,
+  upgradeGuestSchema,
 } from "@collab/shared";
 import {
+  deleteAccount,
   loginAsGuest,
   loginUser,
   refreshSession,
   registerUser,
   revokeRefreshToken,
   updateProfile,
+  upgradeGuest,
 } from "./auth.service.js";
 
 export const authRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -118,5 +122,36 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request) => updateProfile(request.userId, request.body),
+  );
+
+  app.post(
+    "/upgrade",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["auth"],
+        security: [{ bearerAuth: [] }],
+        body: upgradeGuestSchema,
+        response: { 200: authUserSchema, 400: errorResponseSchema, 409: errorResponseSchema },
+      },
+    },
+    async (request) => upgradeGuest(request.userId, request.body),
+  );
+
+  app.post(
+    "/delete-account",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["auth"],
+        security: [{ bearerAuth: [] }],
+        body: deleteAccountSchema,
+        response: { 204: z.null(), 403: errorResponseSchema },
+      },
+    },
+    async (request, reply) => {
+      await deleteAccount(request.userId, request.body);
+      return reply.code(204).send(null);
+    },
   );
 };

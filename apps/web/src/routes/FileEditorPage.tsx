@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useOutletContext, useParams, useSearchParams } from "react-router-dom";
-import { Eye, History, LoaderCircle, Play } from "lucide-react";
+import { Link, useLocation, useOutletContext, useParams, useSearchParams } from "react-router-dom";
+import { Eye, History, LoaderCircle, MessageSquarePlus, Play } from "lucide-react";
 import { inferLanguage, toRunnableLanguage } from "@collab/shared";
 import { BoardEditor } from "../components/BoardEditor";
 import { CollabEditor, type EditorController } from "../components/CollabEditor";
@@ -15,7 +15,7 @@ import { Button } from "../components/ui/Button";
 import { api, ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { rememberFile } from "../lib/last-file";
-import { useRun } from "../lib/RealtimeContext";
+import { useAnnounceFile, useFollowing, useRun } from "../lib/RealtimeContext";
 import type { ProjectOutletContext } from "./ProjectPage";
 
 const DEFAULT_TITLE = "Collab — совместная работа над проектом";
@@ -37,6 +37,8 @@ export function FileEditorPage() {
   const revealLine = Number(searchParams.get("line")) || null;
   const revealColumn = Number(searchParams.get("col")) || undefined;
   const [historyOpen, setHistoryOpen] = useState(false);
+  const { following, follow } = useFollowing();
+  useAnnounceFile(file?.id);
 
   useEffect(() => {
     controller.current = null;
@@ -74,7 +76,14 @@ export function FileEditorPage() {
     return (
       <>
         <ProjectHeader shell={shell} title="Файл не найден" />
-        <p className="p-8 text-sm text-muted">Возможно, файл удалили или у вас нет к нему доступа.</p>
+        <div className="space-y-3 p-8 text-sm text-muted">
+          <p>Возможно, файл удалили или у вас нет к нему доступа.</p>
+          {projectId && (
+            <Link to={`/projects/${projectId}`} className="font-medium text-accent-ink hover:underline">
+              Открыть другой файл проекта
+            </Link>
+          )}
+        </div>
       </>
     );
   }
@@ -124,11 +133,17 @@ export function FileEditorPage() {
     }
   }
 
+  const shareLine = (line: number) => shell.shareInChat(`${file.path}:${line}`);
+
   const editor = (
     <CollabEditor
       fileId={file.id}
       language={language}
       readOnly={!canEdit}
+      autoFocus={(location.state as { focusEditor?: boolean } | null)?.focusEditor}
+      following={following}
+      onTyped={() => follow(null)}
+      onShareLine={shareLine}
       onStatusChange={setStatus}
       onReady={(c) => {
         controller.current = c;
@@ -140,6 +155,15 @@ export function FileEditorPage() {
 
   const actions = (
     <span className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => shareLine(activeController?.getCursorLine() ?? 1)}
+        title="Сослаться на эту строку в чате (Alt+L)"
+        aria-label="Сослаться на эту строку в чате"
+      >
+        <MessageSquarePlus size={14} />
+      </Button>
       <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)} title="История версий" aria-label="История версий">
         <History size={14} />
         <span className="hidden 2xl:inline">История версий</span>

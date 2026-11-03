@@ -4,6 +4,16 @@ import { X } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { IconButton } from "./Button";
 
+const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+let openDialogs = 0;
+
+/** While a dialog is open, the page under it can be neither clicked nor reached with the keyboard. */
+function setPageInert(inert: boolean) {
+  const page = document.getElementById("root");
+  if (page) page.inert = inert;
+}
+
 export function Modal({
   title,
   description,
@@ -27,11 +37,25 @@ export function Modal({
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const onKey = (event: KeyboardEvent) => {
-      // With a confirmation open over this dialog, Escape closes only the one on top.
+      // With a confirmation open over this dialog, the keys belong to the one on top.
       const dialogs = document.querySelectorAll('[role="dialog"]');
-      if (event.key === "Escape" && dialogs[dialogs.length - 1] === panel.current) closeRef.current();
+      if (dialogs[dialogs.length - 1] !== panel.current) return;
+      if (event.key === "Escape") closeRef.current();
+      if (event.key !== "Tab" || !panel.current) return;
+      // Tab goes round inside the dialog.
+      const focusable = [...panel.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (!first || !last) return;
+      if (!panel.current.contains(active) || (event.shiftKey ? active === first : active === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
     };
     document.addEventListener("keydown", onKey);
+    openDialogs += 1;
+    setPageInert(true);
     // A dialog can name the field to start in; otherwise the first control gets the focus.
     (
       panel.current?.querySelector<HTMLElement>("[data-autofocus]") ??
@@ -39,6 +63,8 @@ export function Modal({
     )?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
+      openDialogs -= 1;
+      if (openDialogs === 0) setPageInert(false);
       previous?.focus?.();
     };
   }, []);
@@ -61,7 +87,9 @@ export function Modal({
         className={cn(
           "w-full bg-surface shadow-pop",
           width,
-          side ? "flex h-full flex-col p-4 animate-slide-in-right sm:rounded-l-2xl sm:p-6" : "rounded-2xl p-6 animate-pop",
+          side
+            ? "flex h-full flex-col p-4 animate-slide-in-right sm:rounded-l-2xl sm:p-6"
+            : "max-h-full overflow-y-auto rounded-2xl p-6 animate-pop",
         )}
       >
         <div className="mb-4 flex items-start justify-between gap-4">

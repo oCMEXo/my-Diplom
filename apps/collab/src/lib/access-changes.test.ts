@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@collab/db";
 import { ACCESS_CHANGES_CHANNEL, type AccessChange } from "@collab/shared";
 import { env } from "../env.js";
-import { createHocuspocus } from "../hocuspocus.js";
+import { WEBSOCKET_OPTIONS, createHocuspocus } from "../hocuspocus.js";
 import { startAccessChangeListener } from "./access-changes.js";
 
 function signToken(userId: string) {
@@ -44,7 +44,7 @@ describe("access changes from the API", () => {
 
   beforeAll(async () => {
     server = createHocuspocus({ port: 0, address: "127.0.0.1", quiet: true, stopOnSignals: false });
-    await server.listen();
+    await server.listen(null, null, WEBSOCKET_OPTIONS);
     url = `ws://127.0.0.1:${server.address.port}`;
     stopListener = await startAccessChangeListener(env.REDIS_URL, server);
     publisher = new Redis(env.REDIS_URL);
@@ -169,5 +169,16 @@ describe("access changes from the API", () => {
 
     await waitFor(() => (server.documents.get(p.files[0]!)?.getConnectionsCount() ?? 0) === 0);
     expect(connectionsOf(other.files[0]!, owner)).toHaveLength(1);
+  });
+
+  it("closes a connection that sends an oversized message, before any authentication", async () => {
+    const socket = new WebSocket(url);
+    await new Promise((resolve) => socket.on("open", resolve));
+    const closed = new Promise<number>((resolve) => socket.on("close", resolve));
+    socket.on("error", () => undefined);
+
+    socket.send(Buffer.alloc(WEBSOCKET_OPTIONS.maxPayload + 1));
+
+    expect(await closed).toBe(1009); // "message too big"
   });
 });

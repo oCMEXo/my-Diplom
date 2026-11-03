@@ -31,6 +31,10 @@ interface RealtimeValue {
   subscribe: (handler: Handler) => () => void;
   runs: RunsByFile;
   online: PresenceUser[];
+  announceFile: (fileId: string | null) => void;
+  /** The participant whose file and cursor this person is following. */
+  following: string | null;
+  follow: (userId: string | null) => void;
 }
 
 const RealtimeContext = createContext<RealtimeValue | null>(null);
@@ -95,6 +99,7 @@ export function RealtimeProvider({
   const handlers = useRef(new Set<Handler>());
   const [runs, dispatchRun] = useReducer(runsReducer, {});
   const [online, setOnline] = useState<PresenceUser[]>([]);
+  const [following, follow] = useState<string | null>(null);
 
   const onEvent = useCallback((event: RealtimeEvent) => {
     if (event.type === "presence.updated") setOnline(event.users);
@@ -102,7 +107,7 @@ export function RealtimeProvider({
     handlers.current.forEach((handler) => handler(event));
   }, []);
 
-  const status = useProjectEvents(projectId, onEvent, onRevoked);
+  const { status, announceFile } = useProjectEvents(projectId, onEvent, onRevoked);
 
   const subscribe = useCallback((handler: Handler) => {
     handlers.current.add(handler);
@@ -112,8 +117,8 @@ export function RealtimeProvider({
   }, []);
 
   const value = useMemo(
-    () => ({ status, subscribe, runs, online }),
-    [status, subscribe, runs, online],
+    () => ({ status, subscribe, runs, online, announceFile, following, follow }),
+    [status, subscribe, runs, online, announceFile, following],
   );
   return <RealtimeContext.Provider value={value}>{children}</RealtimeContext.Provider>;
 }
@@ -141,4 +146,19 @@ export function useRun(fileId: string): RunState | undefined {
 
 export function useOnlineUsers() {
   return useRealtime().online;
+}
+
+/** Keeps the others informed which file this page has open. */
+export function useAnnounceFile(fileId: string | undefined) {
+  const { announceFile } = useRealtime();
+  useEffect(() => {
+    if (!fileId) return;
+    announceFile(fileId);
+    return () => announceFile(null);
+  }, [announceFile, fileId]);
+}
+
+export function useFollowing() {
+  const { following, follow } = useRealtime();
+  return { following, follow };
 }

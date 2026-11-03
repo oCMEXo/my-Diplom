@@ -2,6 +2,7 @@ import { prisma } from "@collab/db";
 import type { ImportResult } from "@collab/shared";
 import { AppError } from "../../lib/errors.js";
 import { requireProjectRole } from "../../lib/authorization.js";
+import { hub } from "../../lib/hub.js";
 import { downloadRepoZip, parseGithubUrl, type RepoRef } from "../../lib/github.js";
 import { GithubApi } from "../../lib/github-api.js";
 import { extractRepoFiles } from "../../lib/repo-files.js";
@@ -79,5 +80,6 @@ export async function importFromGithub(
   }
 
   const result = await importRepoFiles(projectId, branch, repo, fetchImpl);
+  hub.broadcast(projectId, { type: "project.files", projectId });
   return { repo: { owner: repo.owner, name: repo.repo, ref: repo.ref }, ...result };
 }

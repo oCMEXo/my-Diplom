@@ -15,6 +15,7 @@ export default {
         muted: token("muted"),
         faint: token("faint"),
         accent: token("accent"),
+        "accent-ink": token("accent-ink"),
         "accent-fg": token("accent-fg"),
         ok: token("ok"),
         bad: token("bad"),

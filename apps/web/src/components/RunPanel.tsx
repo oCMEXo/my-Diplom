@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronUp, Copy, Check, Maximize2, Minimize2, SquareTerminal, Info } from "lucide-react";
 import type { RunState } from "../lib/RealtimeContext";
-import { missingModule } from "../lib/run-hints";
+import { missingModule, wantsInput } from "../lib/run-hints";
 import { cn } from "../lib/cn";
 import { IconButton } from "./ui/Button";
 
@@ -33,7 +33,9 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
   }, [run?.output.length, run?.status, open]);
 
   const text = run?.output.map((part) => part.chunk).join("") ?? "";
-  const missing = run && run.status !== "running" && run.status !== "ok" ? missingModule(text) : null;
+  const failed = !!run && run.status !== "running" && run.status !== "ok";
+  const missing = failed ? missingModule(text) : null;
+  const needsKeyboard = failed && wantsInput(text);
 
   async function copy() {
     try {
@@ -84,6 +86,15 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
 
       {open && (
         <>
+          {needsKeyboard && (
+            <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-xs text-warn">
+              <Info size={14} className="mt-0.5 shrink-0" />
+              <span>
+                Программа ждёт ввода с клавиатуры, а при запуске кнопкой ввести его негде. Запустите её в терминале: он
+                открывается по Ctrl+`.
+              </span>
+            </p>
+          )}
           {missing && (
             <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-xs text-warn">
               <Info size={14} className="mt-0.5 shrink-0" />

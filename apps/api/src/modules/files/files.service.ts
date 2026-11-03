@@ -4,9 +4,14 @@ import type { CreateFileInput, UpdateFileInput } from "@collab/shared";
 import { AppError } from "../../lib/errors.js";
 import { requireProjectRole } from "../../lib/authorization.js";
 import { activeBranch } from "../../lib/branch.js";
+import { hub } from "../../lib/hub.js";
 import { env } from "../../env.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+function announceFilesChanged(projectId: string) {
+  hub.broadcast(projectId, { type: "project.files", projectId });
+}
 
 function toFileDto(file: {
   id: string;
@@ -85,6 +90,7 @@ export async function createFile(userId: string, projectId: string, input: Creat
         language: input.language ?? inferLanguage(input.path),
       },
     });
+    announceFilesChanged(projectId);
     return toFileDto(file);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
@@ -138,6 +144,7 @@ export async function updateFile(
             : {}),
       },
     });
+    announceFilesChanged(projectId);
     return toFileDto(file);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
@@ -155,6 +162,7 @@ export async function deleteFile(userId: string, projectId: string, fileId: stri
     where: { id: fileId },
     data: { deletedAt: new Date(), trashedPath: file.path, path: `.trash/${file.id}/${file.path}` },
   });
+  announceFilesChanged(projectId);
 }
 
 export async function restoreFile(userId: string, projectId: string, fileId: string) {
@@ -165,6 +173,7 @@ export async function restoreFile(userId: string, projectId: string, fileId: str
       where: { id: fileId },
       data: { deletedAt: null, path: file.trashedPath ?? file.path, trashedPath: null },
     });
+    announceFilesChanged(projectId);
     return toFileDto(restored);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
@@ -179,4 +188,5 @@ export async function purgeFile(userId: string, projectId: string, fileId: strin
   await requireProjectRole(projectId, userId, "owner");
   await findTrashedFile(projectId, fileId);
   await prisma.file.delete({ where: { id: fileId } });
+  announceFilesChanged(projectId);
 }

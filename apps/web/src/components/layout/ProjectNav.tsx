@@ -9,6 +9,7 @@ import { useOnlineUsers, useRealtimeStatus } from "../../lib/RealtimeContext";
 import { Button, IconButton } from "../ui/Button";
 import { LogoMark } from "../ui/Logo";
 import { RoleBadge } from "../ui/RoleBadge";
+import { ExportButton } from "./ExportButton";
 import { FileTree } from "./FileTree";
 import { GithubMenu } from "./GithubMenu";
 import { TrashSection } from "./TrashSection";
@@ -60,7 +61,7 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
           onClick={onCreateProject}
           title="Новый проект"
           aria-label="Новый проект"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-dashed border-line text-muted transition-all hover:rounded-[14px] hover:border-accent hover:text-accent"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-dashed border-line text-muted transition-all hover:rounded-[14px] hover:border-accent hover:text-accent-ink"
         >
           <Plus size={20} />
         </button>
@@ -93,7 +94,8 @@ export function ProjectNav({
   canEdit: boolean;
   onCreateFile: (type: FileType) => void;
   onCreateProject: () => void;
-  onInvite: () => void;
+  /** Undefined when this person may not hand out the invitation link. */
+  onInvite?: () => void;
   onImport: () => void;
   onPush: () => void;
   onDeleteFile: (file: FileRecord) => void;
@@ -115,7 +117,7 @@ export function ProjectNav({
       <aside className="flex w-60 flex-col bg-surface">
         <div className="flex h-14 items-center justify-between gap-2 border-b border-line px-4">
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold">{project.name}</h1>
+            <h1 title={project.name} className="truncate text-sm font-semibold">{project.name}</h1>
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
               <RoleBadge role={project.myRole} />
               {project.github && (
@@ -131,9 +133,11 @@ export function ProjectNav({
               )}
             </div>
           </div>
-          <IconButton label="Пригласить участников" onClick={onInvite}>
-            <UserPlus size={17} />
-          </IconButton>
+          {onInvite && (
+            <IconButton label="Пригласить участников" onClick={onInvite}>
+              <UserPlus size={17} />
+            </IconButton>
+          )}
         </div>
 
         {files.length > 0 && (
@@ -206,6 +210,7 @@ export function ProjectNav({
               <kbd className="rounded border border-line px-1 text-[10px] text-faint">Ctrl `</kbd>
             </button>
           )}
+          <ExportButton projectId={project.id} projectName={project.name} />
           <p className="flex items-center gap-2 px-1 text-xs text-muted">
             <span
               className={cn(

@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   accessChangeReasonSchema,
   CLOSE_ACCESS_REVOKED,
   realtimeEventSchema,
   type AccessChangeReason,
+  type PresenceFileMessage,
   type RealtimeEvent,
 } from "@collab/shared";
-import { api, API_URL } from "./api";
+import { api, API_URL, freshAccessToken } from "./api";
 import { wsUrl } from "./endpoints";
 import { tokenStore } from "./tokenStore";
 
@@ -26,26 +27,45 @@ export function useProjectEvents(
   handlerRef.current = onEvent;
   const revokedRef = useRef(onRevoked);
   revokedRef.current = onRevoked;
+  const socketRef = useRef<WebSocket | null>(null);
+  const fileRef = useRef<string | null>(null);
+
+  const sendFile = useCallback((socket: WebSocket | null) => {
+    if (socket?.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ type: "presence.file", fileId: fileRef.current } satisfies PresenceFileMessage));
+  }, []);
+
+  /** Tells the others which file this tab has open, now and after every reconnect. */
+  const announceFile = useCallback(
+    (fileId: string | null) => {
+      fileRef.current = fileId;
+      sendFile(socketRef.current);
+    },
+    [sendFile],
+  );
 
   useEffect(() => {
-    let socket: WebSocket | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
     let disposed = false;
 
     async function connect() {
-      const auth = tokenStore.get();
-      if (disposed || !auth) return;
+      if (disposed || !tokenStore.get()) return;
       setStatus("connecting");
+
+      const token = await freshAccessToken();
+      if (disposed || !token) return;
 
       const url = new URL(wsUrl(API_URL, window.location.origin, "/ws"));
       url.searchParams.set("projectId", projectId);
-      url.searchParams.set("token", auth.tokens.accessToken);
+      url.searchParams.set("token", token);
 
-      socket = new WebSocket(url);
+      const socket = new WebSocket(url);
+      socketRef.current = socket;
       socket.onopen = () => {
         attempt = 0;
         setStatus("open");
+        if (fileRef.current) sendFile(socket);
       };
       socket.onmessage = (message) => {
         try {
@@ -74,14 +94,15 @@ export function useProjectEvents(
       };
     }
 
-    connect();
+    void connect();
 
     return () => {
       disposed = true;
       clearTimeout(retryTimer);
-      socket?.close();
+      socketRef.current?.close();
+      socketRef.current = null;
     };
-  }, [projectId]);
+  }, [projectId, sendFile]);
 
-  return status;
+  return { status, announceFile };
 }

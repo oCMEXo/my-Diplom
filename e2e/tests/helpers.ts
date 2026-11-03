@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import type { APIRequestContext, Browser, Page } from "@playwright/test";
 
 export const API = "http://localhost:3101";
@@ -63,6 +64,18 @@ export async function setInviteRole(
     headers: bearer(auth),
     data: { role },
   });
+}
+
+/** The same session, but its access token runs out in the given number of seconds (negative: already has). */
+export function withExpiringToken(auth: Auth, seconds: number): Auth {
+  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const body = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({
+    sub: auth.user.id,
+    email: auth.user.email,
+    exp: Math.floor(Date.now() / 1000) + seconds,
+  })}`;
+  const signature = createHmac("sha256", "e2e-access-secret-0123456789").update(body).digest("base64url");
+  return { ...auth, tokens: { ...auth.tokens, accessToken: `${body}.${signature}` } };
 }
 
 /** Opens a page that is already signed in as `auth`, using the same storage the app reads. */

@@ -54,7 +54,7 @@ export function RegisterPage() {
         </Button>
         <p className="pt-2 text-center text-sm text-muted">
           Уже есть аккаунт?{" "}
-          <Link to={loginLink} className="font-medium text-accent hover:underline">
+          <Link to={loginLink} className="font-medium text-accent-ink hover:underline">
             Войти
           </Link>
         </p>

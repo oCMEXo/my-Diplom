@@ -28,6 +28,19 @@ export const updateProfileSchema = z.object({
 });
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
+/** Turns a guest into a registered user: the same account, so projects and history stay. */
+export const upgradeGuestSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8).max(72),
+});
+export type UpgradeGuestInput = z.infer<typeof upgradeGuestSchema>;
+
+/** A guest has no password to confirm with; a registered user must give theirs. */
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1).max(200).optional(),
+});
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+
 export const authUserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),

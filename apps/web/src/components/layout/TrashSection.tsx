@@ -78,7 +78,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
                       disabled={restore.isPending}
                       aria-label={`Восстановить ${file.path}`}
                       title="Восстановить"
-                      className="rounded p-1 text-muted transition hover:bg-accent/15 hover:text-accent"
+                      className="rounded p-1 text-muted transition hover:bg-accent/15 hover:text-accent-ink"
                     >
                       <Undo2 size={14} />
                     </button>
@@ -88,7 +88,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
                       onClick={() => setPurging(file)}
                       aria-label={`Удалить навсегда ${file.path}`}
                       title="Удалить навсегда"
-                      className="rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/trash:opacity-100"
+                      className="touch-visible rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/trash:opacity-100"
                     >
                       <Trash2 size={14} />
                     </button>

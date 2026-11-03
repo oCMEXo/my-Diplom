@@ -1,16 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { LogOut, Moon, Pencil, Sun } from "lucide-react";
+import { Link } from "react-router-dom";
+import { LogOut, Moon, Pencil, Save, Shield, Sun, Trash2 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { useTheme } from "../../lib/theme";
 import { Avatar } from "../ui/Avatar";
+import { Button } from "../ui/Button";
+import { Modal } from "../ui/Modal";
 import { ChangeNameDialog } from "../ChangeNameDialog";
+import { DeleteAccountDialog } from "../DeleteAccountDialog";
+import { UpgradeGuestDialog } from "../UpgradeGuestDialog";
 import { cn } from "../../lib/cn";
+
+type Dialog = "rename" | "upgrade" | "delete" | "guest-logout";
+
+const ITEM = "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted transition hover:bg-raised hover:text-fg";
 
 export function UserMenu({ placement = "below" }: { placement?: "below" | "above-right" }) {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
-  const [renaming, setRenaming] = useState(false);
+  const [dialog, setDialog] = useState<Dialog | null>(null);
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +39,11 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
   }, [open]);
 
   if (!user) return null;
+
+  function show(next: Dialog) {
+    setOpen(false);
+    setDialog(next);
+  }
 
   return (
     <div ref={root} className="relative">
@@ -57,36 +71,62 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
             </div>
           </div>
           <div className="my-1 h-px bg-line" />
-          <button
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              setRenaming(true);
-            }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted transition hover:bg-raised hover:text-fg"
-          >
+          {user.isGuest && (
+            <button role="menuitem" onClick={() => show("upgrade")} className={cn(ITEM, "text-fg")}>
+              <Save size={16} className="text-accent-ink" />
+              Сохранить аккаунт
+            </button>
+          )}
+          <button role="menuitem" onClick={() => show("rename")} className={ITEM}>
             <Pencil size={16} />
             Изменить имя
           </button>
-          <button
-            role="menuitem"
-            onClick={toggle}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted transition hover:bg-raised hover:text-fg"
-          >
+          <button role="menuitem" onClick={toggle} className={ITEM}>
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             {theme === "dark" ? "Светлая тема" : "Тёмная тема"}
           </button>
+          <Link role="menuitem" to="/privacy" className={ITEM}>
+            <Shield size={16} />
+            Данные и приватность
+          </Link>
+          <div className="my-1 h-px bg-line" />
           <button
             role="menuitem"
-            onClick={logout}
+            onClick={() => (user.isGuest ? show("guest-logout") : logout())}
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-bad transition hover:bg-bad/10"
           >
             <LogOut size={16} />
             Выйти
           </button>
+          <button
+            role="menuitem"
+            onClick={() => show("delete")}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-bad transition hover:bg-bad/10"
+          >
+            <Trash2 size={16} />
+            Удалить аккаунт
+          </button>
         </div>
       )}
-      {renaming && <ChangeNameDialog onClose={() => setRenaming(false)} />}
+      {dialog === "rename" && <ChangeNameDialog onClose={() => setDialog(null)} />}
+      {dialog === "upgrade" && <UpgradeGuestDialog onClose={() => setDialog(null)} />}
+      {dialog === "delete" && <DeleteAccountDialog onClose={() => setDialog(null)} />}
+      {dialog === "guest-logout" && (
+        <Modal
+          title="Выйти из гостевого аккаунта?"
+          description="У гостя нет ни почты, ни пароля, поэтому войти снова не получится. Вы потеряете доступ к проектам, в которых сейчас участвуете. Чтобы этого не случилось, сохраните аккаунт."
+          onClose={() => setDialog(null)}
+        >
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="danger" onClick={logout}>
+              Всё равно выйти
+            </Button>
+            <Button variant="primary" onClick={() => setDialog("upgrade")} data-autofocus>
+              Сохранить аккаунт
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

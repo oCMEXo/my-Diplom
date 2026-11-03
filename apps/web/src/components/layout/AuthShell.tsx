@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { Boxes, MessagesSquare, PenTool, Users } from "lucide-react";
 import { Wordmark } from "../ui/Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -7,7 +8,7 @@ const FEATURES = [
   { icon: Users, text: "Заходите по ссылке — даже без регистрации" },
   { icon: Boxes, text: "Код, документы и доски в одном проекте" },
   { icon: MessagesSquare, text: "Чат и курсоры коллег рядом с работой" },
-  { icon: PenTool, text: "Правки сохраняются офлайн и сливаются сами" },
+  { icon: PenTool, text: "Правки без сети не теряются" },
 ];
 
 function MockEditor() {
@@ -78,7 +79,10 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
             ))}
           </ul>
         </div>
-        <p className="relative z-10 text-xs text-white/40">Дипломный проект · CRDT (Yjs) · Hocuspocus</p>
+        <p className="relative z-10 text-xs text-white/40">Дипломный проект ·{" "}
+          <Link to="/privacy" className="underline hover:text-white/70">
+            данные и приватность
+          </Link></p>
       </aside>
 
       <main className="relative flex items-center justify-center px-5 py-10">
@@ -92,6 +96,11 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="mb-6 mt-1.5 text-sm text-muted">{subtitle}</p>
           {children}
+          <p className="mt-6 text-center text-xs text-muted lg:hidden">
+            <Link to="/privacy" className="underline hover:text-fg">
+              Данные и приватность
+            </Link>
+          </p>
         </div>
       </main>
     </div>

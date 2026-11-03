@@ -10,8 +10,8 @@
  *   pnpm host:test -- --skip-build # reuse the last web build
  *   pnpm host:test -- --no-run     # no code running and no terminal at all
  *
- * Running visitors' code is switched off here on purpose: the public address must not become a way
- * to run other people's programs on this computer.
+ * Running code here takes the site owner's access code (saved in .state/secrets.json): the public
+ * address must not become a way to run other people's programs on this computer.
  */
 import { spawn, execFileSync, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
