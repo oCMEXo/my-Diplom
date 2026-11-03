@@ -2,7 +2,7 @@
 
 **Relevance and problem.** Software is increasingly written by people who are not in the same room. In the Stack Overflow Developer Survey 2024, 80% of the 54,806 respondents who answered the question work fully remotely (38%) or in a hybrid mode (42%) [1]. Students work the same way: course projects, consultations with a lecturer and pair programming increasingly happen over a video call. Yet the tools for *live* work on the same code are fragmented. A typical session combines a messenger or video call for talking, screen sharing for showing code, GitHub for exchanging it, a separate document for the task and a separate online whiteboard for the diagram. Every participant has to be invited to each tool separately, many of the tools require an account or an installed editor, and edits made in parallel in different copies end up in merge conflicts or are lost.
 
-The problem therefore affects three groups: **students working on team assignments, mentors and lecturers who help them, and small development teams** that need a short joint session rather than a full development process. For them the problem is the time and effort needed to start working on the same code together and the risk of losing work while doing it. It matters now because remote and hybrid work has become the default mode rather than an exception [1], while the real-time collaboration features that exist on the market are either tied to one desktop editor, bound to a paid plan, or limited to one file without the rest of the project (section 1.3). The survey conducted for this work [[TBD: survey — share of respondents who collaborate on code at least weekly, n = …]] confirms that this is a regular, not an occasional, need.
+The problem therefore affects three groups: **students working on team assignments, mentors and lecturers who help them, and small development teams** that need a short joint session rather than a full development process. For them the problem is the time and effort needed to start working on the same code together and the risk of losing work while doing it. It matters now because remote and hybrid work has become the default mode rather than an exception [1], while the real-time collaboration features that exist on the market are either tied to one desktop editor, bound to a paid plan, or limited to one file without the rest of the project (section 1.3). The survey conducted for this work checks whether this is a regular or an occasional need: [[TBD: survey — share of respondents who collaborate on code at least weekly, n = …]].
 
 **Goal and objectives.** The goal of the work is to design and build a web platform on which a small team can open a shared project by a link and work on code, documents and diagrams together in real time, without installing software and without losing edits when the connection drops.
 
@@ -83,7 +83,7 @@ Five solutions were analysed: three commercial products (VS Code Live Share, Rep
 
 ![Excalidraw: starting a live collaboration session by link](img/analog-excalidraw.jpg)
 
-The comparison on seven criteria is given in Table 1.1.
+The comparison on eight criteria is given in Table 1.1.
 
 Table 1.1 — Comparison of analogs
 
@@ -98,7 +98,7 @@ Table 1.1 — Comparison of analogs
 | Session survives the initiator leaving | No | Yes | Yes (24 h) | Yes | Yes | Yes |
 | Free collaboration | Yes | Paid plans | Yes (24 h) | Yes | Yes | Yes (self-hosted) |
 
-**What is missing.** None of the analogs combines the three properties that the survey respondents and the use cases need at the same time: (1) *zero-friction entry* — a browser link without an account or installation, with write access; (2) *a persistent multi-file project* in which code, documents, diagrams, chat and execution live together; and (3) *offline-tolerant editing* that merges automatically. Live Share and Replit offer rich projects but require accounts (and, for Replit collaboration, a paid plan); the lightweight tools require nothing but lose the project, the identity of participants and, after 24 hours, the data. Yjs proves that the technical basis exists but is not a ready solution.
+**What is missing.** None of the analogs combines the three properties that the use cases need at the same time: (1) *zero-friction entry* — a browser link without an account or installation, with write access; (2) *a persistent multi-file project* in which code, documents, diagrams, chat and execution live together; and (3) *offline-tolerant editing* that merges automatically. Live Share and Replit offer rich projects but require accounts (and, for Replit collaboration, a paid plan); the lightweight tools require nothing but lose the project, the identity of participants and, after 24 hours, the data. Yjs proves that the technical basis exists but is not a ready solution.
 
 ## 1.4 Chapter conclusions
 
@@ -195,10 +195,10 @@ Table 2.4 — Alternatives of the solution
 | Offline editing | Not supported | Limited: long branches must be transformed by the server | Native: replicas merge without a central arbiter |
 | Session without the initiator | No (files on the host) | Yes | Yes |
 | Non-text data (whiteboard) | Not covered | Needs a separate OT type | Shared types (maps, arrays) of the same library |
-| Measured edit latency, p95, 50 users | — | ≤ 10.3 ms | ≤ 10.3 ms |
+| Measured edit latency, p95, 50 users (one machine, loopback) | — | about 9 ms, up to 12.3 ms in a single run | about 10 ms, up to 11.1 ms in a single run |
 | Risk | Dependency on a closed platform | Complex transformation logic | Growth of the document state (R4) |
 
-*Rationale.* A1 cannot satisfy the zero-friction entry and the persistence of the project (P1). Between A2 and the chosen option the latency is equivalent in the experiment carried out for this work (both ≤ 10.3 ms at the 95th percentile up to 50 users), while the CRDT supports offline editing and the whiteboard natively; therefore the CRDT is chosen, and its weakness — a larger document state — is managed as a risk.
+*Rationale.* A1 cannot satisfy the zero-friction entry and the persistence of the project (P1). Between A2 and the chosen option the latency is equivalent in the experiment carried out for this work (about 10 ms at the 95th percentile with 50 users, three runs on one machine over loopback, so network delay is not included), while the CRDT supports offline editing and the whiteboard natively; therefore the CRDT is chosen, and its weakness — a larger document state — is managed as a risk.
 
 ## 2.5 Functional requirements
 
@@ -326,8 +326,8 @@ Table 2.8 — Non-functional requirements
 | NFR-P2 | Performance | A project with up to 200 files opens (file tree and first file) in ≤ 3 s on a 10 Mbit/s connection | KPI-1; US-03 |
 | NFR-P3 | Performance | Output of a trivial program appears in ≤ 3 s after pressing "Run"; any run is stopped after 10 s | US-14 |
 | NFR-S1 | Security | Passwords are stored only as Argon2id hashes; access tokens live 15 min, refresh tokens 30 days and are rotated on every use | US-05 |
-| NFR-S2 | Security | Every REST and WebSocket request checks project membership and role; a non-member receives 404; revoked members lose open connections within 5 s | US-04 |
-| NFR-S3 | Security | User code runs without network, with a read-only file system, ≤ 128 MB memory, ≤ 0.5 CPU, ≤ 64 processes, as an unprivileged user | US-14, US-15 |
+| NFR-S2 | Security | Every REST and WebSocket request checks project membership and role; a non-member receives 404 (on a WebSocket, close code 4403); revoked members lose open connections within 5 s | US-04 |
+| NFR-S3 | Security | User code runs without network, with a read-only file system, ≤ 0.5 CPU, as an unprivileged user; a run has ≤ 128 MB memory and ≤ 64 processes, the interactive terminal ≤ 256 MB and ≤ 128 processes | US-14, US-15 |
 | NFR-S4 | Security | On a public instance, sign-in and registration are limited to 20 requests per minute per IP; code execution requires an access code | US-05, US-16 |
 | NFR-A1 | Availability | A hosted instance is available ≥ 99% of a calendar month (≤ 7.3 h of downtime), excluding announced maintenance | KPI-1 |
 | NFR-A2 | Availability | Edits made during a connection loss are kept locally and merged after reconnection with 0 lost characters | KPI-3; US-09 |
@@ -341,9 +341,9 @@ Table 2.8 — Non-functional requirements
 
 - data minimisation: guests are created without an e-mail; no analytics or tracking cookies are used;
 - storage limitation: deleted files are purged after 30 days, refresh tokens expire after 30 days;
-- right to erasure (Art. 17): a user can delete the account and the personal data (US-27, Should — not yet implemented in the prototype);
+- right to erasure (Art. 17): a user can delete the account and the personal data (US-27, Should; implemented: the account, the user's messages and owned projects are deleted, and the offline copies in the browser are erased);
 - security of processing (Art. 32): TLS for all connections, hashed passwords, role checks (NFR-S1–S4);
-- a privacy notice is shown on registration on any public instance;
+- a privacy notice is available to everyone and linked from the sign-in, registration and invitation pages;
 - hosting of a production instance in the EU/EEA.
 
 **Consent of survey and interview participants.** The questionnaire is anonymous, collects no names or e-mail addresses and starts with an explicit consent question (Art. 6(1)(a)); interviews are recorded only as anonymised notes after oral consent; the results are published only in aggregated form.
@@ -372,4 +372,4 @@ The riskiest part of the project is code execution (R2): it is the only feature 
 
 The requirements specification fixes: the vision and four business goals with KPIs and baselines; the stakeholders, actors and personas; the scope with assumptions and constraints; the solution concept (a web platform with a CRDT) chosen over two alternatives; 27 user stories in seven epics with MoSCoW priorities and acceptance criteria; two use case scenarios with a system sequence diagram and an activity diagram; twelve non-functional requirements with measurable indicators; the legal and ethical requirements; and seven risks with mitigations.
 
-The result will be verified against the KPIs of section 2.1: KPI-1 and NFR-U1 in timed pilot sessions with first-time participants; KPI-2 with a post-session questionnaire in the same pilot; KPI-3 with the pilot log and automated convergence tests of all replicas; KPI-4 and NFR-P1 with a load test of up to 100 simulated users. The functional requirements are verified by automated end-to-end tests that implement the acceptance criteria of the Must stories.
+The result will be verified against the KPIs of section 2.1: KPI-1 and NFR-U1 in timed pilot sessions with first-time participants; KPI-2 with a post-session questionnaire in the same pilot; KPI-3 with the pilot log and automated convergence tests of all replicas; KPI-4 and NFR-P1 with a load test of up to 100 simulated users. The functional requirements are verified by automated end-to-end tests that cover the main acceptance criteria of the Must stories.
