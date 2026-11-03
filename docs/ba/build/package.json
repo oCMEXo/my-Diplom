@@ -1,0 +1,8 @@
+{
+  "name": "ba-doc-build",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "docx": "^9.14.0"
+  }
+}
