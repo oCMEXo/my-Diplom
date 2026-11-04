@@ -16,12 +16,12 @@ export function ErrorScreen({
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-5">
-      <div className="w-full max-w-sm animate-pop rounded-2xl bg-surface p-8 text-center shadow-card">
+      <div className="w-full max-w-md animate-pop rounded-xl bg-surface p-8 text-center shadow-card">
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-warn/15 text-warn">
-          <TriangleAlert size={22} />
+          <TriangleAlert size={24} />
         </span>
-        <h1 className="font-semibold">{title}</h1>
-        <p className="mb-5 mt-1.5 text-sm text-muted">{message}</p>
+        <h1 className="text-xl font-semibold">{title}</h1>
+        <p className="mb-5 mt-1.5 text-base text-muted">{message}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {onRetry && (
             <Button variant="primary" onClick={onRetry}>

@@ -40,8 +40,8 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
           <div
             key={file.id}
             className={cn(
-              "group/tab relative flex shrink-0 items-center border-r border-line text-sm transition",
-              active ? "bg-canvas text-fg" : "text-muted hover:bg-raised hover:text-fg",
+              "group/tab relative flex shrink-0 items-center border-r border-line text-base transition",
+              active ? "bg-main text-fg" : "text-muted hover:bg-raised hover:text-fg",
             )}
           >
             {active && <span className="absolute inset-x-0 top-0 h-0.5 bg-accent" />}
@@ -53,7 +53,7 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
               title={file.path}
               className="flex items-center gap-2 py-2 pl-3 pr-1.5"
             >
-              <kind.icon size={14} className={cn("shrink-0", fileTone(file.path, file.type))} />
+              <kind.icon size={16} className={cn("shrink-0", fileTone(file.path, file.type))} />
               <span className="max-w-40 truncate">{file.path.split("/").pop()}</span>
             </Link>
             <button
@@ -62,7 +62,7 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
               title="Закрыть вкладку"
               className="touch-visible mr-1.5 rounded p-0.5 text-faint opacity-0 transition hover:bg-raised hover:text-fg focus-visible:opacity-100 group-hover/tab:opacity-100"
             >
-              <X size={13} />
+              <X size={16} />
             </button>
           </div>
         );

@@ -65,10 +65,10 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
               value={link}
               aria-label="Ссылка-приглашение"
               onClick={(event) => event.currentTarget.select()}
-              className="field font-mono text-xs"
+              className="field font-mono text-sm"
             />
             <Button variant="primary" onClick={copyLink} className="shrink-0 sm:w-36">
-              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? <Check size={18} /> : <Copy size={18} />}
               {copied ? "Скопировано" : "Копировать"}
             </Button>
           </div>
@@ -78,14 +78,14 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
 
           {isOwner ? (
             <div className="space-y-3">
-              <p className="text-xs text-muted">Что смогут делать пришедшие по ссылке:</p>
+              <p className="text-sm text-muted">Что смогут делать пришедшие по ссылке:</p>
               <Segmented
                 label="Роль по ссылке"
                 value={project.inviteRole}
                 onChange={(role) => changeRole.mutate(role)}
                 options={[
-                  { value: "editor", label: "Редактировать", icon: <Pencil size={18} /> },
-                  { value: "viewer", label: "Только смотреть", icon: <Eye size={18} /> },
+                  { value: "editor", label: "Редактировать", icon: <Pencil size={20} /> },
+                  { value: "viewer", label: "Только смотреть", icon: <Eye size={20} /> },
                 ]}
               />
               <Button
@@ -95,12 +95,12 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
                 disabled={regenerate.isPending}
                 className="!h-auto min-h-7 !whitespace-normal py-1 text-left"
               >
-                <RefreshCw size={13} className={regenerate.isPending ? "shrink-0 animate-spin" : "shrink-0"} />
+                <RefreshCw size={16} className={regenerate.isPending ? "shrink-0 animate-spin" : "shrink-0"} />
                 Сделать новую ссылку (старая перестанет работать)
               </Button>
             </div>
           ) : (
-            <p className="text-xs text-muted">
+            <p className="text-sm text-muted">
               По этой ссылке участники получают роль «{project.inviteRole === "editor" ? "редактор" : "наблюдатель"}».
             </p>
           )}
@@ -108,14 +108,14 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
 
         {isOwner && (
           <section className="space-y-3 border-t border-line pt-5">
-            <h3 className="text-sm font-medium">Или пригласить по email</h3>
-            <p className="-mt-2 text-xs text-muted">Подойдёт, если человек уже зарегистрирован.</p>
+            <h3 className="text-base font-medium">Или пригласить по email</h3>
+            <p className="-mt-2 text-sm text-muted">Подойдёт, если человек уже зарегистрирован.</p>
             {inviteByEmail.error && (
               <ErrorNote>
                 {inviteByEmail.error instanceof ApiError ? inviteByEmail.error.message : "Не удалось пригласить"}
               </ErrorNote>
             )}
-            {inviteByEmail.isSuccess && !inviteByEmail.isPending && <p className="text-xs text-ok">Участник добавлен</p>}
+            {inviteByEmail.isSuccess && !inviteByEmail.isPending && <p className="text-sm text-ok">Участник добавлен</p>}
             <form onSubmit={submitEmail} className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="email"

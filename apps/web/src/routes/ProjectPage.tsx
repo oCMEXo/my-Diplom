@@ -37,6 +37,8 @@ export interface ProjectOutletContext {
 
 const WIDE = "(min-width: 1280px)";
 const NAV_WIDE = "(min-width: 1024px)";
+/** Wide enough for the chat, the search and an editor between them. */
+const ROOM_FOR_BOTH = "(min-width: 1536px)";
 
 /** When somebody opens another branch, everybody's file list follows. */
 function BranchWatcher({ projectId }: { projectId: string }) {
@@ -109,8 +111,8 @@ export function ProjectPage() {
   const openFind = useCallback(() => {
     setFinding(true);
     setFindFocus((value) => value + 1);
-    // On narrower screens the chat is a drawer too and would cover the search.
-    if (!window.matchMedia(WIDE).matches) setPanelOpen(false);
+    // On narrower screens the chat is a drawer that would cover the search, or takes the editor's room.
+    if (!window.matchMedia(ROOM_FOR_BOTH).matches) setPanelOpen(false);
   }, []);
 
   const closePanelIfDrawer = useCallback(() => {
@@ -206,7 +208,10 @@ export function ProjectPage() {
   const openInvite = project.inviteCode ? () => setInviteOpen(true) : undefined;
   const shell: ShellActions = {
     openNav: () => setNavOpen(true),
-    togglePanel: () => setPanelOpen((value) => !value),
+    togglePanel: () => {
+      if (!panelOpen && !window.matchMedia(ROOM_FOR_BOTH).matches) setFinding(false);
+      setPanelOpen(!panelOpen);
+    },
     panelOpen,
     openInvite,
     shareInChat,
@@ -302,7 +307,7 @@ export function ProjectPage() {
         {panelOpen && (
           <>
             <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm animate-fade-in xl:hidden" onClick={shell.togglePanel} />
-            <aside className="fixed inset-y-0 right-0 z-40 w-80 max-w-[90vw] border-l border-line animate-slide-in xl:static xl:z-auto">
+            <aside className="fixed inset-y-0 right-0 z-40 w-[22rem] max-w-[90vw] border-l border-line animate-slide-in xl:static xl:z-auto">
               <SidePanel
                 project={project}
                 files={files}

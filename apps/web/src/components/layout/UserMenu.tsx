@@ -13,7 +13,7 @@ import { cn } from "../../lib/cn";
 
 type Dialog = "rename" | "upgrade" | "delete" | "guest-logout";
 
-const ITEM = "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted transition hover:bg-raised hover:text-fg";
+const ITEM = "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-base text-muted transition hover:bg-raised hover:text-fg";
 
 export function UserMenu({ placement = "below" }: { placement?: "below" | "above-right" }) {
   const { user, logout } = useAuth();
@@ -59,51 +59,51 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
         <div
           role="menu"
           className={cn(
-            "absolute z-50 w-60 rounded-xl bg-surface p-1.5 shadow-pop animate-pop",
+            "absolute z-50 w-64 rounded-lg bg-surface p-1.5 shadow-pop animate-pop",
             placement === "below" ? "right-0 top-full mt-2" : "bottom-0 left-full ml-3",
           )}
         >
           <div className="flex items-center gap-3 px-2.5 py-2.5">
             <Avatar id={user.id} name={user.name} />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted">{user.isGuest ? "Гость · без регистрации" : "Аккаунт"}</p>
+              <p className="truncate text-base font-medium">{user.name}</p>
+              <p className="text-sm text-muted">{user.isGuest ? "Гость · без регистрации" : "Аккаунт"}</p>
             </div>
           </div>
           <div className="my-1 h-px bg-line" />
           {user.isGuest && (
             <button role="menuitem" onClick={() => show("upgrade")} className={cn(ITEM, "text-fg")}>
-              <Save size={16} className="text-accent-ink" />
+              <Save size={18} className="text-accent-ink" />
               Сохранить аккаунт
             </button>
           )}
           <button role="menuitem" onClick={() => show("rename")} className={ITEM}>
-            <Pencil size={16} />
+            <Pencil size={18} />
             Изменить имя
           </button>
           <button role="menuitem" onClick={toggle} className={ITEM}>
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             {theme === "dark" ? "Светлая тема" : "Тёмная тема"}
           </button>
           <Link role="menuitem" to="/privacy" className={ITEM}>
-            <Shield size={16} />
+            <Shield size={18} />
             Данные и приватность
           </Link>
           <div className="my-1 h-px bg-line" />
           <button
             role="menuitem"
             onClick={() => (user.isGuest ? show("guest-logout") : logout())}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-bad transition hover:bg-bad/10"
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-base text-bad transition hover:bg-bad/10"
           >
-            <LogOut size={16} />
+            <LogOut size={18} />
             Выйти
           </button>
           <button
             role="menuitem"
             onClick={() => show("delete")}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-bad transition hover:bg-bad/10"
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-base text-bad transition hover:bg-bad/10"
           >
-            <Trash2 size={16} />
+            <Trash2 size={18} />
             Удалить аккаунт
           </button>
         </div>

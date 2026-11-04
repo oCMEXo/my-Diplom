@@ -56,10 +56,10 @@ export function QuickOpen({
         role="dialog"
         aria-modal="true"
         aria-label="Найти файл"
-        className="w-full max-w-lg overflow-hidden rounded-2xl bg-surface shadow-pop animate-pop"
+        className="w-full max-w-lg overflow-hidden rounded-xl bg-main shadow-pop animate-pop"
       >
         <div className="flex items-center gap-3 border-b border-line px-4">
-          <Search size={17} className="shrink-0 text-faint" />
+          <Search size={20} className="shrink-0 text-faint" />
           <input
             autoFocus
             value={query}
@@ -67,9 +67,9 @@ export function QuickOpen({
             onKeyDown={onKeyDown}
             placeholder="Начните вводить имя файла"
             aria-label="Имя файла"
-            className="h-12 w-full bg-transparent text-sm placeholder:text-faint focus:outline-none"
+            className="h-12 w-full bg-transparent text-base placeholder:text-faint focus:outline-none"
           />
-          <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 text-[10px] text-faint">Esc</kbd>
+          <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 text-xs text-faint">Esc</kbd>
         </div>
         <ul ref={listRef} role="listbox" className="max-h-80 overflow-y-auto p-1.5">
           {results.map((file, index) => {
@@ -81,18 +81,18 @@ export function QuickOpen({
                   onMouseEnter={() => setActive(index)}
                   onClick={() => onOpen(file)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition",
-                    index === active ? "bg-accent/15 text-fg" : "text-muted",
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base transition",
+                    index === active ? "bg-selected text-fg" : "text-muted",
                   )}
                 >
-                  <kind.icon size={16} className={cn("shrink-0", fileTone(file.path, file.type))} />
+                  <kind.icon size={18} className={cn("shrink-0", fileTone(file.path, file.type))} />
                   <span className="truncate">{file.path.slice(slash + 1)}</span>
-                  {slash !== -1 && <span className="truncate text-xs text-faint">{file.path.slice(0, slash)}</span>}
+                  {slash !== -1 && <span className="truncate text-sm text-faint">{file.path.slice(0, slash)}</span>}
                 </button>
               </li>
             );
           })}
-          {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-faint">Ничего не найдено</li>}
+          {results.length === 0 && <li className="px-3 py-6 text-center text-base text-faint">Ничего не найдено</li>}
         </ul>
       </div>
     </div>,

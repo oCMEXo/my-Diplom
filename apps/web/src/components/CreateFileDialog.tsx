@@ -57,7 +57,7 @@ export function CreateFileDialog({
           onChange={setType}
           options={(Object.keys(FILE_KINDS) as FileType[]).map((value) => {
             const kind = FILE_KINDS[value];
-            return { value, label: kind.label, icon: <kind.icon size={20} className={kind.tone} /> };
+            return { value, label: kind.label, icon: <kind.icon size={22} className={kind.tone} /> };
           })}
         />
         <Field

@@ -44,8 +44,8 @@ export function FollowBar({ projectId }: { projectId: string }) {
   if (!following || !person) return null;
 
   return (
-    <div role="status" className="flex h-9 shrink-0 items-center gap-2 border-b border-line bg-accent/15 px-3 text-sm sm:px-4">
-      <Eye size={15} className="shrink-0 text-accent-ink" />
+    <div role="status" className="flex h-11 shrink-0 items-center gap-2 border-b border-line bg-accent/15 px-3 text-base sm:px-4">
+      <Eye size={18} className="shrink-0 text-accent-ink" />
       <span className="min-w-0 truncate">
         Вы следите за: <b className="font-semibold">{person.name}</b>
       </span>

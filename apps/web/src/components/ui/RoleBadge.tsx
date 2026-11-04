@@ -12,8 +12,8 @@ export type Role = keyof typeof ROLES;
 export function RoleBadge({ role, className }: { role: Role; className?: string }) {
   const { label, icon: Icon, tone } = ROLES[role];
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium", tone, className)}>
-      <Icon size={10} />
+    <span className={cn("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium", tone, className)}>
+      <Icon size={12} />
       {label}
     </span>
   );

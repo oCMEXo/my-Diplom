@@ -6,7 +6,7 @@ import { ancestorDirs, buildFileTree, type TreeNode } from "../../lib/file-tree"
 import { cn } from "../../lib/cn";
 import { FILE_KINDS, fileTone } from "./file-kinds";
 
-const INDENT_PX = 14;
+const INDENT_PX = 16;
 
 export function FileTree({
   projectId,
@@ -56,10 +56,10 @@ export function FileTree({
               onClick={() => toggle(node.path)}
               aria-expanded={open}
               style={pad}
-              className="flex w-full items-center gap-1.5 rounded-lg py-1.5 pr-2 text-left text-sm text-muted transition hover:bg-raised hover:text-fg"
+              className="flex w-full items-center gap-1.5 rounded-lg py-1.5 pr-2 text-left text-base font-medium text-muted transition hover:bg-raised hover:text-fg"
             >
-              <ChevronRight size={14} className={cn("shrink-0 text-faint transition-transform", open && "rotate-90")} />
-              <Icon size={16} className="shrink-0 text-warn/80" />
+              <ChevronRight size={16} className={cn("shrink-0 text-faint transition-transform", open && "rotate-90")} />
+              <Icon size={18} className="shrink-0 text-warn/80" />
               <span className="truncate">{node.name}</span>
             </button>
             {open && <ul className="space-y-0.5">{renderNodes(node.children, depth + 1)}</ul>}
@@ -74,15 +74,17 @@ export function FileTree({
             to={`/projects/${projectId}/files/${node.file.id}`}
             onClick={onNavigate}
             title={node.file.path}
-            style={{ paddingLeft: 10 + depth * INDENT_PX + 20 }}
+            style={{ paddingLeft: 10 + depth * INDENT_PX + 22 }}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-2.5 rounded-lg py-1.5 pr-14 text-sm transition",
-                isActive ? "bg-accent/15 text-fg" : "text-muted hover:bg-raised hover:text-fg",
+                // The room for the two buttons is taken only when they show: names need every pixel.
+                "flex items-center gap-2 rounded-lg py-1.5 pr-2 text-base font-medium transition",
+                canEdit && "touch-reserve group-focus-within/file:pr-14 group-hover/file:pr-14",
+                isActive ? "bg-selected text-fg" : "text-muted hover:bg-raised hover:text-fg",
               )
             }
           >
-            <kind.icon size={16} className={cn("shrink-0", fileTone(node.file.path, node.file.type))} />
+            <kind.icon size={18} className={cn("shrink-0", fileTone(node.file.path, node.file.type))} />
             <span className="truncate">{node.name}</span>
           </NavLink>
           {canEdit && (
@@ -93,7 +95,7 @@ export function FileTree({
                 title="Переименовать"
                 className="rounded p-1 text-faint transition hover:bg-raised hover:text-fg"
               >
-                <Pencil size={13} />
+                <Pencil size={16} />
               </button>
               <button
                 onClick={() => onDeleteFile(node.file)}
@@ -101,7 +103,7 @@ export function FileTree({
                 title="Удалить файл"
                 className="rounded p-1 text-faint transition hover:bg-bad/15 hover:text-bad"
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
               </button>
             </span>
           )}
@@ -111,7 +113,7 @@ export function FileTree({
   }
 
   if (files.length === 0) {
-    return <p className="px-3 py-2 text-sm text-faint">{canEdit ? "Файлов пока нет." : "В проекте пока нет файлов."}</p>;
+    return <p className="px-3 py-2 text-base text-faint">{canEdit ? "Файлов пока нет." : "В проекте пока нет файлов."}</p>;
   }
   return <ul className="space-y-0.5">{renderNodes(tree, 0)}</ul>;
 }

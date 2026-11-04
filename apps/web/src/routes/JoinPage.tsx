@@ -19,7 +19,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <ThemeToggle />
       </div>
       <Wordmark />
-      <div className="w-full max-w-sm animate-pop rounded-2xl bg-surface p-8 shadow-card">{children}</div>
+      <div className="w-full max-w-md animate-pop rounded-xl bg-surface p-8 shadow-card">{children}</div>
     </div>
   );
 }
@@ -29,10 +29,10 @@ function Failure({ message }: { message: string }) {
     <Shell>
       <div className="text-center">
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-bad/15 text-bad">
-          <TriangleAlert size={22} />
+          <TriangleAlert size={24} />
         </span>
-        <p className="font-semibold">Не получилось присоединиться</p>
-        <p className="mb-5 mt-1.5 text-sm text-muted">{message}</p>
+        <p className="text-xl font-semibold">Не получилось присоединиться</p>
+        <p className="mb-5 mt-1.5 text-base text-muted">{message}</p>
         <Link to="/">
           <Button>К моим проектам</Button>
         </Link>
@@ -69,14 +69,14 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
         <div className="text-center">
           <span
             style={{ background: gradientFor(preview.projectName) }}
-            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-bold text-black/70"
+            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-black/70"
           >
             {initials(preview.projectName)}
           </span>
-          <p className="text-sm text-muted">{preview.ownerName} приглашает вас в проект</p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight">{preview.projectName}</h1>
-          <p className="mx-auto mt-3 inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1 text-xs text-muted">
-            {canEdit ? <Pencil size={12} /> : <Eye size={12} />}
+          <p className="text-base text-muted">{preview.ownerName} приглашает вас в проект</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{preview.projectName}</h1>
+          <p className="mx-auto mt-3 inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1 text-sm text-muted">
+            {canEdit ? <Pencil size={14} /> : <Eye size={14} />}
             {canEdit ? "Вы сможете редактировать файлы" : "Вы сможете смотреть, но не менять"}
           </p>
         </div>
@@ -101,12 +101,12 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
             }
           />
           <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading || !name.trim()}>
-            <Sparkles size={16} />
+            <Sparkles size={18} />
             {loading ? "Заходим…" : "Присоединиться как гость"}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted">
+        <p className="text-center text-base text-muted">
           Уже есть аккаунт?{" "}
           <Link to={`/login?redirect=${redirect}`} className="font-medium text-accent-ink hover:underline">
             Войти
@@ -150,9 +150,9 @@ export function JoinPage() {
       <Shell>
         <div className="text-center">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent-ink">
-            <LinkIcon size={22} />
+            <LinkIcon size={24} />
           </span>
-          <p className="font-semibold">Присоединяемся к проекту</p>
+          <p className="text-xl font-semibold">Присоединяемся к проекту</p>
           <div className="mt-4 flex justify-center">
             <Spinner />
           </div>

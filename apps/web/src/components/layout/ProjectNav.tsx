@@ -22,12 +22,12 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
   const { data: projects } = useQuery({ queryKey: ["projects"], queryFn: () => api.get<Project[]>("/projects") });
 
   return (
-    <nav aria-label="Проекты" className="flex w-[68px] shrink-0 flex-col items-center gap-3 border-r border-line bg-canvas py-3">
-      <Link to="/" title="Все проекты" className="rounded-xl transition hover:scale-105">
-        <LogoMark size={42} />
+    <nav aria-label="Проекты" className="flex w-[72px] shrink-0 flex-col items-center gap-2 bg-canvas py-3">
+      <Link to="/" title="Все проекты" className="rounded-lg transition hover:scale-105">
+        <LogoMark size={48} />
       </Link>
       <span className="h-px w-8 bg-line" />
-      <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overflow-x-hidden py-0.5">
+      <div className="flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto overflow-x-hidden py-0.5">
         {projects?.map((project) => {
           const active = project.id === activeId;
           return (
@@ -37,19 +37,19 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
               aria-label={project.name}
               aria-current={active ? "page" : undefined}
               onClick={() => navigate(`/projects/${project.id}`)}
-              className="group relative flex h-11 w-11 shrink-0 items-center justify-center"
+              className="group relative flex h-12 w-12 shrink-0 items-center justify-center"
             >
               <span
                 className={cn(
-                  "absolute -left-3.5 w-1 rounded-r-full bg-fg transition-all",
-                  active ? "h-8" : "h-0 group-hover:h-4",
+                  "absolute -left-3 w-1 rounded-r-full bg-fg transition-all",
+                  active ? "h-10" : "h-0 group-hover:h-5",
                 )}
               />
               <span
                 style={{ background: gradientFor(project.id) }}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center text-sm font-bold text-black/70 transition-all duration-200",
-                  active ? "rounded-[14px]" : "rounded-full group-hover:rounded-[14px]",
+                  "flex h-12 w-12 items-center justify-center text-base font-bold text-black/70 transition-all duration-200",
+                  active ? "rounded-2xl" : "rounded-full group-hover:rounded-2xl",
                 )}
               >
                 {initials(project.name)}
@@ -61,9 +61,9 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
           onClick={onCreateProject}
           title="Новый проект"
           aria-label="Новый проект"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-dashed border-line text-muted transition-all hover:rounded-[14px] hover:border-accent hover:text-accent-ink"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface text-ok transition-all hover:rounded-2xl hover:bg-ok hover:text-canvas"
         >
-          <Plus size={20} />
+          <Plus size={22} />
         </button>
       </div>
       <UserMenu placement="above-right" />
@@ -114,10 +114,10 @@ export function ProjectNav({
   return (
     <div className="flex h-full">
       <ProjectRail activeId={project.id} onCreateProject={onCreateProject} />
-      <aside className="flex w-60 flex-col bg-surface">
+      <aside className="flex w-64 flex-col bg-surface">
         <div className="flex h-14 items-center justify-between gap-2 border-b border-line px-4">
           <div className="min-w-0">
-            <h1 title={project.name} className="truncate text-sm font-semibold">{project.name}</h1>
+            <h1 title={project.name} className="truncate text-base font-semibold">{project.name}</h1>
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
               <RoleBadge role={project.myRole} />
               {project.github && (
@@ -125,9 +125,9 @@ export function ProjectNav({
                   onClick={onBranches}
                   title={`${project.github.owner}/${project.github.repo}: сменить ветку`}
                   aria-label="Ветка репозитория"
-                  className="flex min-w-0 items-center gap-1 rounded-md border border-line px-1.5 py-px text-[11px] text-muted transition hover:border-accent hover:text-fg"
+                  className="flex min-w-0 items-center gap-1 rounded-md border border-line px-1.5 py-px text-xs text-muted transition hover:border-accent hover:text-fg"
                 >
-                  <GitBranch size={11} className="shrink-0" />
+                  <GitBranch size={14} className="shrink-0" />
                   <span className="truncate font-mono">{project.github.branch ?? "ветка"}</span>
                 </button>
               )}
@@ -135,7 +135,7 @@ export function ProjectNav({
           </div>
           {onInvite && (
             <IconButton label="Пригласить участников" onClick={onInvite}>
-              <UserPlus size={17} />
+              <UserPlus size={20} />
             </IconButton>
           )}
         </div>
@@ -144,34 +144,34 @@ export function ProjectNav({
           <div className="flex gap-1.5 px-3 pt-3">
             <button
               onClick={onSearch}
-              className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-lg border border-line bg-canvas px-2.5 text-left text-xs text-faint transition hover:border-faint hover:text-muted"
+              className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg bg-canvas px-2.5 text-left text-sm text-muted transition hover:text-fg"
             >
-              <Search size={14} />
+              <Search size={16} />
               <span className="flex-1">Найти файл</span>
-              <kbd className="rounded border border-line px-1 text-[10px]">Ctrl P</kbd>
+              <kbd className="whitespace-nowrap rounded border border-line px-1 text-xs text-faint">Ctrl P</kbd>
             </button>
             <button
               onClick={onFindInFiles}
               aria-label="Поиск по содержимому"
               title="Поиск по содержимому (Ctrl+Shift+F)"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-canvas text-faint transition hover:border-faint hover:text-muted"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-canvas text-muted transition hover:text-fg"
             >
-              <TextSearch size={14} />
+              <TextSearch size={16} />
             </button>
           </div>
         )}
 
         <div className="min-h-0 flex-1 overflow-y-auto px-2 py-4">
           <div className="mb-1 flex items-center justify-between px-2">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-faint">Файлы</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-faint">Файлы</h2>
             {canEdit && (
               <button
                 onClick={() => onCreateFile("code")}
                 aria-label="Создать файл"
                 title="Создать файл"
-                className="rounded p-0.5 text-faint transition hover:bg-raised hover:text-fg"
+                className="rounded p-1 text-faint transition hover:bg-raised hover:text-fg"
               >
-                <Plus size={15} />
+                <Plus size={18} />
               </button>
             )}
           </div>
@@ -190,7 +190,7 @@ export function ProjectNav({
           {canEdit && (
             <div className="flex gap-2">
               <Button size="sm" className="flex-1" onClick={() => onCreateFile("code")}>
-                <Plus size={14} />
+                <Plus size={16} />
                 Файл
               </Button>
               <GithubMenu onImport={onImport} onPush={onPush} canPush={files.length > 0} />
@@ -201,17 +201,17 @@ export function ProjectNav({
               onClick={onToggleTerminal}
               aria-pressed={terminalOpen}
               className={cn(
-                "flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs transition",
-                terminalOpen ? "bg-raised text-fg" : "text-muted hover:bg-raised hover:text-fg",
+                "flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-sm transition",
+                terminalOpen ? "bg-selected text-fg" : "text-muted hover:bg-raised hover:text-fg",
               )}
             >
-              <SquareTerminal size={14} className="text-ok" />
+              <SquareTerminal size={16} className="text-ok" />
               <span className="flex-1 text-left">Терминал</span>
-              <kbd className="rounded border border-line px-1 text-[10px] text-faint">Ctrl `</kbd>
+              <kbd className="whitespace-nowrap rounded border border-line px-1 text-xs text-faint">Ctrl `</kbd>
             </button>
           )}
           <ExportButton projectId={project.id} projectName={project.name} />
-          <p className="flex items-center gap-2 px-1 text-xs text-muted">
+          <p className="flex items-center gap-2 px-1 text-sm text-muted">
             <span
               className={cn(
                 "h-2 w-2 rounded-full",

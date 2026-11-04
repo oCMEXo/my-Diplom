@@ -183,16 +183,16 @@ export function CollabEditor({
       language={languageFor(language)}
       onMount={handleMount}
       theme={MONACO_THEME[theme]}
-      loading={<span className="text-sm text-muted">Загружаем редактор…</span>}
+      loading={<span className="text-base text-muted">Загружаем редактор…</span>}
       options={{
         readOnly,
         readOnlyMessage: { value: "Только чтение: менять файлы могут редакторы и владелец проекта." },
         ariaLabel: "Редактор файла",
         minimap: { enabled: false },
-        fontSize: 13.5,
+        fontSize: 15,
         fontFamily: '"JetBrains Mono Variable", ui-monospace, monospace',
         fontLigatures: true,
-        lineHeight: 22,
+        lineHeight: 24,
         padding: { top: 16, bottom: 16 },
         scrollBeyondLastLine: false,
         smoothScrolling: true,

@@ -9,7 +9,12 @@ export default {
       colors: {
         canvas: token("canvas"),
         surface: token("surface"),
+        main: token("main"),
         raised: token("raised"),
+        selected: token("selected"),
+        control: token("control"),
+        "control-hover": token("control-hover"),
+        danger: "#da373c",
         line: token("line"),
         fg: token("fg"),
         muted: token("muted"),
@@ -20,6 +25,10 @@ export default {
         ok: token("ok"),
         bad: token("bad"),
         warn: token("warn"),
+      },
+      // Discord's proportions: 16 px for what is read, 14 for what goes with it, 12 for labels.
+      fontSize: {
+        base: ["1rem", "1.375rem"],
       },
       fontFamily: {
         sans: ['"Inter Variable"', "ui-sans-serif", "system-ui", "sans-serif"],
@@ -63,5 +72,12 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // For children of an element with `[container-type:inline-size]`: its width decides, not the window's.
+    ({ addVariant }) => {
+      addVariant("bar-md", "@container (min-width: 34rem)");
+      addVariant("bar-lg", "@container (min-width: 44rem)");
+      addVariant("bar-xl", "@container (min-width: 60rem)");
+    },
+  ],
 };

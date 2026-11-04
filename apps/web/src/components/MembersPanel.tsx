@@ -27,7 +27,7 @@ function FollowButton({ person }: { person: PresenceUser }) {
         active ? "bg-accent/15 text-accent-ink" : "text-muted hover:bg-raised hover:text-fg",
       )}
     >
-      <Eye size={14} />
+      <Eye size={16} />
     </button>
   );
 }
@@ -62,7 +62,7 @@ export function MembersPanel({
     const path = files.find((file) => file.id === person?.fileId)?.path;
     if (!path) return null;
     return (
-      <p title={path} className="truncate text-xs text-muted">
+      <p title={path} className="truncate text-sm text-muted">
         {path.split("/").pop()}
       </p>
     );
@@ -85,35 +85,35 @@ export function MembersPanel({
             const person = onlineById.get(member.userId);
             return (
               <li key={member.userId} className="group/member flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-raised/60">
-                <Avatar id={member.userId} name={member.name} online={!!person} />
+                <Avatar id={member.userId} name={member.name} size="sm" online={!!person} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-base font-medium">
                     {member.name}
-                    {member.userId === user?.id && <span className="ml-1.5 text-xs font-normal text-faint">это вы</span>}
+                    {member.userId === user?.id && <span className="ml-1.5 text-sm font-normal text-faint">это вы</span>}
                   </p>
                   {whereIs(person)}
-                </div>
-                {person && member.userId !== user?.id && <FollowButton person={person} />}
-                {manageable ? (
-                  <div className="flex items-center gap-1">
+                  {manageable && (
                     <select
                       value={member.role}
                       onChange={(event) => changeRole.mutate({ userId: member.userId, role: event.target.value as InviteRole })}
                       aria-label={`Роль: ${member.name}`}
-                      className="rounded-md border border-line bg-canvas px-1.5 py-1 text-[11px] text-muted transition focus:border-accent focus:outline-none"
+                      className="mt-1 rounded-md border border-line bg-canvas px-1 py-1 text-sm text-muted transition focus:border-accent focus:outline-none"
                     >
                       <option value="editor">редактор</option>
                       <option value="viewer">наблюдатель</option>
                     </select>
-                    <button
-                      onClick={() => setRemoving(member)}
-                      aria-label={`Убрать из проекта: ${member.name}`}
-                      title="Убрать из проекта"
-                      className="touch-visible rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/member:opacity-100"
-                    >
-                      <UserMinus size={14} />
-                    </button>
-                  </div>
+                  )}
+                </div>
+                {person && member.userId !== user?.id && <FollowButton person={person} />}
+                {manageable ? (
+                  <button
+                    onClick={() => setRemoving(member)}
+                    aria-label={`Убрать из проекта: ${member.name}`}
+                    title="Убрать из проекта"
+                    className="touch-visible rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/member:opacity-100"
+                  >
+                    <UserMinus size={16} />
+                  </button>
                 ) : (
                   <RoleBadge role={member.role} />
                 )}
@@ -122,11 +122,11 @@ export function MembersPanel({
           })}
           {visitors.map((person) => (
             <li key={person.id} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-raised/60">
-              <Avatar id={person.id} name={person.name} online />
+              <Avatar id={person.id} name={person.name} size="sm" online />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
+                <p className="truncate text-base font-medium">
                   {person.name}
-                  {person.isGuest && <span className="ml-1.5 text-xs font-normal text-faint">гость</span>}
+                  {person.isGuest && <span className="ml-1.5 text-sm font-normal text-faint">гость</span>}
                 </p>
                 {whereIs(person)}
               </div>
@@ -138,7 +138,7 @@ export function MembersPanel({
       {onInvite && (
         <div className="border-t border-line p-3">
           <Button className="w-full" onClick={onInvite}>
-            <UserPlus size={15} />
+            <UserPlus size={18} />
             Пригласить
           </Button>
         </div>

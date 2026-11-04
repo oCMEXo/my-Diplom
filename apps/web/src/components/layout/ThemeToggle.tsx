@@ -6,7 +6,7 @@ export function ThemeToggle() {
   const { theme, toggle } = useTheme();
   return (
     <IconButton label={theme === "dark" ? "Светлая тема" : "Тёмная тема"} onClick={toggle}>
-      {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+      {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
     </IconButton>
   );
 }

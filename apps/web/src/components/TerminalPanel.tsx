@@ -37,18 +37,18 @@ function savedHeight() {
 
 // Git Bash-like colours on a dark background, whatever the app's theme.
 const THEME = {
-  background: "#0b0d12",
-  foreground: "#e6e9f1",
-  cursor: "#e6e9f1",
-  selectionBackground: "#7c6cff55",
-  black: "#1c2030",
+  background: "#1e1f22",
+  foreground: "#dbdee1",
+  cursor: "#dbdee1",
+  selectionBackground: "#5865f266",
+  black: "#2b2d31",
   green: "#34d399",
   yellow: "#fbbf24",
   magenta: "#c084fc",
   blue: "#60a5fa",
   cyan: "#22d3ee",
   red: "#f87171",
-  white: "#e6e9f1",
+  white: "#dbdee1",
 };
 
 function HeaderButton({ label, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
@@ -57,7 +57,7 @@ function HeaderButton({ label, ...rest }: ButtonHTMLAttributes<HTMLButtonElement
       type="button"
       aria-label={label}
       title={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[#8e96aa] transition hover:bg-white/10 hover:text-[#e6e9f1]"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#b5bac1] transition hover:bg-white/10 hover:text-[#dbdee1]"
       {...rest}
     />
   );
@@ -86,7 +86,7 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
     const term = new Terminal({
       theme: THEME,
       fontFamily: '"JetBrains Mono", "Cascadia Code", Consolas, monospace',
-      fontSize: 13,
+      fontSize: 15,
       cursorBlink: true,
       scrollback: 5000,
       allowProposedApi: false,
@@ -185,48 +185,48 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
   }
 
   return (
-    <section aria-label="Терминал" className="relative flex shrink-0 flex-col border-t border-line bg-[#0b0d12]" style={{ height }}>
+    <section aria-label="Терминал" className="relative flex shrink-0 flex-col border-t border-line bg-[#1e1f22]" style={{ height }}>
       <div
         onPointerDown={startResize}
         className="absolute inset-x-0 -top-1 z-10 h-2 cursor-row-resize"
         title="Потяните, чтобы изменить высоту"
       />
-      <header className="flex h-9 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-xs text-[#8e96aa]">
-        <SquareTerminal size={14} className="text-[#34d399]" />
-        <span className="font-medium text-[#e6e9f1]">Терминал</span>
+      <header className="flex h-10 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-sm text-[#b5bac1]">
+        <SquareTerminal size={16} className="text-[#34d399]" />
+        <span className="font-medium text-[#dbdee1]">Терминал</span>
         <span className="hidden truncate sm:inline">
           песочница · {TERMINAL_WORKDIR} · без интернета · до {TERMINAL_MAX_MINUTES} минут · правки здесь не попадают в проект
         </span>
         <span className="flex-1" />
         <HeaderButton label="Новый сеанс с текущими файлами" onClick={() => setSession((value) => value + 1)}>
-          <RotateCcw size={14} />
+          <RotateCcw size={16} />
         </HeaderButton>
         <HeaderButton label="Закрыть терминал" onClick={onClose}>
-          <X size={15} />
+          <X size={18} />
         </HeaderButton>
       </header>
 
       <div className="relative min-h-0 flex-1">
         <div ref={host} className="absolute inset-0 px-2 py-1" />
         {phase.name !== "ready" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#0b0d12]/85 p-4">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#1e1f22]/85 p-4">
             {phase.name === "connecting" && (
-              <p className="flex items-center gap-3 text-sm text-[#8e96aa]">
+              <p className="flex items-center gap-3 text-base text-[#b5bac1]">
                 <Spinner /> {phase.message}
               </p>
             )}
             {phase.name === "ended" && (
               <div className="space-y-3 text-center">
-                <p className="text-sm text-[#e6e9f1]">{phase.message}</p>
+                <p className="text-base text-[#dbdee1]">{phase.message}</p>
                 <Button size="sm" variant="primary" onClick={() => setSession((value) => value + 1)}>
-                  <RotateCcw size={13} />
+                  <RotateCcw size={16} />
                   Открыть заново
                 </Button>
               </div>
             )}
             {phase.name === "locked" && (
-              <div className="w-full max-w-sm rounded-xl bg-surface p-5 text-fg shadow-pop">
-                <p className="mb-3 text-sm text-muted">Терминал на этом сайте открывается только по коду доступа владельца.</p>
+              <div className="w-full max-w-sm rounded-lg bg-surface p-5 text-fg shadow-pop">
+                <p className="mb-3 text-base text-muted">Терминал на этом сайте открывается только по коду доступа владельца.</p>
                 <RunCodeForm onUnlocked={() => setSession((value) => value + 1)} />
               </div>
             )}

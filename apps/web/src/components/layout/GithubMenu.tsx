@@ -40,36 +40,36 @@ export function GithubMenu({
   return (
     <div ref={root} className="relative flex-1">
       <Button size="sm" className="w-full" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-haspopup="menu">
-        <GitBranch size={14} />
+        <GitBranch size={16} />
         GitHub
-        <ChevronUp size={13} className={cn("transition-transform", !open && "rotate-180")} />
+        <ChevronUp size={16} className={cn("transition-transform", !open && "rotate-180")} />
       </Button>
       {open && (
         <div
           role="menu"
-          className="absolute bottom-full right-0 z-30 mb-2 w-60 rounded-xl bg-surface p-1.5 shadow-pop animate-pop"
+          className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded-lg bg-surface p-1.5 shadow-pop animate-pop"
         >
           <button
             role="menuitem"
             onClick={choose(onImport)}
-            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-raised"
+            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-base transition hover:bg-raised"
           >
-            <Download size={16} className="mt-0.5 shrink-0 text-muted" />
+            <Download size={18} className="mt-0.5 shrink-0 text-muted" />
             <span>
               Импортировать репозиторий
-              <span className="block text-xs text-faint">Файлы по ссылке на публичный репозиторий</span>
+              <span className="block text-sm text-faint">Файлы по ссылке на публичный репозиторий</span>
             </span>
           </button>
           <button
             role="menuitem"
             onClick={choose(onPush)}
             disabled={!canPush}
-            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-raised disabled:pointer-events-none disabled:opacity-40"
+            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-base transition hover:bg-raised disabled:pointer-events-none disabled:opacity-40"
           >
-            <Upload size={16} className="mt-0.5 shrink-0 text-muted" />
+            <Upload size={18} className="mt-0.5 shrink-0 text-muted" />
             <span>
               Отправить изменения в GitHub
-              <span className="block text-xs text-faint">Коммит с вашими правками</span>
+              <span className="block text-sm text-faint">Коммит с вашими правками</span>
             </span>
           </button>
         </div>

@@ -81,14 +81,14 @@ export function BranchDialog({
           <>
             {data.branches.length > 6 && (
               <label className="flex items-center gap-2 rounded-lg border border-line bg-canvas px-3">
-                <Search size={14} className="text-faint" />
+                <Search size={16} className="text-faint" />
                 <input
                   autoFocus
                   value={filter}
                   onChange={(event) => setFilter(event.target.value)}
                   placeholder="Найти ветку"
                   aria-label="Найти ветку"
-                  className="h-9 w-full bg-transparent text-sm placeholder:text-faint focus:outline-none"
+                  className="h-10 w-full bg-transparent text-base placeholder:text-faint focus:outline-none"
                 />
               </label>
             )}
@@ -103,26 +103,26 @@ export function BranchDialog({
                       disabled={active || !canEdit || switchTo.isPending}
                       aria-current={active ? "true" : undefined}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition",
+                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base transition",
                         active ? "bg-accent/15 text-fg" : "text-muted enabled:hover:bg-raised enabled:hover:text-fg",
                         !active && !canEdit && "cursor-default",
                       )}
                     >
-                      <GitBranch size={15} className="shrink-0" />
-                      <span className="min-w-0 flex-1 truncate font-mono text-[13px]">{name}</span>
-                      {name === data.defaultBranch && <span className="text-[11px] text-faint">основная</span>}
+                      <GitBranch size={18} className="shrink-0" />
+                      <span className="min-w-0 flex-1 truncate font-mono text-sm">{name}</span>
+                      {name === data.defaultBranch && <span className="text-xs text-faint">основная</span>}
                       {data.loaded.includes(name) && !active && (
-                        <span className="rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted">открывалась</span>
+                        <span className="rounded bg-raised px-1.5 py-0.5 text-xs text-muted">открывалась</span>
                       )}
-                      {pending && <LoaderCircle size={15} className="animate-spin text-accent-ink" />}
-                      {active && <Check size={15} className="text-accent-ink" />}
+                      {pending && <LoaderCircle size={18} className="animate-spin text-accent-ink" />}
+                      {active && <Check size={18} className="text-accent-ink" />}
                     </button>
                   </li>
                 );
               })}
-              {visible.length === 0 && <li className="px-3 py-4 text-center text-sm text-faint">Ничего не найдено</li>}
+              {visible.length === 0 && <li className="px-3 py-4 text-center text-base text-faint">Ничего не найдено</li>}
             </ul>
-            <p className="text-xs text-faint">
+            <p className="text-sm text-faint">
               {canEdit
                 ? "Ветка переключится у всех участников проекта. Ветку, которая ещё не открывалась, загрузим с GitHub."
                 : "Переключать ветки могут редакторы и владелец проекта."}

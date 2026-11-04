@@ -175,8 +175,8 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
     >
       {result ? (
         <div className="space-y-4">
-          <div className="flex items-start gap-3 rounded-xl bg-ok/10 p-4 text-sm">
-            <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-ok" />
+          <div className="flex items-start gap-3 rounded-lg bg-ok/10 p-4 text-base">
+            <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-ok" />
             <div>
               <p className="font-medium">
                 Коммит создан в ветке {result.branch}
@@ -191,7 +191,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                 rel="noreferrer noopener"
                 className="mt-2 inline-flex items-center gap-1.5 font-medium text-accent-ink hover:underline"
               >
-                Открыть коммит на GitHub <ExternalLink size={13} />
+                Открыть коммит на GitHub <ExternalLink size={16} />
               </a>
             </div>
           </div>
@@ -239,26 +239,26 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
               }
             />
             {lookup.state === "loading" && (
-              <p className="flex items-center gap-2 text-xs text-muted">
-                <LoaderCircle size={13} className="animate-spin" /> Проверяем токен и загружаем ветки…
+              <p className="flex items-center gap-2 text-sm text-muted">
+                <LoaderCircle size={16} className="animate-spin" /> Проверяем токен и загружаем ветки…
               </p>
             )}
             {lookup.state === "ready" && lookup.data.canPush && (
-              <p className="flex items-center gap-2 text-xs text-ok">
-                <CheckCircle2 size={13} /> Токен подходит: можно писать в {lookup.data.repo.owner}/{lookup.data.repo.name}
+              <p className="flex items-center gap-2 text-sm text-ok">
+                <CheckCircle2 size={16} /> Токен подходит: можно писать в {lookup.data.repo.owner}/{lookup.data.repo.name}
               </p>
             )}
             {lookup.state === "ready" && !lookup.data.canPush && (
-              <p className="flex items-center gap-2 text-xs text-warn">
-                <TriangleAlert size={13} /> У этого токена нет права записи в репозиторий
+              <p className="flex items-center gap-2 text-sm text-warn">
+                <TriangleAlert size={16} /> У этого токена нет права записи в репозиторий
               </p>
             )}
             {lookup.state === "error" && (
-              <p className="flex items-start gap-2 text-xs text-bad">
-                <TriangleAlert size={13} className="mt-0.5 shrink-0" /> {lookup.message}
+              <p className="flex items-start gap-2 text-sm text-bad">
+                <TriangleAlert size={16} className="mt-0.5 shrink-0" /> {lookup.message}
               </p>
             )}
-            <label className="flex items-center gap-2 text-xs text-muted">
+            <label className="flex items-center gap-2 text-sm text-muted">
               <input
                 type="checkbox"
                 checked={remember}
@@ -270,11 +270,11 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
           </div>
 
           <fieldset className="space-y-2" disabled={busy || lookup.state !== "ready"}>
-            <legend className="mb-1 text-xs font-medium text-muted">Куда отправить</legend>
+            <legend className="mb-1 text-sm font-medium text-muted">Куда отправить</legend>
             <div className={cn("grid gap-2 sm:grid-cols-2", lookup.state !== "ready" && "opacity-50")}>
               <label
                 className={cn(
-                  "flex cursor-pointer flex-col gap-2 rounded-xl border p-3 text-sm transition",
+                  "flex cursor-pointer flex-col gap-2 rounded-lg border p-3 text-base transition",
                   target === "existing" ? "border-accent bg-accent/10" : "border-line hover:border-faint",
                 )}
               >
@@ -308,7 +308,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
               </label>
               <label
                 className={cn(
-                  "flex cursor-pointer flex-col gap-2 rounded-xl border p-3 text-sm transition",
+                  "flex cursor-pointer flex-col gap-2 rounded-lg border p-3 text-base transition",
                   target === "new" ? "border-accent bg-accent/10" : "border-line hover:border-faint",
                 )}
               >
@@ -320,7 +320,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     onChange={() => setTarget("new")}
                     className="accent-[rgb(var(--accent))]"
                   />
-                  <GitBranch size={14} className="text-muted" />В новую ветку
+                  <GitBranch size={16} className="text-muted" />В новую ветку
                 </span>
                 <input
                   value={newBranch}
@@ -329,11 +329,11 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     setTarget("new");
                   }}
                   aria-label="Имя новой ветки"
-                  className="field py-1.5 font-mono text-xs"
+                  className="field py-1.5 font-mono text-sm"
                 />
               </label>
             </div>
-            <p className="text-xs text-faint">
+            <p className="text-sm text-faint">
               {target === "new"
                 ? "Основная ветка не изменится — потом можно открыть pull request."
                 : "Коммит попадёт прямо в выбранную ветку."}
@@ -355,7 +355,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
               Отмена
             </Button>
             <Button type="submit" variant="primary" disabled={!ready || busy}>
-              <GitCommitHorizontal size={15} />
+              <GitCommitHorizontal size={18} />
               {phase === "saving" ? "Сохраняем правки…" : phase === "pushing" ? "Отправляем…" : "Отправить"}
             </Button>
           </div>
@@ -369,10 +369,10 @@ function FileList({ title, tone, paths }: { title: string; tone: string; paths: 
   if (paths.length === 0) return null;
   return (
     <div>
-      <p className={cn("mb-1 text-xs font-medium", tone)}>
+      <p className={cn("mb-1 text-sm font-medium", tone)}>
         {title} · {paths.length}
       </p>
-      <ul className="space-y-0.5 font-mono text-xs text-muted">
+      <ul className="space-y-0.5 font-mono text-sm text-muted">
         {paths.slice(0, 8).map((path) => (
           <li key={path} className="truncate" title={path}>
             {path}
@@ -398,15 +398,15 @@ function PreviewBlock({
   if (preview.state === "idle") return null;
   if (preview.state === "loading") {
     return (
-      <p className="flex items-center gap-2 text-xs text-muted">
-        <LoaderCircle size={13} className="animate-spin" /> Смотрим, что изменилось…
+      <p className="flex items-center gap-2 text-sm text-muted">
+        <LoaderCircle size={16} className="animate-spin" /> Смотрим, что изменилось…
       </p>
     );
   }
   if (preview.state === "error") {
     return (
-      <p className="flex items-start gap-2 text-xs text-bad">
-        <TriangleAlert size={13} className="mt-0.5 shrink-0" /> {preview.message}
+      <p className="flex items-start gap-2 text-sm text-bad">
+        <TriangleAlert size={16} className="mt-0.5 shrink-0" /> {preview.message}
       </p>
     );
   }
@@ -414,20 +414,20 @@ function PreviewBlock({
   const { added, modified, conflicts, unchanged } = preview.data;
   if (added.length + modified.length + conflicts.length === 0) {
     return (
-      <p className="rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">
+      <p className="rounded-lg bg-raised px-3 py-2.5 text-base text-muted">
         Нечего отправлять: файлы проекта совпадают с репозиторием ({unchanged}).
       </p>
     );
   }
   return (
-    <div className="space-y-3 rounded-xl border border-line bg-canvas p-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-faint">Что будет отправлено</p>
+    <div className="space-y-3 rounded-lg border border-line bg-canvas p-3">
+      <p className="text-sm font-semibold uppercase tracking-wider text-faint">Что будет отправлено</p>
       <FileList title="Изменены" tone="text-accent-ink" paths={modified} />
       <FileList title="Новые" tone="text-ok" paths={added} />
       {conflicts.length > 0 && (
         <div className="space-y-2 rounded-lg bg-warn/10 p-2.5">
           <FileList title="Изменились и в GitHub" tone="text-warn" paths={conflicts} />
-          <label className="flex items-start gap-2 text-xs">
+          <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"
               checked={overwrite}
@@ -439,7 +439,7 @@ function PreviewBlock({
           </label>
         </div>
       )}
-      {unchanged > 0 && <p className="text-xs text-faint">Без изменений: {unchanged}</p>}
+      {unchanged > 0 && <p className="text-sm text-faint">Без изменений: {unchanged}</p>}
     </div>
   );
 }

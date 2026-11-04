@@ -9,7 +9,7 @@ export function Spinner({ size = 18 }: { size?: number }) {
 
 export function FullScreenLoader({ label = "Загрузка…" }: { label?: string }) {
   return (
-    <div className="flex h-full min-h-screen items-center justify-center gap-3 text-sm text-muted">
+    <div className="flex h-full min-h-screen items-center justify-center gap-3 text-base text-muted">
       <Spinner /> {label}
     </div>
   );

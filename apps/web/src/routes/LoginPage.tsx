@@ -63,19 +63,19 @@ export function LoginPage() {
           {loading ? "Входим…" : "Войти"}
         </Button>
 
-        <div className="flex items-center gap-3 text-xs text-faint">
+        <div className="flex items-center gap-3 text-sm text-faint">
           <span className="h-px flex-1 bg-line" />
           или
           <span className="h-px flex-1 bg-line" />
         </div>
 
         <Button size="lg" onClick={onGuest} disabled={loading} className="w-full">
-          <Sparkles size={16} className="text-accent-ink" />
+          <Sparkles size={18} className="text-accent-ink" />
           Продолжить как гость
         </Button>
-        <p className="text-center text-xs text-faint">Гостю не нужны ни почта, ни пароль — достаточно открыть ссылку.</p>
+        <p className="text-center text-sm text-faint">Гостю не нужны ни почта, ни пароль — достаточно открыть ссылку.</p>
 
-        <p className="pt-2 text-center text-sm text-muted">
+        <p className="pt-2 text-center text-base text-muted">
           Нет аккаунта?{" "}
           <Link to={registerLink} className="font-medium text-accent-ink hover:underline">
             Зарегистрироваться

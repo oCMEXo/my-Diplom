@@ -47,7 +47,7 @@ export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; 
           </Button>
         )}
         <Button type="submit" variant="primary" disabled={!code.trim() || checking}>
-          <KeyRound size={14} />
+          <KeyRound size={16} />
           {checking ? "Проверяем…" : "Открыть доступ"}
         </Button>
       </div>

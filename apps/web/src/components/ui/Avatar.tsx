@@ -1,7 +1,7 @@
 import { colorForUser, initials } from "../../lib/colors";
 import { cn } from "../../lib/cn";
 
-const SIZES = { xs: "h-5 w-5 text-[9px]", sm: "h-7 w-7 text-[10px]", md: "h-9 w-9 text-xs", lg: "h-12 w-12 text-sm" };
+const SIZES = { xs: "h-6 w-6 text-xs", sm: "h-8 w-8 text-xs", md: "h-10 w-10 text-sm", lg: "h-12 w-12 text-base" };
 
 export function Avatar({
   id,
@@ -29,7 +29,7 @@ export function Avatar({
         className={cn(
           "inline-flex select-none items-center justify-center rounded-full font-semibold text-black/75",
           SIZES[size],
-          ring && "ring-2 ring-surface",
+          ring && "ring-2 ring-main",
         )}
       >
         {initials(name)}
@@ -38,7 +38,7 @@ export function Avatar({
         <span
           title={online ? "в сети" : "не в сети"}
           className={cn(
-            "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface",
+            "absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-surface",
             online ? "bg-ok" : "bg-faint",
           )}
         />

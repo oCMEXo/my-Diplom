@@ -50,27 +50,27 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
       <button
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="flex w-full items-center gap-1.5 px-2 py-1 text-left text-[11px] font-semibold uppercase tracking-wider text-faint transition hover:text-fg"
+        className="flex w-full items-center gap-1.5 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-faint transition hover:text-fg"
       >
-        <ChevronRight size={13} className={cn("transition-transform", open && "rotate-90")} />
-        <Trash2 size={13} />
+        <ChevronRight size={16} className={cn("transition-transform", open && "rotate-90")} />
+        <Trash2 size={16} />
         Корзина · {trash.length}
       </button>
 
       {open && (
         <div className="mt-1 space-y-0.5">
-          {error && <p className="px-2.5 py-1 text-xs text-bad">{error}</p>}
+          {error && <p className="px-2.5 py-1 text-sm text-bad">{error}</p>}
           <ul className="space-y-0.5">
             {trash.map((file) => {
               const kind = FILE_KINDS[file.type];
               return (
-                <li key={file.id} className="group/trash flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-faint hover:bg-raised">
-                  <kind.icon size={15} className="shrink-0 opacity-60" />
+                <li key={file.id} className="group/trash flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-base text-faint hover:bg-raised">
+                  <kind.icon size={18} className="shrink-0 opacity-60" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate line-through decoration-faint/50" title={file.path}>
                       {file.path.split("/").pop()}
                     </span>
-                    <span className="block text-[11px]">удалится через {daysLeft(file.purgeAt)} дн.</span>
+                    <span className="block text-xs">удалится через {daysLeft(file.purgeAt)} дн.</span>
                   </span>
                   {canEdit && (
                     <button
@@ -80,7 +80,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
                       title="Восстановить"
                       className="rounded p-1 text-muted transition hover:bg-accent/15 hover:text-accent-ink"
                     >
-                      <Undo2 size={14} />
+                      <Undo2 size={16} />
                     </button>
                   )}
                   {isOwner && (
@@ -90,7 +90,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
                       title="Удалить навсегда"
                       className="touch-visible rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/trash:opacity-100"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                   )}
                 </li>

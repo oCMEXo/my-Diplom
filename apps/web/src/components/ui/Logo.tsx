@@ -23,7 +23,7 @@ export function Wordmark() {
   return (
     <span className="flex items-center gap-2.5">
       <LogoMark />
-      <span className="text-lg font-semibold tracking-tight">Collab</span>
+      <span className="text-xl font-semibold tracking-tight">Collab</span>
     </span>
   );
 }

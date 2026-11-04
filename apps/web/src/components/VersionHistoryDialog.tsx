@@ -71,13 +71,13 @@ export function VersionHistoryDialog({
       width="max-w-5xl"
     >
       {versions.isPending ? (
-        <p className="flex items-center gap-2 text-sm text-muted">
-          <Spinner size={16} /> Загружаем историю…
+        <p className="flex items-center gap-2 text-base text-muted">
+          <Spinner size={18} /> Загружаем историю…
         </p>
       ) : versions.error ? (
         <ErrorNote>{versions.error instanceof ApiError ? versions.error.message : "Не удалось загрузить историю"}</ErrorNote>
       ) : !selected ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line px-6 py-12 text-center text-sm text-muted">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line px-6 py-12 text-center text-base text-muted">
           <History size={28} className="text-faint" />
           Версий пока нет. Они появятся, когда в файл начнут вносить правки.
         </div>
@@ -94,10 +94,10 @@ export function VersionHistoryDialog({
                     version.id === selected.id ? "bg-raised text-fg" : "text-muted hover:bg-raised/60 hover:text-fg",
                   )}
                 >
-                  <span className="block text-sm font-medium" title={versionMoment(version.createdAt)}>
+                  <span className="block text-base font-medium" title={versionMoment(version.createdAt)}>
                     {versionAge(version.createdAt)}
                   </span>
-                  <span className="block truncate text-xs text-faint">
+                  <span className="block truncate text-sm text-faint">
                     {version.authorName ?? "автор неизвестен"} · {formatSize(version.size)}
                   </span>
                 </button>
@@ -105,20 +105,20 @@ export function VersionHistoryDialog({
             ))}
           </ul>
 
-          <section className="flex min-h-[18rem] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-line">
+          <section className="flex min-h-[18rem] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-line">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-canvas px-3 py-2">
-              <p className="min-w-0 flex-1 text-xs text-muted">
+              <p className="min-w-0 flex-1 text-sm text-muted">
                 Версия от {versionMoment(selected.createdAt)}: <span className="text-bad">красным</span> — что было только в
                 ней, <span className="text-ok">зелёным</span> — что есть только сейчас
                 {same && <span className="text-ok"> · совпадает с текущим</span>}
               </p>
               {canEdit ? (
                 <Button size="sm" variant="primary" onClick={() => setConfirming(true)} disabled={text === undefined || same}>
-                  <RotateCcw size={13} />
+                  <RotateCcw size={16} />
                   Восстановить
                 </Button>
               ) : (
-                <span className="text-xs text-faint">Восстанавливать версии могут редакторы</span>
+                <span className="text-sm text-faint">Восстанавливать версии могут редакторы</span>
               )}
             </div>
             <div className="relative min-h-0 flex-1">
@@ -127,8 +127,8 @@ export function VersionHistoryDialog({
                   <ErrorNote>{content.error instanceof ApiError ? content.error.message : "Не удалось загрузить версию"}</ErrorNote>
                 </div>
               ) : text === undefined ? (
-                <p className="flex items-center gap-2 p-3 text-sm text-muted">
-                  <Spinner size={16} /> Загружаем версию…
+                <p className="flex items-center gap-2 p-3 text-base text-muted">
+                  <Spinner size={18} /> Загружаем версию…
                 </p>
               ) : (
                 <VersionDiff original={text} modified={current} language={language} />

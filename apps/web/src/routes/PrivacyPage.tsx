@@ -6,8 +6,8 @@ import { Wordmark } from "../components/ui/Logo";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-base font-semibold">{title}</h2>
-      <div className="space-y-2 text-sm leading-relaxed text-muted">{children}</div>
+      <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="space-y-2 text-base leading-relaxed text-muted">{children}</div>
     </section>
   );
 }
@@ -24,7 +24,7 @@ export function PrivacyPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Данные и приватность</h1>
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-base text-muted">
             Collab — учебный проект, дипломная работа. Здесь коротко сказано, какие данные хранит сервис, зачем и как
             их удалить.
           </p>
