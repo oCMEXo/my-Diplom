@@ -13,6 +13,7 @@
     "dev:runner": "pnpm --filter @collab/runner dev",
     "dev:web": "pnpm --filter @collab/web dev",
     "host:test": "pnpm --filter @collab/local-host start",
+    "docker:restart": "powershell -NoProfile -ExecutionPolicy Bypass -File infra/docker-restart.ps1",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",

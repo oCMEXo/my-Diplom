@@ -63,7 +63,9 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
           {run && (
             <span className="flex min-w-0 items-center gap-2 truncate">
               <span className={cn("h-2 w-2 shrink-0 rounded-full", STATUS[run.status].dot)} />
-              {run.startedBy.name} · {STATUS[run.status].label}
+              <span role="status">
+                {run.startedBy.name} · {STATUS[run.status].label}
+              </span>
               {run.durationMs !== null && ` · ${(run.durationMs / 1000).toFixed(1)} с`}
             </span>
           )}

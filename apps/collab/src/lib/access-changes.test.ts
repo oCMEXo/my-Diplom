@@ -46,7 +46,9 @@ describe("access changes from the API", () => {
     server = createHocuspocus({ port: 0, address: "127.0.0.1", quiet: true, stopOnSignals: false });
     await server.listen(null, null, WEBSOCKET_OPTIONS);
     url = `ws://127.0.0.1:${server.address.port}`;
-    stopListener = await startAccessChangeListener(env.REDIS_URL, server);
+    const listener = startAccessChangeListener(env.REDIS_URL, server);
+    await listener.subscribed;
+    stopListener = listener.stop;
     publisher = new Redis(env.REDIS_URL);
   });
 
@@ -169,6 +171,13 @@ describe("access changes from the API", () => {
 
     await waitFor(() => (server.documents.get(p.files[0]!)?.getConnectionsCount() ?? 0) === 0);
     expect(connectionsOf(other.files[0]!, owner)).toHaveLength(1);
+  });
+
+  it("starts without Redis and only reports that it is missing", async () => {
+    const errors: unknown[] = [];
+    const listener = startAccessChangeListener("redis://127.0.0.1:1", server, (error) => errors.push(error));
+    await expect.poll(() => errors.length).toBeGreaterThan(0);
+    await listener.stop();
   });
 
   it("closes a connection that sends an oversized message, before any authentication", async () => {

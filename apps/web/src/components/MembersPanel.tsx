@@ -9,6 +9,7 @@ import { useFollowing, useOnlineUsers } from "../lib/RealtimeContext";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Avatar } from "./ui/Avatar";
 import { Button } from "./ui/Button";
+import { ErrorNote } from "./ui/Field";
 import { RoleBadge } from "./ui/RoleBadge";
 
 function FollowButton({ person }: { person: PresenceUser }) {
@@ -77,6 +78,7 @@ export function MembersPanel({
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
+        {changeRole.error && <ErrorNote>Не удалось изменить роль. Попробуйте ещё раз.</ErrorNote>}
         <ul className="space-y-0.5">
           {sorted.map((member) => {
             const manageable = isOwner && member.role !== "owner";

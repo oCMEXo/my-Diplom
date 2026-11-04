@@ -51,6 +51,8 @@ const AUTH_LIMITED_URLS = new Set([
   "/auth/refresh",
   "/auth/upgrade",
   "/auth/delete-account",
+  // Its answer tells whether an address is registered, so it is limited like signing in.
+  "/projects/:projectId/members",
   "/run-access",
 ]);
 

@@ -59,6 +59,10 @@ pnpm dev:web      # фронтенд, http://localhost:5173
 > Порты 5433/6380 выбраны не случайно: 5432/6379 на этой машине заняты
 > локальными Postgres/Redis вне Docker. При необходимости поменяйте их в
 > `infra/docker-compose.dev.yml` и в `.env`.
+>
+> Если после перезагрузки компьютера Docker Desktop падает с ошибкой про `dockerInference` или
+> `engine.sock`, выполните `pnpm docker:restart` (только Windows). Кнопку «Reset to factory defaults»
+> не нажимайте: она стирает данные Docker.
 
 ## Скрипты
 

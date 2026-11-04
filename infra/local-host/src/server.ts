@@ -67,6 +67,9 @@ export function createHostServer(options: HostOptions) {
   const web = sirv(options.webRoot, {
     single: true,
     etag: true,
+    // The ready-made copies from compressWebRoot, for browsers that accept them.
+    gzip: true,
+    brotli: true,
     setHeaders(response, pathname) {
       response.setHeader(
         "Cache-Control",

@@ -1,3 +1,4 @@
+import { RUN_TIMEOUT_MS } from "@collab/shared";
 import type { RunnableLanguage } from "@collab/shared";
 
 interface LanguageSpec {
@@ -40,6 +41,12 @@ export const SANDBOX_LIMITS = {
   tmpfsSize: "16m",
 } as const;
 
+/**
+ * The runner kills a program at the time limit, but a runner that crashed kills nothing, and the program
+ * would run for ever. So the container has its own limit, a little later, that needs nobody's help.
+ */
+export const SELF_STOP_SECONDS = Math.ceil(RUN_TIMEOUT_MS / 1000) + 5;
+
 export function containerName(runId: string) {
   return `collab-run-${runId}`;
 }
@@ -52,13 +59,15 @@ export function buildDockerArgs(language: RunnableLanguage, runId: string, entry
   const spec = LANGUAGES[language];
   // The entry path travels in an environment variable and is quoted in the script, so file names
   // cannot inject shell code; the "./" keeps a name starting with "-" from being read as an option.
-  const script = `mkdir -p ${WORKDIR} && tar -xf - -C ${WORKDIR} && cd ${WORKDIR} && exec ${spec.interpreter} "./$ENTRY"`;
+  const script = `mkdir -p ${WORKDIR} && tar -xf - -C ${WORKDIR} && cd ${WORKDIR} && exec timeout -s KILL ${SELF_STOP_SECONDS} ${spec.interpreter} "./$ENTRY"`;
   return [
     "run",
     "--rm",
     "-i",
     "--name",
     containerName(runId),
+    // A process with PID 1 ignores even SIGKILL from inside the container, so `timeout` could not stop it.
+    "--init",
     "--network",
     "none",
     "--read-only",

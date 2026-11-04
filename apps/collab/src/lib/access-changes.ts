@@ -22,12 +22,16 @@ export function applyAccessChange(hocuspocus: Hocuspocus, change: AccessChange) 
   return closed;
 }
 
-export async function startAccessChangeListener(
+/**
+ * Listens for changes of access. It does not hold anything up: without Redis documents still work,
+ * and the subscription is made as soon as Redis appears (`subscribed` tells when).
+ */
+export function startAccessChangeListener(
   redisUrl: string,
   hocuspocus: Hocuspocus,
   onError?: (error: unknown) => void,
 ) {
-  const subscriber = new Redis(redisUrl);
+  const subscriber = new Redis(redisUrl, { maxRetriesPerRequest: null });
   subscriber.on("error", (error) => onError?.(error));
 
   subscriber.on("message", (_channel, raw) => {
@@ -39,9 +43,10 @@ export async function startAccessChangeListener(
     }
   });
 
-  await subscriber.subscribe(ACCESS_CHANGES_CHANNEL);
-
-  return async () => {
-    await subscriber.quit().catch(() => undefined);
+  return {
+    subscribed: subscriber.subscribe(ACCESS_CHANGES_CHANNEL),
+    stop: async () => {
+      subscriber.disconnect();
+    },
   };
 }

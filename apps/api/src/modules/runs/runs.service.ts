@@ -39,12 +39,22 @@ export async function projectTextFiles(projectId: string, branch: string, except
   return files;
 }
 
+/** With Redis away the queue waits for it for ever, and the person's request would wait too. */
+const ENQUEUE_TIMEOUT_MS = 5000;
+
+function failAfter(ms: number) {
+  return new Promise<never>((_resolve, reject) => {
+    setTimeout(() => reject(new AppError("Запуск кода сейчас недоступен. Попробуйте чуть позже.", 503)), ms).unref();
+  });
+}
+
 export async function requestRun(
   userId: string,
   projectId: string,
   fileId: string,
   code: string,
   enqueue: (job: RunJob) => Promise<void> = enqueueRun,
+  enqueueTimeoutMs = ENQUEUE_TIMEOUT_MS,
 ) {
   await requireProjectRole(projectId, userId, "editor");
 
@@ -67,7 +77,7 @@ export async function requestRun(
   });
 
   const runId = randomUUID();
-  await enqueue({
+  const job = {
     runId,
     projectId,
     fileId,
@@ -76,7 +86,8 @@ export async function requestRun(
     entry: file.path,
     files: await projectTextFiles(projectId, file.branch, fileId),
     startedBy: { id: user.id, name: user.name },
-  });
+  };
+  await Promise.race([enqueue(job), failAfter(enqueueTimeoutMs)]);
 
   return { runId };
 }

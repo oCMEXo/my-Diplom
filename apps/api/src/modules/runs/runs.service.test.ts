@@ -5,6 +5,7 @@ import type { RunJob } from "@collab/shared";
 import { createProject } from "../projects/projects.service.js";
 import { createFile, deleteFile } from "../files/files.service.js";
 import { textToYjsState } from "../../lib/yjs-text.js";
+import { enqueueRun, MAX_WAITING_RUNS } from "../../lib/queue.js";
 import { requestRun } from "./runs.service.js";
 
 describe("requestRun", () => {
@@ -144,5 +145,31 @@ describe("requestRun", () => {
     await expect(
       requestRun(owner.id, a.project.id, b.file.id, "x", async () => undefined),
     ).rejects.toMatchObject({ statusCode: 404 });
+  });
+  it("answers 503 instead of waiting for ever when the queue cannot be reached", async () => {
+    const owner = await user();
+    const { project, file } = await projectWithFile(owner.id, "main.py");
+
+    await expect(
+      requestRun(owner.id, project.id, file.id, "print(1)", () => new Promise(() => {}), 20),
+    ).rejects.toMatchObject({ statusCode: 503 });
+  });
+
+  it("refuses a new run when too many are waiting", async () => {
+    const owner = await user();
+    const { project, file } = await projectWithFile(owner.id, "main.py");
+    const added: unknown[] = [];
+    const queue = (waiting: number) => ({
+      getWaitingCount: async () => waiting,
+      add: async (...args: unknown[]) => void added.push(args),
+    });
+
+    await expect(
+      requestRun(owner.id, project.id, file.id, "print(1)", (job) => enqueueRun(job, queue(MAX_WAITING_RUNS))),
+    ).rejects.toMatchObject({ statusCode: 429 });
+    expect(added).toHaveLength(0);
+
+    await requestRun(owner.id, project.id, file.id, "print(1)", (job) => enqueueRun(job, queue(MAX_WAITING_RUNS - 1)));
+    expect(added).toHaveLength(1);
   });
 });
