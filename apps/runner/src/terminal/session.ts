@@ -29,6 +29,9 @@ export interface TerminalSessionOptions {
 export interface TerminalSession {
   write(data: string): void;
   resize(cols: number, rows: number): void;
+  /** Stop and start reading the program's output; a paused program soon blocks on writing. */
+  pause(): void;
+  resume(): void;
   close(message?: string): void;
 }
 
@@ -149,6 +152,8 @@ export async function openTerminalSession(docker: Docker, options: TerminalSessi
       resize: (cols, rows) => {
         if (!closed) exec.resize({ w: cols, h: rows }).catch(() => undefined);
       },
+      pause: () => shell?.pause(),
+      resume: () => shell?.resume(),
       close,
     };
   } catch (error) {

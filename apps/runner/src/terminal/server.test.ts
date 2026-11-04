@@ -21,6 +21,8 @@ function fakeSessions() {
         options.onOutput(`echo:${data}`);
       },
       resize: (cols: number, rows: number) => record.sizes.push([cols, rows]),
+      pause: () => {},
+      resume: () => {},
       close: () => {
         record.closed = true;
       },

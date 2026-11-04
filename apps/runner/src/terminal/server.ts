@@ -2,6 +2,7 @@ import http from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { terminalClientMessageSchema } from "@collab/shared";
 import type { TerminalServerMessage, TerminalTicketData } from "@collab/shared";
+import { createOutputGate } from "./output-gate.js";
 import type { TerminalSession, TerminalSessionOptions } from "./session.js";
 
 export interface TerminalServerOptions {
@@ -98,6 +99,12 @@ export function createTerminalServer(options: TerminalServerOptions) {
       }
     });
     send({ type: "status", message: "Запускаем песочницу…" });
+    const gate = createOutputGate({
+      buffered: () => socket.bufferedAmount,
+      pause: () => session?.pause(),
+      resume: () => session?.resume(),
+    });
+    socket.on("close", () => gate.stop());
     try {
       const opened = await options.openSession({
         files: data.files,
@@ -105,7 +112,10 @@ export function createTerminalServer(options: TerminalServerOptions) {
         cols: clamp(Number(url.searchParams.get("cols")), 2, 500, 80),
         rows: clamp(Number(url.searchParams.get("rows")), 2, 300, 24),
         maxMs: options.maxMs,
-        onOutput: (chunk) => send({ type: "output", data: chunk }),
+        onOutput: (chunk) => {
+          send({ type: "output", data: chunk });
+          gate.check();
+        },
         onExit: (message) => end(message),
       });
       if (gone) return opened.close();

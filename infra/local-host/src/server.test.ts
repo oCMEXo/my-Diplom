@@ -5,6 +5,7 @@ import path from "node:path";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import WebSocket, { WebSocketServer } from "ws";
+import { compressWebRoot } from "./compress.js";
 import { createHostServer } from "./server.js";
 
 const listen = (server: http.Server) =>
@@ -27,6 +28,8 @@ let terminal: http.Server;
     fs.writeFileSync(path.join(webRoot, "index.html"), "<!doctype html><title>app</title>");
     fs.writeFileSync(path.join(webRoot, "sw.js"), "// service worker");
     fs.writeFileSync(path.join(webRoot, "assets", "app-abc123.js"), "console.log(1)");
+    fs.writeFileSync(path.join(webRoot, "assets", "big-abc123.js"), "console.log(1);\n".repeat(2000));
+    await compressWebRoot(webRoot);
 
     api = http.createServer((request, response) => {
       seen.url = request.url;
@@ -80,6 +83,35 @@ let terminal: http.Server;
     expect((await get("/assets/app-abc123.js")).headers.get("cache-control")).toContain("immutable");
     expect((await get("/")).headers.get("cache-control")).toBe("no-cache");
     expect((await get("/sw.js")).headers.get("cache-control")).toBe("no-cache");
+  });
+
+  it("sends large text files compressed to browsers that accept it, and whole to the others", async () => {
+    const ask = (encoding: string) =>
+      new Promise<http.IncomingMessage & { size: number }>((resolve) => {
+        http.get(
+          { port: hostPort, host: "127.0.0.1", path: "/assets/big-abc123.js", headers: { "Accept-Encoding": encoding } },
+          (response) => {
+            let size = 0;
+            response.on("data", (chunk: Buffer) => (size += chunk.length));
+            response.on("end", () => resolve(Object.assign(response, { size })));
+          },
+        );
+      });
+
+    const brotli = await ask("br, gzip");
+    expect(brotli.headers["content-encoding"]).toBe("br");
+    expect(brotli.size).toBeLessThan(1000);
+    expect(brotli.headers["cache-control"]).toContain("immutable");
+
+    expect((await ask("gzip")).headers["content-encoding"]).toBe("gzip");
+
+    const plain = await ask("identity");
+    expect(plain.headers["content-encoding"]).toBeUndefined();
+    expect(plain.size).toBe("console.log(1);\n".length * 2000);
+  });
+
+  it("does not compress what is too small to gain from it", () => {
+    expect(fs.existsSync(path.join(webRoot, "assets", "app-abc123.js.br"))).toBe(false);
   });
 
   it("sends basic security headers", async () => {

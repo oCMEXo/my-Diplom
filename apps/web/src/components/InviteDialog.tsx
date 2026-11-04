@@ -12,6 +12,7 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
   const queryClient = useQueryClient();
   const isOwner = project.myRole === "owner";
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const [email, setEmail] = useState("");
   const [emailRole, setEmailRole] = useState<InviteRole>("editor");
   const link = `${window.location.origin}/join/${project.inviteCode}`;
@@ -37,9 +38,10 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
+      setCopyFailed(false);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      // the field is selectable, so the link can still be copied by hand
+      setCopyFailed(true);
     }
   }
 
@@ -70,6 +72,9 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
               {copied ? "Скопировано" : "Копировать"}
             </Button>
           </div>
+
+          {copyFailed && <ErrorNote>Браузер не дал скопировать. Выделите ссылку в поле и скопируйте её вручную.</ErrorNote>}
+          {(regenerate.error ?? changeRole.error) && <ErrorNote>Не удалось изменить ссылку. Попробуйте ещё раз.</ErrorNote>}
 
           {isOwner ? (
             <div className="space-y-3">

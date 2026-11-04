@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PROJECT_ROLES } from "../constants.js";
+import { emailSchema } from "./auth.js";
 
 export const projectRoleSchema = z.enum(PROJECT_ROLES);
 
@@ -45,7 +46,7 @@ export const projectWithMembersSchema = projectSchema.extend({
 export type ProjectWithMembers = z.infer<typeof projectWithMembersSchema>;
 
 export const inviteMemberSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   role: inviteRoleSchema,
 });
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;

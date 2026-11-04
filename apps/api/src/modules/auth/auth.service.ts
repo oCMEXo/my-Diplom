@@ -56,9 +56,14 @@ export async function registerUser(input: RegisterInput) {
   return { user: toAuthUser(user), tokens };
 }
 
+let decoyHash: Promise<string> | null = null;
+
 export async function loginUser(input: LoginInput) {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
-  if (!user || !(await verifyPassword(user.passwordHash, input.password))) {
+  // An unknown address takes as long as a wrong password: the time must not tell who has an account.
+  decoyHash ??= hashPassword(randomUUID());
+  const valid = await verifyPassword(user?.passwordHash ?? (await decoyHash), input.password);
+  if (!user || !valid) {
     throw new AppError("Неверный email или пароль", 401);
   }
 

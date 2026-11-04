@@ -93,6 +93,18 @@ describe("importFromGithub", () => {
     await expect(importFromGithub(stranger.id, p.id, REPO_URL, github)).rejects.toMatchObject({ statusCode: 404 });
   });
 
+  it("leaves the project unlinked when the repository cannot be downloaded", async () => {
+    const owner = await user();
+    const p = await project(owner.id);
+    const missing = (async () => new Response("Not Found", { status: 404 })) as typeof fetch;
+
+    await expect(importFromGithub(owner.id, p.id, REPO_URL, missing)).rejects.toMatchObject({ statusCode: expect.any(Number) });
+
+    const stored = await prisma.project.findUniqueOrThrow({ where: { id: p.id } });
+    expect(stored.githubOwner).toBeNull();
+    expect(stored.githubRepo).toBeNull();
+  });
+
   it("rejects links that are not GitHub repositories before downloading anything", async () => {
     const owner = await user();
     const p = await project(owner.id);

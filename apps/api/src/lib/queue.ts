@@ -3,6 +3,10 @@ import { Redis } from "ioredis";
 import { RUN_QUEUE_NAME } from "@collab/shared";
 import type { RunJob } from "@collab/shared";
 import { env } from "../env.js";
+import { AppError } from "./errors.js";
+
+/** With this many runs waiting, the sandbox is not keeping up and another one would only wait in vain. */
+export const MAX_WAITING_RUNS = 100;
 
 let connection: Redis | null = null;
 let queue: Queue<RunJob> | null = null;
@@ -18,8 +22,16 @@ function getQueue() {
   return queue;
 }
 
-export async function enqueueRun(job: RunJob) {
-  await getQueue().add("run", job, { jobId: job.runId });
+export interface RunQueue {
+  getWaitingCount(): Promise<number>;
+  add(name: "run", job: RunJob, options: { jobId: string }): Promise<unknown>;
+}
+
+export async function enqueueRun(job: RunJob, queue: RunQueue = getQueue()) {
+  if ((await queue.getWaitingCount()) >= MAX_WAITING_RUNS) {
+    throw new AppError("Сейчас запускается слишком много программ. Попробуйте через минуту.", 429);
+  }
+  await queue.add("run", job, { jobId: job.runId });
 }
 
 export async function closeRunQueue() {

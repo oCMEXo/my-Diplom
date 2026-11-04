@@ -13,6 +13,28 @@ import {
   upgradeGuest,
 } from "./auth.service.js";
 
+describe("loginUser", () => {
+  it("takes about as long for an unknown address as for a wrong password", { timeout: 30_000 }, async () => {
+    const email = `${randomUUID()}@example.com`;
+    const { user } = await registerUser({ email, name: "Аня", password: "password123" });
+    const fastest = async (attempt: () => Promise<unknown>) => {
+      let best = Infinity;
+      for (let run = 0; run < 3; run += 1) {
+        const started = performance.now();
+        await attempt().catch(() => undefined);
+        best = Math.min(best, performance.now() - started);
+      }
+      return best;
+    };
+
+    const wrongPassword = await fastest(() => loginUser({ email, password: "wrong-password" }));
+    const unknownAddress = await fastest(() => loginUser({ email: `${randomUUID()}@example.com`, password: "wrong-password" }));
+    await prisma.user.delete({ where: { id: user.id } });
+
+    expect(unknownAddress).toBeGreaterThan(wrongPassword / 3);
+  });
+});
+
 describe("loginAsGuest", () => {
   const createdUserIds: string[] = [];
 

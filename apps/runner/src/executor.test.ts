@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { runInSandbox } from "./executor.js";
+import { SELF_STOP_SECONDS } from "./sandbox.js";
 
 function dockerReady() {
   try {
@@ -109,6 +110,13 @@ suite("runInSandbox (real docker)", () => {
     const { result } = await run("python", "while True: pass", 2500);
     expect(result.status).toBe("timeout");
     expect(result.durationMs).toBeLessThan(15000);
+  });
+
+  it("stops by itself even if nobody kills it, as after a crash of the runner", { timeout: 40_000 }, async () => {
+    const started = Date.now();
+    const { result } = await run("python", "while True:\n    pass\n", 60_000);
+    expect(result.exitCode).toBe(137);
+    expect(Date.now() - started).toBeLessThan((SELF_STOP_SECONDS + 10) * 1000);
   });
 
   it("has no network access", async () => {

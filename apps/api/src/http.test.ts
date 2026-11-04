@@ -34,6 +34,23 @@ describe("HTTP behaviour a person sees", () => {
     });
   }
 
+  it("treats an address the same in any letter case", async () => {
+    const lower = `${randomUUID()}@test.local`;
+    const body = { name: "Аня", email: `  ${lower.toUpperCase()} `, password: "password123" };
+    await withApp(async (app) => {
+      const registered = await app.inject({ method: "POST", url: "/auth/register", payload: body });
+      expect(registered.statusCode).toBe(201);
+      userIds.push(registered.json().user.id);
+      expect(registered.json().user.email).toBe(lower);
+
+      const again = await app.inject({ method: "POST", url: "/auth/register", payload: { ...body, email: lower } });
+      expect(again.statusCode).toBe(409);
+
+      const login = await app.inject({ method: "POST", url: "/auth/login", payload: { email: lower, password: body.password } });
+      expect(login.statusCode).toBe(200);
+    });
+  });
+
   it("shows what an invite link leads to without signing in", async () => {
     const owner = await registerOwner("Артём");
     const created = await withApp((app) =>

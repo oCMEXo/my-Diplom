@@ -18,6 +18,10 @@ export async function defaultBranchName(repo: RepoRef, fetchImpl: typeof fetch =
   }
 }
 
+async function downloadRepoFiles(repo: RepoRef, fetchImpl: typeof fetch) {
+  return extractRepoFiles(await downloadRepoZip(repo, fetchImpl));
+}
+
 /** Downloads a branch of a repository and adds its files to the project under `branch`. */
 export async function importRepoFiles(
   projectId: string,
@@ -25,9 +29,14 @@ export async function importRepoFiles(
   repo: RepoRef,
   fetchImpl: typeof fetch = fetch,
 ) {
-  const zip = await downloadRepoZip(repo, fetchImpl);
-  const { files, skipped, skippedPaths } = extractRepoFiles(zip);
+  return saveRepoFiles(projectId, branch, await downloadRepoFiles(repo, fetchImpl));
+}
 
+async function saveRepoFiles(
+  projectId: string,
+  branch: string,
+  { files, skipped, skippedPaths }: ReturnType<typeof extractRepoFiles>,
+) {
   const existing = new Set(
     (await prisma.file.findMany({ where: { projectId, branch }, select: { path: true } })).map((file) => file.path),
   );
@@ -64,11 +73,15 @@ export async function importFromGithub(
 
   const project = await prisma.project.findUniqueOrThrow({ where: { id: projectId } });
   let branch = project.githubBranch ?? "";
+  const defaultBranch = project.githubOwner ? null : (repo.ref ?? (await defaultBranchName(repo, fetchImpl)));
+
+  // Before anything is saved: a repository that cannot be downloaded must not become the project's link.
+  const downloaded = await downloadRepoFiles(repo, fetchImpl);
 
   if (!project.githubOwner) {
     // The first repository becomes the project's link, and its branch gets a name, so that other
     // branches can be opened later. Files created before the link join that branch.
-    const name = repo.ref ?? (await defaultBranchName(repo, fetchImpl));
+    const name = defaultBranch;
     branch = name ?? "";
     await prisma.$transaction([
       prisma.project.update({
@@ -79,7 +92,7 @@ export async function importFromGithub(
     ]);
   }
 
-  const result = await importRepoFiles(projectId, branch, repo, fetchImpl);
+  const result = await saveRepoFiles(projectId, branch, downloaded);
   hub.broadcast(projectId, { type: "project.files", projectId });
   return { repo: { owner: repo.owner, name: repo.repo, ref: repo.ref }, ...result };
 }

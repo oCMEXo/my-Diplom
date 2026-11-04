@@ -52,6 +52,8 @@ services:
       dockerfile: infra/docker/Dockerfile
       target: runner
       args: { APP: runner }
+    # It holds the Docker socket and has no use for the JWT or database secrets in .env.
+    env_file: []
     environment:
       REDIS_URL: redis://redis:6379
       TERMINAL_PORT: "3003"

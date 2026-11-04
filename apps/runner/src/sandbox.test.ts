@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDockerArgs, parseErrorLine } from "./sandbox.js";
+import { buildDockerArgs, parseErrorLine, SELF_STOP_SECONDS } from "./sandbox.js";
 
 describe("buildDockerArgs", () => {
   const args = buildDockerArgs("python", "11111111-1111-1111-1111-111111111111");
@@ -27,7 +27,7 @@ describe("buildDockerArgs", () => {
     const image = args.indexOf("python:3.12-alpine");
     expect(args.slice(image, image + 3)).toEqual(["python:3.12-alpine", "sh", "-c"]);
     expect(args[image + 3]).toContain("tar -xf - -C /tmp/p");
-    expect(args[image + 3]).toContain('exec python "./$ENTRY"');
+    expect(args[image + 3]).toContain(`exec timeout -s KILL ${SELF_STOP_SECONDS} python "./$ENTRY"`);
     expect(joined).toContain("--tmpfs /tmp:rw,size=16m");
   });
 
@@ -40,7 +40,7 @@ describe("buildDockerArgs", () => {
   it("picks the node image for javascript", () => {
     const node = buildDockerArgs("javascript", "x");
     expect(node).toContain("node:22-alpine");
-    expect(node.at(-1)).toContain('exec node "./$ENTRY"');
+    expect(node.at(-1)).toContain(`exec timeout -s KILL ${SELF_STOP_SECONDS} node "./$ENTRY"`);
     expect(node).toContain("ENTRY=main.js");
   });
 });

@@ -1,14 +1,17 @@
 import { z } from "zod";
 
+/** Anya@Mail.com and anya@mail.com are one person; addresses are stored and compared in lower case. */
+export const emailSchema = z.string().trim().toLowerCase().email();
+
 export const registerSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   password: z.string().min(8).max(72),
   name: z.string().min(1).max(100),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   password: z.string().min(1),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -30,7 +33,7 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 /** Turns a guest into a registered user: the same account, so projects and history stay. */
 export const upgradeGuestSchema = z.object({
-  email: z.string().email(),
+  email: emailSchema,
   password: z.string().min(8).max(72),
 });
 export type UpgradeGuestInput = z.infer<typeof upgradeGuestSchema>;

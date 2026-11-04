@@ -21,6 +21,7 @@ import { pipeline } from "node:stream/promises";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { compressWebRoot } from "./compress.js";
 import { createHostServer } from "./server.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -284,6 +285,9 @@ async function main() {
   }
   await waitFor(`http://127.0.0.1:${API_PORT}/health`, "API");
   await waitFor(`http://127.0.0.1:${COLLAB_PORT}/`, "Сервер совместной работы").catch(() => undefined);
+
+  say("• Сжимаем файлы сайта…");
+  await compressWebRoot(webDir);
 
   const server = createHostServer({
     webRoot: webDir,
