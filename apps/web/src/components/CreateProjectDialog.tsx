@@ -54,8 +54,8 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
           value={source}
           onChange={setSource}
           options={[
-            { value: "empty", label: "Пустой проект", icon: <FolderPlus size={20} /> },
-            { value: "github", label: "Из GitHub", icon: <GitBranch size={20} /> },
+            { value: "empty", label: "Пустой проект", icon: <FolderPlus size={22} /> },
+            { value: "github", label: "Из GitHub", icon: <GitBranch size={22} /> },
           ]}
         />
         {create.error && (

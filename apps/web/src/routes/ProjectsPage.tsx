@@ -45,7 +45,7 @@ export function ProjectsPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-line bg-canvas/80 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-main/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
           <Wordmark />
           <UserMenu />
@@ -54,10 +54,10 @@ export function ProjectsPage() {
 
       <main className="mx-auto max-w-5xl px-5 py-10">
         {notice && (
-          <div role="status" className="mb-8 flex items-start gap-3 rounded-2xl bg-bad/10 px-4 py-3 text-sm text-bad">
+          <div role="status" className="mb-8 flex items-start gap-3 rounded-xl bg-bad/10 px-4 py-3 text-base text-bad">
             <p className="flex-1">{notice}</p>
             <button onClick={() => setNotice(null)} aria-label="Скрыть" className="rounded p-0.5 transition hover:bg-bad/15">
-              <X size={16} />
+              <X size={18} />
             </button>
           </div>
         )}
@@ -65,34 +65,34 @@ export function ProjectsPage() {
         <section className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Привет, {user?.name}</h1>
-            <p className="mt-2 max-w-lg text-sm text-muted">
+            <p className="mt-2 max-w-lg text-base text-muted">
               Проект — это постоянное общее пространство. Создайте своё или присоединитесь по ссылке-приглашению.
             </p>
           </div>
           <Button variant="primary" size="lg" onClick={() => setCreating(true)}>
-            <Plus size={18} />
+            <Plus size={20} />
             Новый проект
           </Button>
         </section>
 
-        <form onSubmit={join} className="mb-10 flex gap-2 rounded-2xl bg-surface p-2 shadow-card">
+        <form onSubmit={join} className="mb-10 flex gap-2 rounded-xl bg-surface p-2 shadow-card">
           <span className="flex items-center pl-3 text-faint">
-            <LinkIcon size={18} />
+            <LinkIcon size={20} />
           </span>
           <input
             value={link}
             onChange={(event) => setLink(event.target.value)}
             placeholder="Вставьте ссылку-приглашение, чтобы присоединиться"
             aria-label="Ссылка-приглашение"
-            className="min-w-0 flex-1 bg-transparent px-2 text-sm placeholder:text-faint focus:outline-none"
+            className="min-w-0 flex-1 bg-transparent px-2 text-base placeholder:text-faint focus:outline-none"
           />
           <Button type="submit" disabled={!link.trim()}>
             Присоединиться
-            <ArrowRight size={15} />
+            <ArrowRight size={18} />
           </Button>
         </form>
 
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-faint">Ваши проекты</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-faint">Ваши проекты</h2>
 
         {isLoading && (
           <div className="flex justify-center py-16">
@@ -102,8 +102,8 @@ export function ProjectsPage() {
 
         {isError && !projects && (
           <div className="py-12 text-center">
-            <p className="text-sm font-medium">Не удалось загрузить проекты</p>
-            <p className="mb-4 mt-1 text-sm text-muted">Похоже, нет связи с сервером.</p>
+            <p className="text-base font-medium">Не удалось загрузить проекты</p>
+            <p className="mb-4 mt-1 text-base text-muted">Похоже, нет связи с сервером.</p>
             <Button onClick={() => void refetch()}>Повторить</Button>
           </div>
         )}
@@ -114,23 +114,23 @@ export function ProjectsPage() {
               <li key={project.id} className="group/card relative">
                 <Link
                   to={`/projects/${project.id}`}
-                  className="group flex h-full flex-col gap-4 rounded-2xl bg-surface p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-glow"
+                  className="group flex h-full flex-col gap-4 rounded-xl bg-surface p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-glow"
                 >
                   <span
                     style={{ background: gradientFor(project.id) }}
-                    className="flex h-12 w-12 items-center justify-center rounded-xl text-base font-bold text-black/70"
+                    className="flex h-12 w-12 items-center justify-center rounded-lg text-base font-bold text-black/70"
                   >
                     {initials(project.name)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p title={project.name} className="truncate font-semibold">{project.name}</p>
-                    <p className="mt-1 text-xs text-faint">
+                    <p title={project.name} className="truncate text-lg font-semibold">{project.name}</p>
+                    <p className="mt-1 text-sm text-faint">
                       создан {new Date(project.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
                     <RoleBadge role={project.myRole} />
-                    <ArrowRight size={16} className="text-faint transition group-hover:translate-x-1 group-hover:text-accent-ink" />
+                    <ArrowRight size={18} className="text-faint transition group-hover:translate-x-1 group-hover:text-accent-ink" />
                   </div>
                 </Link>
                 <button
@@ -139,16 +139,16 @@ export function ProjectsPage() {
                   title={project.myRole === "owner" ? "Удалить проект" : "Покинуть проект"}
                   className="touch-visible absolute right-3 top-3 rounded-lg p-1.5 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/card:opacity-100"
                 >
-                  {project.myRole === "owner" ? <Trash2 size={16} /> : <LogOut size={16} />}
+                  {project.myRole === "owner" ? <Trash2 size={18} /> : <LogOut size={18} />}
                 </button>
               </li>
             ))}
             <li>
               <button
                 onClick={() => setCreating(true)}
-                className="flex h-full min-h-[11rem] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line text-sm text-muted transition hover:border-accent hover:text-accent-ink"
+                className="flex h-full min-h-[12rem] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-faint text-base text-muted transition hover:border-accent hover:text-accent-ink"
               >
-                <Plus size={22} />
+                <Plus size={24} />
                 Создать проект
               </button>
             </li>
@@ -156,7 +156,7 @@ export function ProjectsPage() {
         )}
 
         {projects?.length === 0 && (
-          <p className="mt-6 text-center text-sm text-muted">
+          <p className="mt-6 text-center text-base text-muted">
             Пока пусто — создайте первый проект или откройте ссылку, которую вам прислали.
           </p>
         )}

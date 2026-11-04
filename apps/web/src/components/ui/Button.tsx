@@ -5,16 +5,17 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-accent text-accent-fg shadow-sm hover:brightness-110 active:brightness-95",
-  secondary: "border border-line bg-raised text-fg hover:border-faint",
+  primary: "bg-accent text-accent-fg hover:brightness-90 active:brightness-75",
+  secondary: "bg-control text-fg hover:bg-control-hover",
   ghost: "text-muted hover:bg-raised hover:text-fg",
-  danger: "bg-bad/15 text-bad hover:bg-bad/25",
+  // The same solid red in both themes: white text reads on it.
+  danger: "bg-danger text-white hover:brightness-90",
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-7 gap-1.5 rounded-md px-2.5 text-xs",
-  md: "h-9 gap-2 rounded-lg px-3.5 text-sm",
-  lg: "h-11 gap-2 rounded-xl px-5 text-sm",
+  sm: "h-8 gap-1.5 rounded-lg px-3 text-sm",
+  md: "h-10 gap-2 rounded-lg px-4 text-base",
+  lg: "h-11 gap-2 rounded-lg px-6 text-base",
 };
 
 export function Button({
@@ -51,8 +52,8 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-raised hover:text-fg disabled:opacity-40",
-        active && "bg-raised text-fg",
+        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-raised hover:text-fg disabled:opacity-40",
+        active && "bg-selected text-fg",
         className,
       )}
       {...rest}

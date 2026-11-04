@@ -29,7 +29,7 @@ export function EmptyProjectView() {
           <h2 className="text-2xl font-semibold tracking-tight">
             {files.length === 0 ? "Здесь пока пусто" : "Выберите файл"}
           </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+          <p className="mx-auto mt-2 max-w-md text-base text-muted">
             {canEdit
               ? files.length === 0
                 ? "Создайте первый файл и позовите коллег — все правки видны сразу у каждого."
@@ -45,14 +45,14 @@ export function EmptyProjectView() {
                   <button
                     key={type}
                     onClick={() => createFile(type)}
-                    className="group flex items-center gap-4 rounded-2xl bg-surface p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-glow sm:flex-col sm:gap-3 sm:p-5 sm:text-center"
+                    className="group flex items-center gap-4 rounded-xl bg-surface p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-glow sm:flex-col sm:gap-3 sm:p-5 sm:text-center"
                   >
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-raised transition group-hover:bg-accent/15">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-raised transition group-hover:bg-accent/15">
                       <kind.icon size={24} className={cn(kind.tone)} />
                     </span>
                     <span className="min-w-0 sm:contents">
                       <span className="block font-semibold">{kind.label}</span>
-                      <span className="block text-xs leading-relaxed text-muted">{DESCRIPTION[type]}</span>
+                      <span className="block text-sm leading-relaxed text-muted">{DESCRIPTION[type]}</span>
                     </span>
                   </button>
                 );
@@ -63,13 +63,13 @@ export function EmptyProjectView() {
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             {canEdit && (
               <Button variant="primary" onClick={importRepo}>
-                <GitBranch size={15} />
+                <GitBranch size={18} />
                 Импортировать из GitHub
               </Button>
             )}
             {shell.openInvite && (
               <Button onClick={shell.openInvite}>
-                <UserPlus size={15} />
+                <UserPlus size={18} />
                 Пригласить участников
               </Button>
             )}

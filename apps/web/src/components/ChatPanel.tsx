@@ -170,7 +170,7 @@ export function ChatPanel({
         {hasMore && (
           <button
             onClick={() => loadOlder().catch(() => undefined)}
-            className="mb-3 w-full rounded-lg border border-line py-1.5 text-xs text-muted transition hover:bg-raised hover:text-fg"
+            className="mb-3 w-full rounded-lg border border-line py-1.5 text-sm text-muted transition hover:bg-raised hover:text-fg"
           >
             Показать ранее
           </button>
@@ -180,13 +180,13 @@ export function ChatPanel({
             {loadState === "loading" && <Spinner />}
             {loadState === "failed" && (
               <>
-                <p className="text-sm font-medium">Не удалось загрузить чат</p>
+                <p className="text-base font-medium">Не удалось загрузить чат</p>
                 <button
                   onClick={() => {
                     setLoadState("loading");
                     loadLatest().catch(() => setLoadState("failed"));
                   }}
-                  className="text-xs font-medium text-accent-ink hover:underline"
+                  className="text-sm font-medium text-accent-ink hover:underline"
                 >
                   Повторить
                 </button>
@@ -194,8 +194,8 @@ export function ChatPanel({
             )}
             {loadState === "ready" && (
               <>
-                <p className="text-sm font-medium">Здесь пока тихо</p>
-                <p className="text-xs text-muted">Напишите первое сообщение — его увидят все участники проекта.</p>
+                <p className="text-base font-medium">Здесь пока тихо</p>
+                <p className="text-sm text-muted">Напишите первое сообщение — его увидят все участники проекта.</p>
               </>
             )}
           </div>
@@ -211,25 +211,25 @@ export function ChatPanel({
           return (
             <div key={m.id}>
               {newDay && (
-                <div className="my-3 flex items-center gap-3 text-[11px] font-medium text-faint">
+                <div className="my-3 flex items-center gap-3 text-xs font-medium text-faint">
                   <span className="h-px flex-1 bg-line" />
                   {formatDay(m.createdAt)}
                   <span className="h-px flex-1 bg-line" />
                 </div>
               )}
-              <div className={`group flex gap-2.5 ${grouped ? "mt-0.5" : "mt-3"}`}>
-                <div className="w-7 shrink-0 pt-0.5">
+              <div className={`group flex gap-3 ${grouped ? "mt-0.5" : "mt-4"}`}>
+                <div className="w-8 shrink-0 pt-0.5">
                   {!grouped && <Avatar id={m.author.id} name={m.author.name} size="sm" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   {!grouped && (
-                    <p className="flex items-baseline gap-2 text-xs">
-                      <span className="font-semibold text-fg">{mine ? "Вы" : m.author.name}</span>
-                      {m.author.isGuest && !mine && <span className="text-faint">гость</span>}
-                      <span className="text-faint">{formatTime(m.createdAt)}</span>
+                    <p className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="font-medium text-fg">{mine ? "Вы" : m.author.name}</span>
+                      {m.author.isGuest && !mine && <span className="text-xs text-faint">гость</span>}
+                      <span className="text-xs text-faint">{formatTime(m.createdAt)}</span>
                     </p>
                   )}
-                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-fg/90">
+                  <p className="whitespace-pre-wrap break-words">
                     {parseRefs(m.body).map((part, partIndex) =>
                       part.kind === "text" ? (
                         part.text
@@ -239,7 +239,7 @@ export function ChatPanel({
                           to={`/projects/${projectId}/files/${part.fileId}?line=${part.line}${part.column ? `&col=${part.column}` : ""}`}
                           onClick={onFileLink}
                           title="Открыть файл на этой строке"
-                          className="rounded bg-accent/10 px-1 font-mono text-[0.92em] text-accent-ink hover:underline"
+                          className="rounded bg-accent/10 px-1 font-mono text-[0.875em] text-accent-ink hover:underline"
                         >
                           {part.text}
                         </Link>
@@ -254,13 +254,13 @@ export function ChatPanel({
       </div>
 
       <form onSubmit={onSubmit} className="border-t border-line p-3">
-        {sendError && <p className="mb-2 text-xs text-bad">{sendError}</p>}
+        {sendError && <p className="mb-2 text-sm text-bad">{sendError}</p>}
         {status !== "open" && (
-          <p role="status" className="mb-2 text-xs text-warn">
+          <p role="status" className="mb-2 text-sm text-warn">
             {status === "connecting" ? "Подключаемся к чату…" : "Нет связи — сообщения могут приходить с задержкой"}
           </p>
         )}
-        <div className="flex items-end gap-2 rounded-xl border border-faint/80 bg-canvas px-3 py-2 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
+        <div className="flex items-end gap-2 rounded-lg border border-faint/80 bg-canvas px-3 py-2 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
           <textarea
             ref={composer}
             value={draft}
@@ -270,10 +270,10 @@ export function ChatPanel({
             rows={1}
             placeholder="Сообщение..."
             aria-label="Сообщение"
-            className="max-h-32 min-h-[1.5rem] min-w-0 flex-1 resize-none bg-transparent text-sm leading-6 placeholder:text-faint focus:outline-none"
+            className="mb-1 max-h-32 min-h-[1.5rem] min-w-0 flex-1 resize-none bg-transparent text-base leading-6 placeholder:text-faint focus:outline-none"
           />
-          <IconButton label="Отправить" type="submit" disabled={!draft.trim()} className="-mr-1 h-7 w-7 text-accent-ink">
-            <SendHorizontal size={17} />
+          <IconButton label="Отправить" type="submit" disabled={!draft.trim()} className="-mr-1 h-8 w-8 text-accent-ink">
+            <SendHorizontal size={20} />
           </IconButton>
         </div>
       </form>

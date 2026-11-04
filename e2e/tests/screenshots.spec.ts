@@ -54,10 +54,15 @@ test("interface screenshots", async ({ browser, request }) => {
   const ownerPage = await open(owner, codePath);
   const guestPage = await open(visitor, codePath);
   await expect(ownerPage.getByText("Синхронизировано")).toBeVisible();
-  await typeInEditor(
-    ownerPage,
+  // Pasted, not typed: the editor's auto-indent would add to the indents in the text.
+  await ownerPage.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await ownerPage.evaluate(
+    (text) => navigator.clipboard.writeText(text),
     "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\nprint([fib(i) for i in range(10)])",
   );
+  await ownerPage.locator(".monaco-editor").first().click();
+  await ownerPage.keyboard.press("Control+V");
+  await expect(guestPage.locator(".view-lines")).toContainText("print");
   await guestPage.locator(".monaco-editor").first().click();
   await guestPage.keyboard.press("Control+End");
   await guestPage.keyboard.type("  # проверил");
@@ -86,7 +91,7 @@ test("interface screenshots", async ({ browser, request }) => {
       // Picking a color recolors the selected shape, so deselect before choosing the next one.
       await boardPage.getByRole("button", { name: "Выбор" }).click();
       await boardPage.mouse.click(box.x + 40, box.y + 600);
-      await boardPage.getByRole("button", { name: `цвет ${swatch}` }).click();
+      await boardPage.getByRole("button", { name: swatch }).click();
     }
     await boardPage.getByRole("button", { name: tool }).click();
     await boardPage.mouse.move(box.x + from[0], box.y + from[1]);
@@ -94,11 +99,11 @@ test("interface screenshots", async ({ browser, request }) => {
     await boardPage.mouse.move(box.x + to[0], box.y + to[1], { steps: 6 });
     await boardPage.mouse.up();
   };
-  await draw("Прямоугольник", [90, 90], [300, 170], "#bfdbfe");
-  await draw("Прямоугольник", [90, 300], [300, 380], "#bbf7d0");
-  await draw("Овал", [520, 190], [720, 290], "#fde68a");
-  await draw("Стрелка", [305, 130], [515, 235], "#bfdbfe");
-  await draw("Стрелка", [305, 340], [515, 250], "#bbf7d0");
+  await draw("Прямоугольник", [90, 90], [300, 170], "Цвет 2 из");
+  await draw("Прямоугольник", [90, 300], [300, 380], "Цвет 3 из");
+  await draw("Овал", [520, 190], [720, 290], "Цвет 1 из");
+  await draw("Стрелка", [305, 130], [515, 235], "Цвет 2 из");
+  await draw("Стрелка", [305, 340], [515, 250], "Цвет 3 из");
   await boardPage.waitForTimeout(500);
   await shot(boardPage, "05-board");
 

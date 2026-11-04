@@ -409,8 +409,8 @@ export function BoardEditor({
 
   const toolButton = (active: boolean) =>
     cn(
-      "flex h-9 w-9 items-center justify-center rounded-lg transition",
-      active ? "bg-accent text-accent-fg shadow-sm" : "text-muted hover:bg-raised hover:text-fg",
+      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition",
+      active ? "bg-accent text-accent-fg" : "text-muted hover:bg-raised hover:text-fg",
     );
 
   return (
@@ -424,7 +424,7 @@ export function BoardEditor({
         {canEdit && (
           // Centred by the wrapper: a transform here would be overridden by the appearing animation.
           <div className="pointer-events-none absolute inset-x-2 bottom-5 z-10 flex justify-center">
-            <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl bg-surface/95 p-1.5 shadow-pop backdrop-blur [scrollbar-width:none] animate-pop">
+            <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-surface/95 p-1.5 shadow-pop backdrop-blur [scrollbar-width:none] animate-pop">
               {TOOLS.map((item) => (
                 <button
                   key={item.id}
@@ -434,7 +434,7 @@ export function BoardEditor({
                   title={item.label}
                   className={toolButton(tool === item.id)}
                 >
-                  <item.icon size={18} />
+                  <item.icon size={20} />
                 </button>
               ))}
               <span className="mx-1.5 h-6 w-px bg-line" />
@@ -446,7 +446,7 @@ export function BoardEditor({
                     onClick={() => chooseColor(swatch)}
                     style={{ backgroundColor: swatch }}
                     className={cn(
-                      "h-5 w-5 rounded-full border border-white/25 transition hover:scale-110",
+                      "h-6 w-6 shrink-0 rounded-full border border-white/25 transition hover:scale-110",
                       (selected?.fill ?? color) === swatch ? "scale-110 ring-2 ring-accent ring-offset-2 ring-offset-surface" : "",
                     )}
                   />
@@ -459,7 +459,7 @@ export function BoardEditor({
                 title="Отменить"
                 className={toolButton(false)}
               >
-                <Undo2 size={17} />
+                <Undo2 size={20} />
               </button>
               <button
                 onClick={() => undoManager.current?.redo()}
@@ -467,7 +467,7 @@ export function BoardEditor({
                 title="Повторить"
                 className={toolButton(false)}
               >
-                <Redo2 size={17} />
+                <Redo2 size={20} />
               </button>
               <button
                 onClick={deleteSelected}
@@ -476,34 +476,34 @@ export function BoardEditor({
                 title="Удалить выбранное"
                 className={cn(toolButton(false), "disabled:opacity-30 enabled:hover:text-bad")}
               >
-                <Trash2 size={17} />
+                <Trash2 size={20} />
               </button>
             </div>
           </div>
         )}
 
-        <div className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-xl bg-surface/95 p-1 shadow-card backdrop-blur">
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-lg bg-surface/95 p-1 shadow-card backdrop-blur">
           <button
             onClick={exportPng}
             title="Скачать как PNG"
-            className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted transition hover:bg-raised hover:text-fg"
+            className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted transition hover:bg-raised hover:text-fg"
           >
-            <Download size={14} />
+            <Download size={16} />
             PNG
           </button>
           <button
             onClick={exportSvg}
             title="Скачать как SVG"
-            className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted transition hover:bg-raised hover:text-fg"
+            className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted transition hover:bg-raised hover:text-fg"
           >
-            <Download size={14} />
+            <Download size={16} />
             SVG
           </button>
         </div>
 
         {shapes.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <p className="rounded-xl bg-white/70 px-4 py-2 text-sm text-slate-500 shadow-sm">
+            <p className="rounded-lg bg-white/70 px-4 py-2 text-base text-slate-500 shadow-sm">
               {canEdit ? "Выберите фигуру внизу и протяните по полотну" : "Доска пока пуста"}
             </p>
           </div>
@@ -553,8 +553,8 @@ export function BoardEditor({
             {cursors.map((cursor) => (
               <Group key={cursor.clientId} x={cursor.x} y={cursor.y} listening={false}>
                 <Line points={[0, 0, 0, 16, 5, 12, 11, 12]} closed fill={cursor.color} stroke="#ffffff" strokeWidth={1} />
-                <Rect x={12} y={14} width={cursor.name.length * 7 + 10} height={18} cornerRadius={4} fill={cursor.color} />
-                <Text x={17} y={18} text={cursor.name} fontSize={11} fill="#111827" />
+                <Rect x={12} y={14} width={cursor.name.length * 8 + 12} height={20} cornerRadius={4} fill={cursor.color} />
+                <Text x={18} y={18} text={cursor.name} fontSize={13} fill="#111827" />
               </Group>
             ))}
           </Layer>

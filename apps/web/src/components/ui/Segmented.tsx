@@ -13,7 +13,7 @@ export function Segmented<T extends string>({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid auto-cols-fr grid-flow-col gap-1 rounded-xl bg-canvas p-1">
+    <div role="radiogroup" aria-label={label} className="grid auto-cols-fr grid-flow-col gap-1 rounded-lg bg-canvas p-1">
       {options.map((option) => (
         <button
           key={option.value}
@@ -22,7 +22,7 @@ export function Segmented<T extends string>({
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition",
+            "flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition",
             value === option.value ? "bg-raised text-fg shadow-card" : "text-muted hover:text-fg",
           )}
         >

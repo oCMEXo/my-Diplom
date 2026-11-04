@@ -85,20 +85,20 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "w-full bg-surface shadow-pop",
+          "w-full bg-main shadow-pop",
           width,
           side
-            ? "flex h-full flex-col p-4 animate-slide-in-right sm:rounded-l-2xl sm:p-6"
-            : "max-h-full overflow-y-auto rounded-2xl p-6 animate-pop",
+            ? "flex h-full flex-col p-4 animate-slide-in-right sm:rounded-l-xl sm:p-6"
+            : "max-h-full overflow-y-auto rounded-xl p-6 animate-pop",
         )}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-            {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+            <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+            {description && <p className="mt-1 text-base text-muted">{description}</p>}
           </div>
           <IconButton label="Закрыть" onClick={onClose} data-close>
-            <X size={18} />
+            <X size={20} />
           </IconButton>
         </div>
         {children}

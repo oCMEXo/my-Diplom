@@ -49,16 +49,16 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
 
   return (
     <div className="shrink-0 border-t border-line bg-surface">
-      <div className="flex h-9 items-center gap-1 pr-2">
+      <div className="flex h-10 items-center gap-1 pr-2">
         <button
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
-          className="flex h-full min-w-0 flex-1 items-center justify-between gap-3 px-4 text-left text-xs text-muted transition hover:bg-raised/60"
+          className="flex h-full min-w-0 flex-1 items-center justify-between gap-3 px-4 text-left text-sm text-muted transition hover:bg-raised/60"
         >
           <span className="flex items-center gap-2 font-semibold uppercase tracking-wider text-faint">
-            <SquareTerminal size={14} />
+            <SquareTerminal size={16} />
             Вывод
-            <ChevronUp size={14} className={cn("transition-transform", !open && "rotate-180")} />
+            <ChevronUp size={16} className={cn("transition-transform", !open && "rotate-180")} />
           </span>
           {run && (
             <span className="flex min-w-0 items-center gap-2 truncate">
@@ -71,17 +71,17 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
           )}
         </button>
         {open && text && (
-          <IconButton label={copied ? "Скопировано" : "Копировать вывод"} onClick={copy} className="h-7 w-7">
-            {copied ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
+          <IconButton label={copied ? "Скопировано" : "Копировать вывод"} onClick={copy} className="h-8 w-8">
+            {copied ? <Check size={16} className="text-ok" /> : <Copy size={16} />}
           </IconButton>
         )}
         {open && (
           <IconButton
             label={tall ? "Уменьшить панель" : "Увеличить панель"}
             onClick={() => setTall((value) => !value)}
-            className="h-7 w-7"
+            className="h-8 w-8"
           >
-            {tall ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            {tall ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </IconButton>
         )}
       </div>
@@ -89,8 +89,8 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
       {open && (
         <>
           {needsKeyboard && (
-            <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-xs text-warn">
-              <Info size={14} className="mt-0.5 shrink-0" />
+            <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-sm text-warn">
+              <Info size={16} className="mt-0.5 shrink-0" />
               <span>
                 Программа ждёт ввода с клавиатуры, а при запуске кнопкой ввести его негде. Запустите её в терминале: он
                 открывается по Ctrl+`.
@@ -98,8 +98,8 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
             </p>
           )}
           {missing && (
-            <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-xs text-warn">
-              <Info size={14} className="mt-0.5 shrink-0" />
+            <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-sm text-warn">
+              <Info size={16} className="mt-0.5 shrink-0" />
               <span>
                 Модуль «{missing}» не найден. В песочнице нет сети и установленных пакетов: доступны встроенные модули
                 языка и файлы вашего проекта.
@@ -109,7 +109,7 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
           <pre
             ref={bodyRef}
             className={cn(
-              "overflow-auto whitespace-pre-wrap break-words border-t border-line bg-canvas px-4 py-3 font-mono text-xs leading-5 text-fg/90",
+              "overflow-auto whitespace-pre-wrap break-words border-t border-line bg-canvas px-4 py-3 font-mono text-sm leading-6 text-fg",
               tall ? "h-[55vh]" : "h-48",
             )}
           >

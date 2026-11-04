@@ -21,19 +21,24 @@ export interface ShellActions {
 
 export function SyncPill({ status }: { status: SyncStatus }) {
   const config = {
-    connected: { label: "Синхронизировано", tone: "hidden bg-ok/12 text-ok sm:inline-flex", icon: Cloud },
-    connecting: { label: "Подключение…", tone: "inline-flex bg-warn/12 text-warn", icon: Cloud },
-    offline: { label: "Офлайн — правки сохранятся локально", tone: "inline-flex bg-warn/12 text-warn", icon: CloudOff },
+    connected: { label: "Синхронизировано", short: "", tone: "hidden bg-ok/12 text-ok bar-md:inline-flex", icon: Cloud },
+    connecting: { label: "Подключение…", short: "Подключение…", tone: "inline-flex bg-warn/12 text-warn", icon: Cloud },
+    offline: { label: "Офлайн — правки сохранятся локально", short: "Офлайн", tone: "inline-flex bg-warn/12 text-warn", icon: CloudOff },
   }[status];
   return (
     <span
       role="status"
       title={config.label}
-      className={cn("items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", config.tone)}
+      className={cn("items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-medium", config.tone)}
     >
-      <config.icon size={13} />
-      {/* On a phone the icon alone says it: the header has no room for the sentence. */}
-      <span className="hidden sm:inline">{config.label}</span>
+      <config.icon size={16} />
+      {/* The full sentence only where there is room; a problem still gets a word, all is well gets just the icon. */}
+      <span className="sr-only bar-xl:not-sr-only">{config.label}</span>
+      {config.short && (
+        <span aria-hidden className="hidden bar-md:inline bar-xl:hidden">
+          {config.short}
+        </span>
+      )}
     </span>
   );
 }
@@ -50,7 +55,7 @@ function OnlineAvatars() {
   const rest = online.length - shown.length;
 
   return (
-    <span className="hidden items-center -space-x-2 sm:flex" title={`Сейчас здесь: ${online.map((person) => person.name).join(", ")}`}>
+    <span className="hidden items-center -space-x-2 bar-md:flex" title={`Сейчас здесь: ${online.map((person) => person.name).join(", ")}`}>
       {shown.map((person) => {
         if (person.id === user?.id) return <Avatar key={person.id} id={person.id} name={person.name} size="sm" ring />;
         const active = following === person.id;
@@ -63,7 +68,7 @@ function OnlineAvatars() {
             aria-pressed={active}
             className={cn(
               "relative rounded-full transition hover:z-10 hover:-translate-y-0.5 focus-visible:z-10",
-              active && "z-10 ring-2 ring-accent ring-offset-1 ring-offset-surface",
+              active && "z-10 ring-2 ring-accent ring-offset-1 ring-offset-main",
             )}
           >
             <Avatar id={person.id} name={person.name} title={label} size="sm" ring />
@@ -71,7 +76,7 @@ function OnlineAvatars() {
         );
       })}
       {rest > 0 && (
-        <span className="z-10 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-raised px-1 text-[10px] font-semibold text-muted ring-2 ring-surface">
+        <span className="z-10 inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-raised px-1 text-xs font-semibold text-muted ring-2 ring-main">
           +{rest}
         </span>
       )}
@@ -95,14 +100,14 @@ export function ProjectHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3 sm:px-4">
+    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-main px-3 [container-type:inline-size] sm:px-4">
       <IconButton label="Меню проекта" onClick={shell.openNav} className="lg:hidden">
-        <Menu size={19} />
+        <Menu size={20} />
       </IconButton>
       {/* The name must stay readable however many buttons the page puts on the right. */}
       <div className="flex min-w-[6rem] items-center gap-2.5">
         {icon}
-        <h2 title={title} className="truncate text-sm font-semibold">
+        <h2 title={title} className="truncate text-base font-semibold">
           {title}
         </h2>
         {badge}
@@ -112,9 +117,9 @@ export function ProjectHeader({
         {actions}
         <OnlineAvatars />
         {shell.openInvite && (
-          <Button size="sm" onClick={shell.openInvite} className="hidden md:inline-flex">
-            <UserPlus size={14} />
-            Пригласить
+          <Button size="sm" onClick={shell.openInvite} aria-label="Пригласить" title="Пригласить участников" className="hidden bar-lg:inline-flex">
+            <UserPlus size={16} />
+            <span className="hidden bar-xl:inline">Пригласить</span>
           </Button>
         )}
         <span className="relative inline-flex">
@@ -129,12 +134,12 @@ export function ProjectHeader({
             onClick={shell.togglePanel}
             active={shell.panelOpen}
           >
-            <PanelRight size={18} />
+            <PanelRight size={20} />
           </IconButton>
           {shell.unread > 0 && (
             <span
               aria-hidden
-              className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-accent-fg"
+              className="pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold text-white"
             >
               {shell.unread > 9 ? "9+" : shell.unread}
             </span>

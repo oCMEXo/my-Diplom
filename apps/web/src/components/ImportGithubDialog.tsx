@@ -47,15 +47,15 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
     >
       {result ? (
         <div className="space-y-4">
-          <div className="flex items-start gap-3 rounded-xl bg-ok/10 p-4 text-sm">
-            <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-ok" />
+          <div className="flex items-start gap-3 rounded-lg bg-ok/10 p-4 text-base">
+            <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-ok" />
             <div>
               <p className="font-medium">
                 {result.repo.owner}/{result.repo.name}: добавлено файлов — {result.imported}
               </p>
               {skipped.length > 0 && <p className="mt-1 text-muted">Пропущено: {skipped.join("; ")}.</p>}
               {result.skippedPaths.length > 0 && (
-                <p className="mt-1 break-words font-mono text-xs text-faint">{result.skippedPaths.join(", ")}</p>
+                <p className="mt-1 break-words font-mono text-sm text-faint">{result.skippedPaths.join(", ")}</p>
               )}
             </div>
           </div>
@@ -73,7 +73,7 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
             </ErrorNote>
           )}
           {mixesRepos && (
-            <p className="rounded-lg border border-warn/30 bg-warn/10 px-3 py-2 text-sm text-warn">
+            <p className="rounded-lg border border-warn/30 bg-warn/10 px-3 py-2 text-base text-warn">
               Этот проект связан с {project.github!.owner}/{project.github!.repo}. Файлы из другого репозитория
               добавятся к нему и смешаются с текущими. Для другого репозитория лучше создать новый проект.
             </p>
@@ -91,7 +91,7 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
               Отмена
             </Button>
             <Button type="submit" variant="primary" disabled={!url.trim() || importRepo.isPending}>
-              <GitBranch size={15} />
+              <GitBranch size={18} />
               {importRepo.isPending ? "Загружаем…" : "Импортировать"}
             </Button>
           </div>

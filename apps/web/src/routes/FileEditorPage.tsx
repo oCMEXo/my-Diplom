@@ -76,7 +76,7 @@ export function FileEditorPage() {
     return (
       <>
         <ProjectHeader shell={shell} title="Файл не найден" />
-        <div className="space-y-3 p-8 text-sm text-muted">
+        <div className="space-y-3 p-8 text-base text-muted">
           <p>Возможно, файл удалили или у вас нет к нему доступа.</p>
           {projectId && (
             <Link to={`/projects/${projectId}`} className="font-medium text-accent-ink hover:underline">
@@ -94,10 +94,10 @@ export function FileEditorPage() {
     shell,
     status,
     title: file.path,
-    icon: <kind.icon size={17} className={cn("shrink-0", kind.tone)} />,
+    icon: <kind.icon size={20} className={cn("shrink-0", kind.tone)} />,
     badge: !canEdit ? (
-      <span className="inline-flex items-center gap-1 rounded-md bg-raised px-1.5 py-0.5 text-[10px] font-medium text-muted">
-        <Eye size={10} />
+      <span className="inline-flex items-center gap-1 rounded-md bg-raised px-1.5 py-0.5 text-xs font-medium text-muted">
+        <Eye size={12} />
         только чтение
       </span>
     ) : undefined,
@@ -162,19 +162,23 @@ export function FileEditorPage() {
         title="Сослаться на эту строку в чате (Alt+L)"
         aria-label="Сослаться на эту строку в чате"
       >
-        <MessageSquarePlus size={14} />
+        <MessageSquarePlus size={16} />
       </Button>
       <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)} title="История версий" aria-label="История версий">
-        <History size={14} />
-        <span className="hidden 2xl:inline">История версий</span>
+        <History size={16} />
+        <span className="hidden bar-xl:inline">История версий</span>
       </Button>
       {runnable && canEdit && (
         <>
-          {runError && <span className="text-xs text-bad">{runError}</span>}
+          {runError && (
+            <span role="alert" title={runError} className="max-w-40 truncate text-sm text-bad bar-lg:max-w-xs">
+              {runError}
+            </span>
+          )}
           {access.dialog}
-          <Button size="sm" onClick={() => access.ensure(() => void startRun())} disabled={running}>
-            {running ? <LoaderCircle size={14} className="animate-spin" /> : <Play size={13} className="fill-current text-ok" />}
-            {running ? "Выполняется…" : "Запустить"}
+          <Button size="sm" onClick={() => access.ensure(() => void startRun())} disabled={running} aria-label={running ? "Выполняется…" : "Запустить"}>
+            {running ? <LoaderCircle size={16} className="animate-spin" /> : <Play size={16} className="fill-current text-ok" />}
+            <span className="hidden bar-md:inline">{running ? "Выполняется…" : "Запустить"}</span>
           </Button>
         </>
       )}

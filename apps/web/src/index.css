@@ -9,36 +9,44 @@
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --canvas: 11 13 18;
-  --surface: 19 22 30;
-  --raised: 28 32 43;
-  --line: 40 45 58;
-  --fg: 230 233 241;
-  --muted: 142 150 170;
-  --faint: 128 136 156;
-  --accent: 108 92 240;
-  --accent-ink: 169 156 255;
+  --canvas: 30 31 34;
+  --surface: 43 45 49;
+  --main: 49 51 56;
+  --raised: 56 58 64;
+  --selected: 64 66 73;
+  --control: 78 80 88;
+  --control-hover: 109 111 120;
+  --line: 63 65 71;
+  --fg: 219 222 225;
+  --muted: 181 186 193;
+  --faint: 170 176 185;
+  --accent: 88 101 242;
+  --accent-ink: 148 156 247;
   --accent-fg: 255 255 255;
-  --ok: 52 211 153;
-  --bad: 248 113 113;
-  --warn: 251 191 36;
+  --ok: 45 199 112;
+  --bad: 252 135 139;
+  --warn: 240 178 50;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --canvas: 244 246 251;
-  --surface: 255 255 255;
-  --raised: 240 242 248;
-  --line: 224 228 238;
-  --fg: 18 21 30;
-  --muted: 100 109 130;
-  --faint: 100 109 130;
-  --accent: 91 75 255;
-  --accent-ink: 91 75 255;
+  --canvas: 227 229 232;
+  --surface: 242 243 245;
+  --main: 255 255 255;
+  --raised: 230 231 234;
+  --selected: 219 221 225;
+  --control: 213 215 220;
+  --control-hover: 199 202 208;
+  --line: 212 215 220;
+  --fg: 49 51 56;
+  --muted: 78 80 88;
+  --faint: 88 90 98;
+  --accent: 88 101 242;
+  --accent-ink: 71 82 196;
   --accent-fg: 255 255 255;
-  --ok: 4 120 87;
-  --bad: 185 28 28;
-  --warn: 170 78 9;
+  --ok: 21 105 58;
+  --bad: 176 28 28;
+  --warn: 140 72 6;
 }
 
 @layer base {
@@ -49,8 +57,7 @@
   }
 
   body {
-    @apply bg-canvas font-sans text-fg antialiased;
-    font-feature-settings: "cv11", "ss01";
+    @apply bg-main font-sans text-base text-fg antialiased;
   }
 
   ::selection {
@@ -81,7 +88,7 @@
 
 @layer components {
   .field {
-    @apply w-full rounded-lg border border-faint/80 bg-canvas px-3 py-2 text-sm text-fg placeholder:text-faint transition;
+    @apply w-full rounded-lg border border-faint/80 bg-canvas px-3 py-2 text-base text-fg placeholder:text-faint transition;
     @apply focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
   }
 }
@@ -102,8 +109,8 @@
 }
 
 .markdown-body {
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.6;
   color: rgb(var(--fg));
   overflow-wrap: anywhere;
 }
@@ -167,5 +174,8 @@
 @media (hover: none) {
   .touch-visible {
     opacity: 1 !important;
+  }
+  .touch-reserve {
+    padding-right: 3.5rem;
   }
 }

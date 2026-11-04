@@ -35,7 +35,7 @@ export function SidePanel({
   const online = useOnlineUsers();
 
   const tabs: { id: PanelTab; label: string; icon: typeof Users; badge?: number; tone?: string }[] = [
-    { id: "chat", label: "Чат", icon: MessageSquare, badge: unread, tone: "bg-accent text-accent-fg" },
+    { id: "chat", label: "Чат", icon: MessageSquare, badge: unread, tone: "bg-danger text-white" },
     { id: "members", label: "Участники", icon: Users, badge: online.length, tone: "bg-ok/20 text-ok" },
   ];
 
@@ -50,18 +50,18 @@ export function SidePanel({
               aria-selected={tab === id}
               onClick={() => onTabChange(id)}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                tab === id ? "bg-raised text-fg" : "text-muted hover:text-fg",
+                "flex items-center gap-2 rounded-lg px-3 py-1.5 text-base font-medium transition",
+                tab === id ? "bg-selected text-fg" : "text-muted hover:bg-raised hover:text-fg",
               )}
             >
-              <Icon size={15} />
+              <Icon size={18} />
               {label}
-              {badge ? <span className={cn("rounded-full px-1.5 text-[10px] font-semibold", tone)}>{badge}</span> : null}
+              {badge ? <span className={cn("rounded-full px-1.5 text-xs font-semibold", tone)}>{badge}</span> : null}
             </button>
           ))}
         </div>
         <IconButton label="Скрыть панель" onClick={onClose}>
-          <X size={16} />
+          <X size={18} />
         </IconButton>
       </div>
       <div className={cn("min-h-0 flex-1", tab !== "chat" && "hidden")}>
