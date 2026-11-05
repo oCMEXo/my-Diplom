@@ -1,0 +1,43 @@
+# One address for the whole site, as the local test host has it: the web app, the REST API under
+# /api, the sync server under /collab and the terminals under /terminal (WebSockets included).
+# Caddy gets and renews the HTTPS certificate by itself.
+{$SITE_DOMAIN} {
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		X-Frame-Options DENY
+		Strict-Transport-Security "max-age=31536000"
+	}
+
+	@api path /api /api/*
+	handle @api {
+		uri strip_prefix /api
+		encode zstd gzip
+		reverse_proxy api:3001
+	}
+
+	@collab path /collab /collab/*
+	handle @collab {
+		uri strip_prefix /collab
+		reverse_proxy collab:1234
+	}
+
+	@terminal path /terminal /terminal/*
+	handle @terminal {
+		uri strip_prefix /terminal
+		reverse_proxy runner:3003
+	}
+
+	handle {
+		root * /srv/web
+		@fresh path / /index.html /sw.js /manifest.webmanifest /registerSW.js
+		header @fresh Cache-Control "no-cache"
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		try_files {path} /index.html
+		# The .br and .gz copies are made before the upload (compressWebRoot).
+		file_server {
+			precompressed br gzip
+		}
+	}
+}

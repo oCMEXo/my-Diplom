@@ -28,3 +28,7 @@ infra/local-host/bin/
 
 # Scripts of the BA document, despite the name
 !docs/ba/build/
+
+# Google Cloud deployment (web build, access code)
+infra/gcp/.state/
+infra/gcp/web/
