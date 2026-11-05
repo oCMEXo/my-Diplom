@@ -220,7 +220,7 @@ Table 2.5 — Epics
 | E4 Communication | Project chat | US-13 | G2 |
 | E5 Code execution | Running code in a sandbox, terminal, access code | US-14 – US-16 | G2 |
 | E6 GitHub integration | Import, push, branches | US-17 – US-19 | G2 |
-| E7 Files and history | File tree, trash, version history, search | US-20 – US-23 | G3 |
+| E7 Files and history | File tree, trash, version history of code and documents, search | US-20 – US-23 | G3 |
 
 Things that are out of scope are written as *Won't* stories (US-24 – US-26), so the decision is visible.
 
@@ -389,4 +389,4 @@ Table 2.10 — Evaluation criteria linked to the KPIs
 | KPI-3, NFR-A2 | No merges by hand, 0 lost characters, all copies identical | Automated convergence and offline tests; pilot log | Automated tests pass; pilot not done |
 | KPI-4, NFR-P1 | p95 ≤ 100 ms with 50 editors | Load test with simulated users | About 10 ms on one machine over loopback, without network delay |
 | NFR-P2 | 200 files open in ≤ 3 s at 10 Mbit/s | Measurement by a script in a browser | 2.0 s (median of 10 runs, simulated network, server on the same machine) |
-| Must stories | Acceptance criteria of Appendix A | Automated end-to-end tests | 40 scenarios pass |
+| Must stories | Acceptance criteria of Appendix A | Automated end-to-end tests | 42 scenarios pass |
