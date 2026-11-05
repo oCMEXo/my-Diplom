@@ -1,23 +1,25 @@
 # References
 
 1. Stack Overflow, "2024 Developer Survey: Work," 2024. [Online]. Available: https://survey.stackoverflow.co/2024/work (accessed Oct. 23, 2026).
-2. C. A. Ellis and S. J. Gibbs, "Concurrency control in groupware systems," in *Proc. 1989 ACM SIGMOD Int. Conf. Management of Data*, Portland, OR, USA, 1989, pp. 399–407, doi: 10.1145/67544.66963.
-3. C. Sun and C. Ellis, "Operational transformation in real-time group editors: Issues, algorithms, and achievements," in *Proc. 1998 ACM Conf. Computer Supported Cooperative Work (CSCW '98)*, Seattle, WA, USA, 1998, pp. 59–68, doi: 10.1145/289444.289469.
-4. M. Shapiro, N. Preguiça, C. Baquero, and M. Zawirski, "Conflict-free replicated data types," in *Stabilization, Safety, and Security of Distributed Systems (SSS 2011)*, Lecture Notes in Computer Science, vol. 6976. Berlin, Germany: Springer, 2011, pp. 386–400, doi: 10.1007/978-3-642-24550-3_29.
-5. P. Nicolaescu, K. Jahns, M. Derntl, and R. Klamma, "Near real-time peer-to-peer shared editing on extensible data types," in *Proc. 2016 ACM Int. Conf. Supporting Group Work (GROUP '16)*, Sanibel Island, FL, USA, 2016, pp. 39–49, doi: 10.1145/2957276.2957310.
-6. M. Kleppmann and A. R. Beresford, "A conflict-free replicated JSON datatype," *IEEE Trans. Parallel Distrib. Syst.*, vol. 28, no. 10, pp. 2733–2746, 2017, doi: 10.1109/TPDS.2017.2697382.
-7. M. Kleppmann, A. Wiggins, P. van Hardenberg, and M. McGranaghan, "Local-first software: You own your data, in spite of the cloud," in *Proc. 2019 ACM SIGPLAN Int. Symp. New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! 2019)*, Athens, Greece, 2019, pp. 154–178, doi: 10.1145/3359591.3359737.
-8. J. Gentle and M. Kleppmann, "Collaborative text editing with Eg-walker: Better, faster, smaller," in *Proc. 20th European Conf. Computer Systems (EuroSys '25)*, Rotterdam, The Netherlands, 2025, doi: 10.1145/3689031.3696076.
-9. Yjs, "Yjs Docs." [Online]. Available: https://docs.yjs.dev/ (accessed Oct. 23, 2026).
-10. J. Nielsen, *Usability Engineering*. Boston, MA, USA: Academic Press, 1993.
-11. *Systems and Software Engineering — Systems and Software Quality Requirements and Evaluation (SQuaRE) — Product Quality Model*, ISO/IEC 25010:2023, 2023.
-12. European Parliament and Council of the European Union, "Regulation (EU) 2016/679 (General Data Protection Regulation)," *Official Journal of the European Union*, L 119, pp. 1–88, May 4, 2016.
-13. W3C, "Web Content Accessibility Guidelines (WCAG) 2.1," W3C Recommendation, 2018. [Online]. Available: https://www.w3.org/TR/WCAG21/ (accessed Oct. 23, 2026).
-14. OWASP Foundation, "OWASP Top 10:2021," 2021. [Online]. Available: https://owasp.org/Top10/ (accessed Oct. 23, 2026).
-15. Microsoft, "Security — Live Share," Microsoft Learn. [Online]. Available: https://learn.microsoft.com/en-us/visualstudio/liveshare/reference/security (accessed Oct. 23, 2026).
-16. Replit, "Invite teammates," Replit Docs. [Online]. Available: https://docs.replit.com/build/invite-teammates (accessed Oct. 23, 2026).
-17. Codeshare, "Share code in real-time with developers in your browser." [Online]. Available: https://codeshare.io (accessed Oct. 23, 2026).
-18. Excalidraw, "Excalidraw — virtual whiteboard for sketching hand-drawn like diagrams," GitHub repository. [Online]. Available: https://github.com/excalidraw/excalidraw (accessed Oct. 23, 2026).
+2. Y. Brun, R. Holmes, M. D. Ernst, and D. Notkin, "Proactive detection of collaboration conflicts," in *Proc. 19th ACM SIGSOFT Symp. Foundations of Software Engineering and 13th European Software Engineering Conf. (ESEC/FSE '11)*, Szeged, Hungary, 2011, pp. 168–178, doi: 10.1145/2025113.2025139.
+3. S. K. Card, T. P. Moran, and A. Newell, "The keystroke-level model for user performance time with interactive systems," *Commun. ACM*, vol. 23, no. 7, pp. 396–410, 1980, doi: 10.1145/358886.358895.
+4. C. A. Ellis and S. J. Gibbs, "Concurrency control in groupware systems," in *Proc. 1989 ACM SIGMOD Int. Conf. Management of Data*, Portland, OR, USA, 1989, pp. 399–407, doi: 10.1145/67544.66963.
+5. C. Sun and C. Ellis, "Operational transformation in real-time group editors: Issues, algorithms, and achievements," in *Proc. 1998 ACM Conf. Computer Supported Cooperative Work (CSCW '98)*, Seattle, WA, USA, 1998, pp. 59–68, doi: 10.1145/289444.289469.
+6. M. Shapiro, N. Preguiça, C. Baquero, and M. Zawirski, "Conflict-free replicated data types," in *Stabilization, Safety, and Security of Distributed Systems (SSS 2011)*, Lecture Notes in Computer Science, vol. 6976. Berlin, Germany: Springer, 2011, pp. 386–400, doi: 10.1007/978-3-642-24550-3_29.
+7. P. Nicolaescu, K. Jahns, M. Derntl, and R. Klamma, "Near real-time peer-to-peer shared editing on extensible data types," in *Proc. 2016 ACM Int. Conf. Supporting Group Work (GROUP '16)*, Sanibel Island, FL, USA, 2016, pp. 39–49, doi: 10.1145/2957276.2957310.
+8. M. Kleppmann and A. R. Beresford, "A conflict-free replicated JSON datatype," *IEEE Trans. Parallel Distrib. Syst.*, vol. 28, no. 10, pp. 2733–2746, 2017, doi: 10.1109/TPDS.2017.2697382.
+9. M. Kleppmann, A. Wiggins, P. van Hardenberg, and M. McGranaghan, "Local-first software: You own your data, in spite of the cloud," in *Proc. 2019 ACM SIGPLAN Int. Symp. New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! 2019)*, Athens, Greece, 2019, pp. 154–178, doi: 10.1145/3359591.3359737.
+10. J. Gentle and M. Kleppmann, "Collaborative text editing with Eg-walker: Better, faster, smaller," in *Proc. 20th European Conf. Computer Systems (EuroSys '25)*, Rotterdam, The Netherlands, 2025, doi: 10.1145/3689031.3696076.
+11. Yjs, "Yjs Docs." [Online]. Available: https://docs.yjs.dev/ (accessed Oct. 23, 2026).
+12. J. Nielsen, *Usability Engineering*. Boston, MA, USA: Academic Press, 1993.
+13. *Systems and Software Engineering — Systems and Software Quality Requirements and Evaluation (SQuaRE) — Product Quality Model*, ISO/IEC 25010:2023, 2023.
+14. European Parliament and Council of the European Union, "Regulation (EU) 2016/679 (General Data Protection Regulation)," *Official Journal of the European Union*, L 119, pp. 1–88, May 4, 2016.
+15. W3C, "Web Content Accessibility Guidelines (WCAG) 2.1," W3C Recommendation, 2018. [Online]. Available: https://www.w3.org/TR/WCAG21/ (accessed Oct. 23, 2026).
+16. OWASP Foundation, "OWASP Top 10:2021," 2021. [Online]. Available: https://owasp.org/Top10/ (accessed Oct. 23, 2026).
+17. Microsoft, "Security — Live Share," Microsoft Learn. [Online]. Available: https://learn.microsoft.com/en-us/visualstudio/liveshare/reference/security (accessed Nov. 5, 2026).
+18. Replit, "Invite teammates," Replit Docs. [Online]. Available: https://docs.replit.com/build/invite-teammates (accessed Nov. 5, 2026).
+19. Codeshare, "Share code in real-time with developers in your browser." [Online]. Available: https://codeshare.io (accessed Oct. 23, 2026).
+20. Excalidraw, "Excalidraw — virtual whiteboard for sketching hand-drawn like diagrams," GitHub repository. [Online]. Available: https://github.com/excalidraw/excalidraw (accessed Oct. 23, 2026).
 
 # Appendix A. Backlog
 
@@ -67,9 +69,17 @@ Table A.1 — Epics and user stories (MoSCoW: M — Must, S — Should, C — Co
 
 ![B.6 — Activity diagram of UC-2 "Run code and share the result"](img/activity-uc2.png)
 
+![B.7 — US-03: the invitation page, full size](img/mockup-invite.png)
+
+![B.8 — US-07, US-08: co-editing a file, full size](img/mockup-editor.png)
+
+![B.9 — US-12: the shared whiteboard, full size](img/mockup-board.png)
+
+![B.10 — US-17: creating a project from a public GitHub repository, full size](img/mockup-import.png)
+
 # Appendix C. Survey questionnaire
 
-The questionnaire was distributed online in Russian; the English translation is given below. Questions 4–6 provide the KPI baselines.
+The questionnaire is prepared for online distribution in Russian and has not been conducted yet; the English translation is given below. Questions 4–6 will confirm or correct the baselines of KPI-1 to KPI-3.
 
 0. Consent: "I agree that my anonymous answers are used in aggregated form in the diploma thesis." (required)
 1. Who are you? (IT student / student of another field / working developer / lecturer / other)
@@ -83,6 +93,45 @@ The questionnaire was distributed online in Russian; the English translation is 
 9. How important are the following (1–5): join by link without registration; live cursors and edits; running code in the browser together; chat next to the code; a whiteboard in the same project; offline work with later synchronisation; version history; pushing to GitHub.
 10. What would you add to such a tool? (open)
 
+# Appendix D. Keystroke-level estimate of KPI-1
+
+The Keystroke-Level Model [3] adds up the time of elementary operations: M — mental preparation (1.35 s), P — pointing with the mouse (1.1 s), K — a keystroke or a click (0.2 s, an average skilled typist), H — moving a hand between the keyboard and the mouse (0.4 s), R — waiting for the system. The R values are assumptions for a small project on a good connection. The model assumes experts who make no mistakes, so all figures are lower bounds. Installing Git, an editor and a runtime is not included, because it depends on the machine. The reference task: a small project is already in a Git repository, and two people start editing the same file.
+
+Table D.1 — AS-IS, both people have all accounts and tools
+
+| Step | M | P | K | H | R, s | Time, s |
+|---|---|---|---|---|---|---|
+| Owner: open repository settings, then Collaborators | 1 | 2 | 2 | 1 | 2 | 6.4 |
+| Owner: add the partner by user name | 1 | 2 | 12 | 2 | 1 | 7.8 |
+| Owner: send the repository link in a messenger | 2 | 1 | 8 | 2 | 0 | 6.2 |
+| Partner: open the invitation and accept it | 1 | 2 | 2 | 0 | 4 | 8.0 |
+| Partner: clone the repository | 1 | 0 | 15 | 1 | 3 | 7.8 |
+| Partner: enter the folder and open the editor | 2 | 0 | 23 | 0 | 3 | 10.3 |
+| Partner: install the dependencies | 1 | 0 | 12 | 0 | 10 | 13.8 |
+| Partner: open the file | 1 | 1 | 1 | 1 | 1 | 4.1 |
+| **Total** | 10 | 8 | 75 | 7 | 24 | **64.1** |
+
+Table D.2 — AS-IS, additional steps when the partner has no account at the Git host
+
+| Step | M | P | K | H | R, s | Time, s |
+|---|---|---|---|---|---|---|
+| Partner: fill in the registration form | 3 | 4 | 46 | 2 | 2 | 20.5 |
+| Partner: confirm the e-mail address with a code | 2 | 2 | 12 | 2 | 12 | 20.1 |
+| **Total** | 5 | 6 | 58 | 4 | 14 | **40.6** |
+
+Table D.3 — TO-BE on the platform, the partner joins as a guest
+
+| Step | M | P | K | H | R, s | Time, s |
+|---|---|---|---|---|---|---|
+| Owner: create a project from the repository link | 2 | 2 | 16 | 2 | 3 | 11.9 |
+| Owner: open Invite and copy the link | 1 | 2 | 2 | 0 | 1 | 5.0 |
+| Owner: send the link in a messenger | 1 | 0 | 5 | 1 | 0 | 2.8 |
+| Guest: open the link | 1 | 1 | 1 | 1 | 2 | 5.1 |
+| Guest: enter a name and confirm | 1 | 0 | 9 | 1 | 2 | 5.6 |
+| **Total** | 6 | 5 | 33 | 5 | 8 | **30.2** |
+
+**Result.** The task takes about 64 s (83 keystrokes and pointings) when everybody is prepared and about 105 s (147) when the partner has to register first; on the platform it takes about 30 s (38). These are estimates, not measurements, and the pilot sessions of section 2.10 will replace them with measured values.
+
 # Statement on the use of AI
 
-[[TBD: review and adjust this statement so that it accurately describes how you used AI; it must be truthful.]] In preparing this work, the AI assistant Claude (Anthropic), used through the Claude Code tool, was used for: drafting and language editing of the English text of the Introduction and Chapters 1–2 on the basis of the author's project, notes and the requirements of the department; generating the diagrams of Appendix B from the author's descriptions; searching and verifying bibliographic data of the sources; and assisting in the implementation and testing of the software prototype. The analysis of the analogs, the survey design and the requirements were reviewed by the author, who is responsible for the content of the document. The project is individual and is not carried out for an organisation or with an organisation's data.
+In preparing this work, the AI assistant Claude (Anthropic), used through the Claude Code tool, was used for: drafting the English text of the Introduction, Chapters 1–2 and the appendices from the author's project and the department's requirements; searching and checking bibliographic data and quoted figures; operating a browser for the hands-on trials of CodeShare.io, Yjs and Excalidraw and capturing their screenshots; generating the diagrams of Appendix B; computing the keystroke-level estimate of Appendix D; and assisting in the implementation and testing of the software prototype. The author reviewed the document and is responsible for its content. The project is individual and is not carried out for an organisation or with an organisation's data.
