@@ -11,6 +11,7 @@ const STATUS: Record<RunState["status"], { label: string; dot: string }> = {
   error: { label: "ошибка", dot: "bg-bad" },
   timeout: { label: "превышено время (10 с)", dot: "bg-bad" },
   failed: { label: "не удалось запустить", dot: "bg-bad" },
+  stopped: { label: "остановлено", dot: "bg-faint" },
 };
 
 export function RunPanel({ run }: { run: RunState | undefined }) {

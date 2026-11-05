@@ -15,7 +15,7 @@ type Dialog = "rename" | "upgrade" | "delete" | "guest-logout";
 
 const ITEM = "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-base text-muted transition hover:bg-raised hover:text-fg";
 
-export function UserMenu({ placement = "below" }: { placement?: "below" | "above-right" }) {
+export function UserMenu({ placement = "below" }: { placement?: "below" | "above" }) {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
@@ -59,8 +59,8 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
         <div
           role="menu"
           className={cn(
-            "absolute z-50 w-64 rounded-lg bg-surface p-1.5 shadow-pop animate-pop",
-            placement === "below" ? "right-0 top-full mt-2" : "bottom-0 left-full ml-3",
+            "absolute z-50 w-60 rounded-lg bg-surface p-1.5 shadow-pop animate-pop",
+            placement === "below" ? "right-0 top-full mt-2" : "bottom-full left-0 mb-2",
           )}
         >
           <div className="flex items-center gap-3 px-2.5 py-2.5">

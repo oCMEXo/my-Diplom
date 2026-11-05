@@ -263,6 +263,7 @@ async function main() {
     CORS_ORIGIN: `http://127.0.0.1:${PORT}`,
     RUN_ENABLED: String(runOn),
     RUN_ACCESS_CODE: runCode,
+    API_PATH_PREFIX: "/api",
     REDIS_URL,
     TRUST_PROXY: "true",
     RATE_LIMIT_PER_MINUTE: "600",

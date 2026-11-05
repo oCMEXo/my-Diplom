@@ -4,7 +4,8 @@ import { API, createFile, createProject, openAs, register } from "./helpers.js";
 const MAIN_TEXT = "16px";
 const SMALLEST_TEXT_PX = 12;
 const LAPTOP = { width: 1280, height: 720 };
-const PHONE = { width: 375, height: 812 };
+// The narrowest screen NFR-U2 promises to work on.
+const PHONE = { width: 360, height: 760 };
 
 /** Sizes of all the text on screen. The editor and the terminal have their own settings. */
 function textSizes(page: Page) {
@@ -45,7 +46,8 @@ test("the interface keeps Discord's sizes, and its header fits on a laptop and a
   expect((await run.boundingBox())?.height).toBe(32);
 
   // Both side panels and the search leave the header little room: nothing may stick out of it.
-  await page.getByRole("button", { name: "Поиск по содержимому" }).click();
+  await page.getByRole("button", { name: /действия с проектом/ }).click();
+  await page.getByRole("menuitem", { name: /Поиск по тексту/ }).click();
   const header = page.locator("main header");
   const overflow = () => header.evaluate((element) => element.scrollWidth - element.clientWidth);
   expect(await overflow()).toBeLessThanOrEqual(0);

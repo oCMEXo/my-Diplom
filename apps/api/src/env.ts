@@ -32,6 +32,8 @@ const envSchema = z.object({
     .enum(["true", "false"])
     .default("true")
     .transform((value) => value === "true"),
+  /** Where the API is mounted when a proxy serves it under a path, such as "/api"; the docs page needs it for its files. */
+  API_PATH_PREFIX: z.string().regex(/^(\/[\w-]+)*$/).default(""),
   /** With a code set, running code and the terminal work only for people who entered it. */
   RUN_ACCESS_CODE: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(8).optional()),
 });

@@ -9,6 +9,7 @@ export async function processRunJob(
   data: unknown,
   publish: Publish,
   execute: Executor = runInSandbox,
+  signal?: AbortSignal,
 ): Promise<ExecutionResult> {
   const job = runJobSchema.parse(data);
   const ref = { runId: job.runId, projectId: job.projectId, fileId: job.fileId };
@@ -21,9 +22,14 @@ export async function processRunJob(
   });
 
   const pending: Promise<unknown>[] = [];
-  const result = await execute(job, (stream, chunk) => {
-    pending.push(Promise.resolve(publish({ type: "run.output", ...ref, stream, chunk })));
-  });
+  const result = await execute(
+    job,
+    (stream, chunk) => {
+      pending.push(Promise.resolve(publish({ type: "run.output", ...ref, stream, chunk })));
+    },
+    undefined,
+    signal,
+  );
   await Promise.all(pending);
 
   await publish({

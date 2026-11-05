@@ -236,8 +236,8 @@ test("a wrong GitHub token is explained before anything is sent", async ({ brows
   await page.getByRole("button", { name: "Создать и импортировать" }).click();
   await expect(page.getByRole("link", { name: "README" })).toBeVisible();
 
-  await page.getByRole("button", { name: "GitHub", exact: true }).click();
-  await page.getByRole("menuitem", { name: /Отправить изменения/ }).click();
+  await page.getByRole("button", { name: /действия с проектом/ }).click();
+  await page.getByRole("menuitem", { name: /Отправить в GitHub/ }).click();
   await page.getByLabel("Токен GitHub").fill("ghp_definitely_not_a_real_token_0000");
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("GitHub не принял токен")).toBeVisible({ timeout: 20_000 });
@@ -315,7 +315,8 @@ test("an invite link shows where it leads and lets a guest choose a name", async
 
   await expect(page).toHaveURL(/\/projects\//);
   await page.getByRole("tab", { name: /Участники/ }).click();
-  await expect(page.getByText(/^Влад/)).toBeVisible();
+  // In the member list: the name is also on the user card at the bottom of the sidebar.
+  await expect(page.getByRole("listitem").filter({ hasText: "это вы" })).toContainText("Влад");
   await context.close();
 });
 
@@ -458,7 +459,8 @@ test("switching the repository branch changes the files for everyone in the proj
   await expect(friendPage.getByRole("link", { name: "index.html" })).toBeVisible();
   await expect(friendPage.getByRole("link", { name: "test.md" })).toHaveCount(0);
 
-  await ownerPage.getByRole("button", { name: "Ветка репозитория" }).click();
+  await ownerPage.getByRole("button", { name: /действия с проектом/ }).click();
+  await ownerPage.getByRole("menuitem", { name: /Ветка/ }).click();
   const dialog = ownerPage.getByRole("dialog");
   await expect(dialog.getByRole("button", { name: /^main/ })).toHaveAttribute("aria-current", "true");
   await dialog.getByRole("button", { name: /^test-branch/ }).click();
@@ -471,12 +473,36 @@ test("switching the repository branch changes the files for everyone in the proj
     await expect(page.getByRole("heading", { name: "README.md" })).toBeVisible();
     await expect(page.getByText("Файл не найден")).toHaveCount(0);
   }
-  await expect(friendPage.getByRole("button", { name: "Ветка репозитория" })).toHaveText("test-branch");
+  await friendPage.getByRole("button", { name: /действия с проектом/ }).click();
+  await expect(friendPage.getByRole("menuitem", { name: /Ветка/ })).toContainText("test-branch");
+  await friendPage.keyboard.press("Escape");
 
-  await ownerPage.getByRole("button", { name: "Ветка репозитория" }).click();
+  await ownerPage.getByRole("button", { name: /действия с проектом/ }).click();
+  await ownerPage.getByRole("menuitem", { name: /Ветка/ }).click();
   await ownerPage.getByRole("dialog").getByRole("button", { name: /^main/ }).click();
   await expect(friendPage.getByRole("link", { name: "test.md" })).toHaveCount(0);
   await expect(friendPage.getByRole("link", { name: "index.html" })).toBeVisible();
+});
+
+test("an endless program is stopped with the Stop button, for everyone", async ({ browser, request }) => {
+  test.skip(process.env.E2E_RUNNER !== "1", "needs the runner service and Docker");
+
+  const owner = await register(request, "Аня");
+  const project = await createProject(request, owner, "Цикл");
+  const file = await createFile(request, owner, project.id, "loop.js");
+  const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
+  await typeInEditor(page, "while (true) {}");
+
+  await page.getByRole("button", { name: "Запустить" }).click();
+  const stop = page.getByRole("button", { name: "Остановить" });
+  await expect(stop).toBeVisible({ timeout: 30_000 });
+  const pressed = Date.now();
+  await stop.click();
+  await expect(page.getByText(/· остановлено/)).toBeVisible({ timeout: 8_000 });
+  // Well before the 10-second limit that would have ended it otherwise.
+  expect(Date.now() - pressed).toBeLessThan(8_000);
+  await expect(page.getByRole("button", { name: "Запустить" })).toBeVisible();
+  await page.context().close();
 });
 
 test("the terminal runs the project's files in a sandbox, like Git Bash", async ({ browser, request }) => {
@@ -500,6 +526,15 @@ test("the terminal runs the project's files in a sandbox, like Git Bash", async 
   await page.keyboard.press("Enter");
   await expect(screen).toContainText("ответ 42", { timeout: 20_000 });
   await expect(screen).toContainText("main.js");
+
+  // An endless program stops with the button, as with Ctrl+C: a phone has no Ctrl key.
+  await page.keyboard.type('node -e "while(true){}"');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(1500);
+  await terminal.getByRole("button", { name: /Прервать программу/ }).click();
+  await page.keyboard.type("echo $((6*7))готово");
+  await page.keyboard.press("Enter");
+  await expect(screen).toContainText("42готово", { timeout: 10_000 });
 
   // Ctrl+` closes it, and the session ends with the panel.
   await page.keyboard.press("Control+Backquote");

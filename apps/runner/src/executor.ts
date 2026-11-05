@@ -22,6 +22,8 @@ export function runInSandbox(
   job: Pick<RunJob, "runId" | "language" | "code"> & Partial<Pick<RunJob, "entry" | "files">>,
   onOutput: OutputHandler,
   timeoutMs = RUN_TIMEOUT_MS,
+  /** Aborted when somebody presses Stop. */
+  signal?: AbortSignal,
 ): Promise<ExecutionResult> {
   return new Promise((resolve) => {
     const startedAt = Date.now();
@@ -59,19 +61,34 @@ export function runInSandbox(
     child.stdout.on("data", (buffer: Buffer) => emit("stdout", buffer));
     child.stderr.on("data", (buffer: Buffer) => emit("stderr", buffer));
 
+    const kill = () => spawn("docker", ["kill", containerName(job.runId)], { stdio: "ignore" });
     const timer = setTimeout(() => {
       timedOut = true;
-      spawn("docker", ["kill", containerName(job.runId)], { stdio: "ignore" });
+      kill();
     }, timeoutMs);
+
+    // Stop can come before the container exists: the kill is repeated until the program is gone.
+    let stopped = false;
+    let stopping: NodeJS.Timeout | undefined;
+    const stop = () => {
+      stopped = true;
+      kill();
+      stopping ??= setInterval(kill, 500);
+    };
+    if (signal?.aborted) stop();
+    else signal?.addEventListener("abort", stop, { once: true });
 
     function finish(exitCode: number | null, spawnFailed: boolean) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      clearInterval(stopping);
+      signal?.removeEventListener("abort", stop);
       const durationMs = Date.now() - startedAt;
 
       let status: RunStatus;
-      if (spawnFailed || exitCode === DOCKER_ERROR_EXIT) status = "failed";
+      if (spawnFailed || (exitCode === DOCKER_ERROR_EXIT && !stopped)) status = "failed";
+      else if (stopped) status = "stopped";
       else if (timedOut) status = "timeout";
       else if (exitCode === 0) status = "ok";
       else status = "error";

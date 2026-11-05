@@ -216,6 +216,7 @@ export function ProjectPage() {
     openInvite,
     shareInChat,
     unread,
+    terminal: terminalAvailable && canEdit ? { open: terminalOpen, toggle: () => setTerminalOpen((open) => !open) } : undefined,
   };
 
   return (
@@ -261,8 +262,6 @@ export function ProjectPage() {
             }}
             onNavigate={() => setNavOpen(false)}
             onBranches={() => setBranching(true)}
-            terminalOpen={terminalOpen}
-            onToggleTerminal={terminalAvailable ? () => setTerminalOpen((open) => !open) : undefined}
           />
         </div>
 

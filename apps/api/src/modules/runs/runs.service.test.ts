@@ -6,7 +6,7 @@ import { createProject } from "../projects/projects.service.js";
 import { createFile, deleteFile } from "../files/files.service.js";
 import { textToYjsState } from "../../lib/yjs-text.js";
 import { enqueueRun, MAX_WAITING_RUNS } from "../../lib/queue.js";
-import { requestRun } from "./runs.service.js";
+import { requestRun, requestStop } from "./runs.service.js";
 
 describe("requestRun", () => {
   const userIds: string[] = [];
@@ -118,6 +118,28 @@ describe("requestRun", () => {
     await expect(
       requestRun(owner.id, project.id, file.id, "x", async () => undefined),
     ).rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it("passes a stop request on to the runners, with the project the run belongs to", async () => {
+    const owner = await user();
+    const { project } = await projectWithFile(owner.id, "main.py");
+    const sent: unknown[] = [];
+    const runId = randomUUID();
+    await requestStop(owner.id, project.id, runId, async (stop) => void sent.push(stop));
+    expect(sent).toEqual([{ runId, projectId: project.id }]);
+  });
+
+  it("does not let viewers or strangers stop a run", async () => {
+    const owner = await user();
+    const viewer = await user();
+    const stranger = await user();
+    const { project } = await projectWithFile(owner.id, "main.py");
+    await prisma.projectMember.create({ data: { projectId: project.id, userId: viewer.id, role: "viewer" } });
+    const sent: unknown[] = [];
+    const publish = async (stop: unknown) => void sent.push(stop);
+    await expect(requestStop(viewer.id, project.id, randomUUID(), publish)).rejects.toMatchObject({ statusCode: 403 });
+    await expect(requestStop(stranger.id, project.id, randomUUID(), publish)).rejects.toMatchObject({ statusCode: 404 });
+    expect(sent).toEqual([]);
   });
 
   it("does not let viewers run code", async () => {

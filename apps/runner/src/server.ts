@@ -6,6 +6,8 @@ import {
   accessChangeSchema,
   RUN_EVENTS_CHANNEL,
   RUN_QUEUE_NAME,
+  RUN_STOP_CHANNEL,
+  runStopSchema,
   TERMINAL_MAX_MINUTES,
   TERMINAL_TICKET_PREFIX,
   terminalTicketDataSchema,
@@ -22,9 +24,37 @@ const publisher = new Redis(env.REDIS_URL);
 
 const publish = (event: RunEvent) => publisher.publish(RUN_EVENTS_CHANNEL, JSON.stringify(event));
 
-const worker = new Worker(RUN_QUEUE_NAME, (job) => processRunJob(job.data, publish), {
+// Runs this runner is executing, so that a Stop from the project they belong to can end them.
+const active = new Map<string, { projectId: string; controller: AbortController }>();
+
+const worker = new Worker(
+  RUN_QUEUE_NAME,
+  async (job) => {
+    const { runId, projectId } = job.data as { runId: string; projectId: string };
+    const controller = new AbortController();
+    active.set(runId, { projectId, controller });
+    try {
+      return await processRunJob(job.data, publish, undefined, controller.signal);
+    } finally {
+      active.delete(runId);
+    }
+  },
+  {
   connection,
-  concurrency: env.RUNNER_CONCURRENCY,
+    concurrency: env.RUNNER_CONCURRENCY,
+  },
+);
+
+const stops = new Redis(env.REDIS_URL);
+void stops.subscribe(RUN_STOP_CHANNEL);
+stops.on("message", (_channel, raw) => {
+  try {
+    const stop = runStopSchema.safeParse(JSON.parse(raw));
+    const run = stop.success ? active.get(stop.data.runId) : undefined;
+    if (run && stop.success && run.projectId === stop.data.projectId) run.controller.abort();
+  } catch {
+    // a malformed message stops nothing
+  }
 });
 
 worker.on("failed", (job, error) => {
@@ -77,6 +107,7 @@ async function shutdown() {
   terminals?.close();
   await tickets.quit();
   await accessChanges.quit();
+  await stops.quit();
   await worker.close();
   await publisher.quit();
   await connection.quit();

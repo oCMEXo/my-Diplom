@@ -22,6 +22,7 @@ async function run(
   code: string,
   timeoutMs?: number,
   project: { entry?: string; files?: { path: string; content: string }[] } = {},
+  signal?: AbortSignal,
 ) {
   const out: string[] = [];
   const err: string[] = [];
@@ -29,6 +30,7 @@ async function run(
     { runId: randomUUID(), language, code, ...project },
     (stream, chunk) => (stream === "stdout" ? out : err).push(chunk),
     timeoutMs,
+    signal,
   );
   return { result, stdout: out.join(""), stderr: err.join("") };
 }
@@ -110,6 +112,15 @@ suite("runInSandbox (real docker)", () => {
     const { result } = await run("python", "while True: pass", 2500);
     expect(result.status).toBe("timeout");
     expect(result.durationMs).toBeLessThan(15000);
+  });
+
+  it("stops a program at once when somebody presses Stop", async () => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 1500);
+    const started = Date.now();
+    const { result } = await run("javascript", "while (true) {}", 8000, {}, controller.signal);
+    expect(result.status).toBe("stopped");
+    expect(Date.now() - started).toBeLessThan(6000);
   });
 
   it("stops by itself even if nobody kills it, as after a crash of the runner", { timeout: 40_000 }, async () => {

@@ -69,7 +69,8 @@ test("interface screenshots", async ({ browser, request }) => {
   await ownerPage.waitForTimeout(1200);
   await shot(ownerPage, "03-editor");
 
-  await ownerPage.getByRole("button", { name: "Пригласить", exact: true }).first().click();
+  await ownerPage.getByRole("button", { name: /действия с проектом/ }).click();
+  await ownerPage.getByRole("menuitem", { name: /Пригласить/ }).click();
   await ownerPage.waitForTimeout(400);
   await shot(ownerPage, "06-invite");
   await ownerPage.keyboard.press("Escape");
@@ -121,8 +122,8 @@ test("interface screenshots", async ({ browser, request }) => {
   await invited.close();
 
   const importPage = await open(owner, `/projects/${project.id}`);
-  await importPage.getByRole("button", { name: "GitHub", exact: true }).click();
-  await importPage.getByRole("menuitem", { name: /Импортировать репозиторий/ }).click();
+  await importPage.getByRole("button", { name: /действия с проектом/ }).click();
+  await importPage.getByRole("menuitem", { name: /Импорт из GitHub/ }).click();
   await importPage.getByLabel("Ссылка на репозиторий").fill("https://github.com/octocat/Hello-World");
   await importPage.waitForTimeout(300);
   await shot(importPage, "09-import-github");
