@@ -1,0 +1,119 @@
+# The whole site on ONE Google Compute Engine VM: the database and Redis run next to the services,
+# and Caddy serves the built web app and the API, the sync server and the terminals on one address.
+# Deployed by infra/gcp/deploy.mjs; see docs/deploy-gcp.md.
+name: collab
+
+x-node-service: &node-service
+  restart: unless-stopped
+  env_file: .env
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: collab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: collab
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U collab -d collab"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    <<: *node-service
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+      target: app
+      args: { APP: api }
+    environment:
+      PORT: "3001"
+      HOST: 0.0.0.0
+      REDIS_URL: redis://redis:6379
+      COLLAB_URL: http://collab:1234
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  collab:
+    <<: *node-service
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+      target: app
+      args: { APP: collab }
+    environment:
+      PORT: "1234"
+      HOST: 0.0.0.0
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  runner:
+    <<: *node-service
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+      target: runner
+      args: { APP: runner }
+    # It holds the Docker socket and has no use for the database or JWT secrets in .env.
+    env_file: []
+    environment:
+      REDIS_URL: redis://redis:6379
+      TERMINAL_PORT: "3003"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      redis: { condition: service_healthy }
+
+  migrate:
+    <<: *node-service
+    restart: "no"
+    profiles: ["tools"]
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+      target: app
+      args: { APP: api }
+    command: ["sh", "-c", "pnpm --filter @collab/db exec prisma migrate deploy"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web:/srv/web:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, collab, runner]
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
