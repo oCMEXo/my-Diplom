@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useOutletContext, useParams, useSearchParams } from "react-router-dom";
-import { Eye, History, LoaderCircle, MessageSquarePlus, Play } from "lucide-react";
+import { Eye, History, MessageSquarePlus, Play, Square } from "lucide-react";
 import { inferLanguage, toRunnableLanguage } from "@collab/shared";
 import { BoardEditor } from "../components/BoardEditor";
 import { CollabEditor, type EditorController } from "../components/CollabEditor";
@@ -133,6 +133,17 @@ export function FileEditorPage() {
     }
   }
 
+  async function stopRun() {
+    if (!run) return;
+    setRunError(null);
+    try {
+      await api.post(`/projects/${projectId}/runs/${run.runId}/stop`);
+    } catch (err) {
+      if (access.refused(err, () => void stopRun())) return;
+      setRunError(err instanceof ApiError ? err.message : "Не удалось остановить");
+    }
+  }
+
   const shareLine = (line: number) => shell.shareInChat(`${file.path}:${line}`);
 
   const editor = (
@@ -161,12 +172,13 @@ export function FileEditorPage() {
         onClick={() => shareLine(activeController?.getCursorLine() ?? 1)}
         title="Сослаться на эту строку в чате (Alt+L)"
         aria-label="Сослаться на эту строку в чате"
+        // On the narrowest phones the header has no room; Alt+L and the editor's menu still do it.
+        className="hidden bar-md:inline-flex"
       >
         <MessageSquarePlus size={16} />
       </Button>
       <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)} title="История версий" aria-label="История версий">
         <History size={16} />
-        <span className="hidden bar-xl:inline">История версий</span>
       </Button>
       {runnable && canEdit && (
         <>
@@ -176,10 +188,18 @@ export function FileEditorPage() {
             </span>
           )}
           {access.dialog}
-          <Button size="sm" onClick={() => access.ensure(() => void startRun())} disabled={running} aria-label={running ? "Выполняется…" : "Запустить"}>
-            {running ? <LoaderCircle size={16} className="animate-spin" /> : <Play size={16} className="fill-current text-ok" />}
-            <span className="hidden bar-md:inline">{running ? "Выполняется…" : "Запустить"}</span>
-          </Button>
+          {/* While the program runs, the same place stops it: an endless loop need not wait for the time limit. */}
+          {running ? (
+            <Button size="sm" onClick={() => access.ensure(() => void stopRun())} aria-label="Остановить" title="Остановить программу">
+              <Square size={14} className="fill-current text-bad" />
+              <span className="hidden bar-md:inline">Остановить</span>
+            </Button>
+          ) : (
+            <Button size="sm" onClick={() => access.ensure(() => void startRun())} aria-label="Запустить" title="Запустить файл">
+              <Play size={16} className="fill-current text-ok" />
+              <span className="hidden bar-md:inline">Запустить</span>
+            </Button>
+          )}
         </>
       )}
       {historyOpen && (

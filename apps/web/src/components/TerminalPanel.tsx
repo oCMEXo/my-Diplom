@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ButtonHTMLAttributes, type PointerEve
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
-import { RotateCcw, SquareTerminal, X } from "lucide-react";
+import { OctagonX, RotateCcw, SquareTerminal, X } from "lucide-react";
 import {
   TERMINAL_MAX_MINUTES,
   TERMINAL_WORKDIR,
@@ -73,6 +73,9 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
   const [session, setSession] = useState(0);
   const [phase, setPhase] = useState<Phase>({ name: "connecting", message: "Готовим терминал…" });
   const [height, setHeight] = useState(savedHeight);
+  /** Sends keys to the shell from outside the terminal, for the Ctrl+C button. */
+  const sendKeys = useRef<((data: string) => void) | null>(null);
+  const termRef = useRef<Terminal | null>(null);
 
   const locked = mode === "code" && !currentRunCode();
 
@@ -101,6 +104,8 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
     const send = (message: TerminalClientMessage) => {
       if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
     };
+    sendKeys.current = (data) => send({ type: "input", data });
+    termRef.current = term;
 
     setPhase({ name: "connecting", message: "Готовим терминал…" });
     (async () => {
@@ -154,6 +159,8 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
 
     return () => {
       disposed = true;
+      sendKeys.current = null;
+      termRef.current = null;
       observer.disconnect();
       input.dispose();
       resize.dispose();
@@ -198,6 +205,22 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
           песочница · {TERMINAL_WORKDIR} · без интернета · до {TERMINAL_MAX_MINUTES} минут · правки здесь не попадают в проект
         </span>
         <span className="flex-1" />
+        {phase.name === "ready" && (
+          // Ctrl+C for those without a Ctrl key, such as on a phone, and for those who do not know it.
+          <button
+            type="button"
+            onClick={() => {
+              sendKeys.current?.("\u0003");
+              termRef.current?.focus();
+            }}
+            aria-label="Прервать программу (Ctrl+C)"
+            title="Прервать программу (Ctrl+C)"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[#b5bac1] transition hover:bg-white/10 hover:text-[#dbdee1]"
+          >
+            <OctagonX size={16} className="text-[#fc878b]" />
+            <span className="font-mono text-xs">Ctrl+C</span>
+          </button>
+        )}
         <HeaderButton label="Новый сеанс с текущими файлами" onClick={() => setSession((value) => value + 1)}>
           <RotateCcw size={16} />
         </HeaderButton>

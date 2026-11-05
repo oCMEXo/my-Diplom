@@ -47,6 +47,8 @@ services:
       HOST: 0.0.0.0
       REDIS_URL: redis://redis:6379
       COLLAB_URL: http://collab:1234
+      # Caddy serves the API under /api: the docs page must ask for its files there.
+      API_PATH_PREFIX: /api
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }

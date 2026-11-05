@@ -5,6 +5,7 @@ import type { RunJob } from "@collab/shared";
 import { AppError } from "../../lib/errors.js";
 import { requireProjectRole } from "../../lib/authorization.js";
 import { enqueueRun } from "../../lib/queue.js";
+import { publishRunStop } from "../../lib/run-stop.js";
 import { yjsStateToText } from "../../lib/yjs-text.js";
 
 /**
@@ -46,6 +47,17 @@ function failAfter(ms: number) {
   return new Promise<never>((_resolve, reject) => {
     setTimeout(() => reject(new AppError("Запуск кода сейчас недоступен. Попробуйте чуть позже.", 503)), ms).unref();
   });
+}
+
+/** Those who may run code in the project may also stop a run there. */
+export async function requestStop(
+  userId: string,
+  projectId: string,
+  runId: string,
+  publish: typeof publishRunStop = publishRunStop,
+) {
+  await requireProjectRole(projectId, userId, "editor");
+  await publish({ runId, projectId });
 }
 
 export async function requestRun(

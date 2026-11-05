@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { Cloud, CloudOff, Menu, PanelRight, UserPlus } from "lucide-react";
+import { Cloud, CloudOff, Menu, PanelRight, SquareTerminal } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { useFollowing, useOnlineUsers } from "../../lib/RealtimeContext";
 import { cn } from "../../lib/cn";
 import { Avatar } from "../ui/Avatar";
-import { Button, IconButton } from "../ui/Button";
+import { IconButton } from "../ui/Button";
 
 export type SyncStatus = "connecting" | "connected" | "offline";
 
@@ -17,25 +17,27 @@ export interface ShellActions {
   /** Opens the chat with this text added to the message being written. */
   shareInChat: (text: string) => void;
   unread: number;
+  /** The terminal's switch; undefined where there is no terminal or this person may not use it. */
+  terminal?: { open: boolean; toggle: () => void };
 }
 
 export function SyncPill({ status }: { status: SyncStatus }) {
   const config = {
-    connected: { label: "Синхронизировано", short: "", tone: "hidden bg-ok/12 text-ok bar-md:inline-flex", icon: Cloud },
-    connecting: { label: "Подключение…", short: "Подключение…", tone: "inline-flex bg-warn/12 text-warn", icon: Cloud },
-    offline: { label: "Офлайн — правки сохранятся локально", short: "Офлайн", tone: "inline-flex bg-warn/12 text-warn", icon: CloudOff },
+    // All is well: a quiet icon. A problem: a word in colour, the full sentence in the tooltip.
+    connected: { label: "Синхронизировано", short: "", tone: "inline-flex text-faint", icon: Cloud },
+    connecting: { label: "Подключение…", short: "Подключение…", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: Cloud },
+    offline: { label: "Офлайн — правки сохранятся локально", short: "Офлайн", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: CloudOff },
   }[status];
   return (
     <span
       role="status"
       title={config.label}
-      className={cn("items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-medium", config.tone)}
+      className={cn("items-center gap-1.5 rounded-full text-sm font-medium", config.tone)}
     >
       <config.icon size={16} />
-      {/* The full sentence only where there is room; a problem still gets a word, all is well gets just the icon. */}
-      <span className="sr-only bar-xl:not-sr-only">{config.label}</span>
+      <span className="sr-only">{config.label}</span>
       {config.short && (
-        <span aria-hidden className="hidden bar-md:inline bar-xl:hidden">
+        <span aria-hidden className="hidden bar-md:inline">
           {config.short}
         </span>
       )}
@@ -105,23 +107,22 @@ export function ProjectHeader({
         <Menu size={20} />
       </IconButton>
       {/* The name must stay readable however many buttons the page puts on the right. */}
-      <div className="flex min-w-[6rem] items-center gap-2.5">
+      <div className="flex min-w-[5rem] items-center gap-2.5">
         {icon}
         <h2 title={title} className="truncate text-base font-semibold">
           {title}
         </h2>
         {badge}
+        {status && <SyncPill status={status} />}
       </div>
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
-        {status && <SyncPill status={status} />}
         {actions}
-        <OnlineAvatars />
-        {shell.openInvite && (
-          <Button size="sm" onClick={shell.openInvite} aria-label="Пригласить" title="Пригласить участников" className="hidden bar-lg:inline-flex">
-            <UserPlus size={16} />
-            <span className="hidden bar-xl:inline">Пригласить</span>
-          </Button>
+        {shell.terminal && (
+          <IconButton label="Терминал" title="Терминал (Ctrl+`)" onClick={shell.terminal.toggle} active={shell.terminal.open} aria-pressed={shell.terminal.open}>
+            <SquareTerminal size={20} />
+          </IconButton>
         )}
+        <OnlineAvatars />
         <span className="relative inline-flex">
           <IconButton
             label={

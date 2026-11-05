@@ -252,7 +252,8 @@ test("the project's text files can be downloaded as one archive", async ({ brows
   await createFile(request, owner, project.id, "схема", "board");
 
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
-  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Скачать ZIP" }).click()]);
+  await page.getByRole("button", { name: /действия с проектом/ }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: "Скачать ZIP" }).click()]);
   expect(download.suggestedFilename()).toBe("Архив.zip");
 
   const archive = await readFile(await download.path());
@@ -369,6 +370,40 @@ test("a server hiccup during renewal keeps the session, and signing out reaches 
   await second.getByRole("menuitem", { name: "Выйти" }).click();
   await expect(second).toHaveURL(/\/login/);
   await expect(page).toHaveURL(/\/login/);
+});
+
+test("a shape can be added, moved and deleted on the board with the keyboard alone", async ({ browser, request }) => {
+  const owner = await register(request, "Аня");
+  const project = await createProject(request, owner, "Клавиатура");
+  const file = await createFile(request, owner, project.id, "доска", "board");
+  const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
+  const board = page.locator("[data-shape-count]");
+  await expect(board).toHaveAttribute("data-shape-count", "0");
+
+  await page.getByRole("button", { name: "Прямоугольник" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(board).toHaveAttribute("data-shape-count", "1");
+  await expect(board).not.toHaveAttribute("data-selected-shape", "");
+  const [x, y] = (await board.getAttribute("data-selected-shape"))!.split(",").map(Number);
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Shift+ArrowDown");
+  await expect(board).toHaveAttribute("data-selected-shape", `${x! + 20},${y! + 1}`);
+
+  // The drawing leaves the board as a picture (US-12).
+  for (const format of ["PNG", "SVG"]) {
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: format, exact: true }).click();
+    expect((await download).suggestedFilename()).toBe(`доска.${format.toLowerCase()}`);
+  }
+  await board.focus();
+
+  await page.keyboard.press("Escape");
+  await expect(board).toHaveAttribute("data-selected-shape", "");
+  await page.keyboard.press("]");
+  await page.keyboard.press("Delete");
+  await expect(board).toHaveAttribute("data-shape-count", "0");
+  await page.context().close();
 });
 
 test("a shape can be drawn on the board with a finger", async ({ browser, request }) => {

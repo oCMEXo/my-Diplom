@@ -73,6 +73,7 @@ export function BoardEditor({
   const [size, setSize] = useState({ width: 800, height: 600 });
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
   const shapesLayerRef = useRef<Konva.Layer>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const draft = useRef<{ id: string; startX: number; startY: number; type: ShapeType } | null>(null);
@@ -226,6 +227,28 @@ export function BoardEditor({
     setTool("select");
   }
 
+  /** The keyboard's way to draw: the shape appears in the middle of the visible board, selected. */
+  function placeShape(type: ShapeType) {
+    if (!board || !canEdit) return;
+    const id = newShapeId();
+    // Shapes added one after another do not land exactly on top of each other.
+    const offset = (shapes.length % 5) * 16;
+    const cx = size.width / 2 + offset;
+    const cy = size.height / 2 + offset;
+    const base: BoardShape = { id, type, x: cx - 70, y: cy - 45, w: 140, h: 90, x2: cx - 70, y2: cy - 45, fill: color, text: "" };
+    if (type === "arrow") addShape(board, { ...base, x: cx - 70, y: cy, x2: cx + 70, y2: cy, w: 0, h: 0 });
+    else if (type === "text") addShape(board, { ...base, x: cx - 110, w: 220, h: TEXT_SIZE * 1.4 });
+    else addShape(board, base);
+    setSelectedId(id);
+    setTool("select");
+    if (type === "text") {
+      setEditingId(id);
+      setEditingText("");
+    } else {
+      boardRef.current?.focus();
+    }
+  }
+
   function commitText() {
     if (!board || !editingId) return;
     const id = editingId;
@@ -248,7 +271,27 @@ export function BoardEditor({
 
   function handleKeyDown(event: React.KeyboardEvent) {
     if (editingId) return;
-    if ((event.key === "Delete" || event.key === "Backspace") && selectedId) {
+    const current = shapes.find((shape) => shape.id === selectedId);
+    const step = event.shiftKey ? 1 : 10;
+    const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    const move = moves[event.key];
+    if (move && current && canEdit) {
+      event.preventDefault();
+      const [dx, dy] = move;
+      update(current.id, { x: current.x + dx, y: current.y + dy, x2: current.x2 + dx, y2: current.y2 + dy });
+    } else if ((event.key === "]" || event.key === "[") && shapes.length > 0) {
+      // Choosing a shape without a mouse: [ and ] go through them in the order they were drawn.
+      event.preventDefault();
+      const index = shapes.findIndex((shape) => shape.id === selectedId);
+      const next = event.key === "]" ? (index + 1) % shapes.length : index <= 0 ? shapes.length - 1 : index - 1;
+      setSelectedId(shapes[next]!.id);
+    } else if (event.key === "Enter" && current?.type === "text" && canEdit) {
+      event.preventDefault();
+      setEditingId(current.id);
+      setEditingText(current.text);
+    } else if (event.key === "Escape" && selectedId) {
+      setSelectedId(null);
+    } else if ((event.key === "Delete" || event.key === "Backspace") && selectedId) {
       event.preventDefault();
       deleteSelected();
     } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
@@ -416,9 +459,16 @@ export function BoardEditor({
   return (
     <div
       className="relative h-full outline-none"
+      ref={boardRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
+      aria-label={
+        canEdit
+          ? "Доска. Кнопка инструмента, нажатая клавишей Enter, добавляет фигуру в центр. Квадратные скобки выбирают фигуру, стрелки двигают её (Shift — точнее), Enter правит подпись, Delete удаляет, Ctrl+Z отменяет."
+          : "Доска, только просмотр. Квадратные скобки выбирают фигуру."
+      }
       data-shape-count={shapes.length}
+      data-selected-shape={selected ? `${Math.round(selected.x)},${Math.round(selected.y)}` : ""}
     >
       <div ref={containerRef} className="board-paper absolute inset-0 overflow-hidden">
         {canEdit && (
@@ -428,10 +478,12 @@ export function BoardEditor({
               {TOOLS.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setTool(item.id)}
+                  // Pressed from the keyboard (no pointer, so detail is 0) a shape tool adds its shape at once:
+                  // there is no mouse to draw it with.
+                  onClick={(event) => (event.detail === 0 && item.id !== "select" ? placeShape(item.id) : setTool(item.id))}
                   aria-label={item.label}
                   aria-pressed={tool === item.id}
-                  title={item.label}
+                  title={item.id === "select" ? item.label : `${item.label} (с клавиатуры: Enter добавляет в центр доски)`}
                   className={toolButton(tool === item.id)}
                 >
                   <item.icon size={20} />

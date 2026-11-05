@@ -1,17 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { GitBranch, Plus, Search, SquareTerminal, TextSearch, UserPlus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import type { FileRecord, FileType, Project, ProjectWithMembers } from "@collab/shared";
 import { api } from "../../lib/api";
 import { gradientFor, initials } from "../../lib/colors";
 import { cn } from "../../lib/cn";
-import { useOnlineUsers, useRealtimeStatus } from "../../lib/RealtimeContext";
-import { Button, IconButton } from "../ui/Button";
+import { useAuth } from "../../lib/auth";
+import { useRealtimeStatus } from "../../lib/RealtimeContext";
 import { LogoMark } from "../ui/Logo";
-import { RoleBadge } from "../ui/RoleBadge";
-import { ExportButton } from "./ExportButton";
 import { FileTree } from "./FileTree";
-import { GithubMenu } from "./GithubMenu";
+import { ProjectMenu } from "./ProjectMenu";
 import { TrashSection } from "./TrashSection";
 import { UserMenu } from "./UserMenu";
 
@@ -66,7 +64,6 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
           <Plus size={22} />
         </button>
       </div>
-      <UserMenu placement="above-right" />
     </nav>
   );
 }
@@ -86,8 +83,6 @@ export function ProjectNav({
   onFindInFiles,
   onNavigate,
   onBranches,
-  terminalOpen,
-  onToggleTerminal,
 }: {
   project: ProjectWithMembers;
   files: FileRecord[];
@@ -104,59 +99,31 @@ export function ProjectNav({
   onFindInFiles: () => void;
   onNavigate: () => void;
   onBranches: () => void;
-  /** Undefined when this server has no terminal. */
-  terminalOpen?: boolean;
-  onToggleTerminal?: () => void;
 }) {
-  const online = useOnlineUsers();
-  const status = useRealtimeStatus();
-
   return (
     <div className="flex h-full">
       <ProjectRail activeId={project.id} onCreateProject={onCreateProject} />
       <aside className="flex w-64 flex-col bg-surface">
-        <div className="flex h-14 items-center justify-between gap-2 border-b border-line px-4">
-          <div className="min-w-0">
-            <h1 title={project.name} className="truncate text-base font-semibold">{project.name}</h1>
-            <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
-              <RoleBadge role={project.myRole} />
-              {project.github && (
-                <button
-                  onClick={onBranches}
-                  title={`${project.github.owner}/${project.github.repo}: сменить ветку`}
-                  aria-label="Ветка репозитория"
-                  className="flex min-w-0 items-center gap-1 rounded-md border border-line px-1.5 py-px text-xs text-muted transition hover:border-accent hover:text-fg"
-                >
-                  <GitBranch size={14} className="shrink-0" />
-                  <span className="truncate font-mono">{project.github.branch ?? "ветка"}</span>
-                </button>
-              )}
-            </div>
-          </div>
-          {onInvite && (
-            <IconButton label="Пригласить участников" onClick={onInvite}>
-              <UserPlus size={20} />
-            </IconButton>
-          )}
-        </div>
+        <ProjectMenu
+          project={project}
+          canEdit={canEdit}
+          canPush={files.length > 0}
+          onInvite={onInvite}
+          onBranches={onBranches}
+          onImport={onImport}
+          onPush={onPush}
+          onFindInFiles={onFindInFiles}
+        />
 
         {files.length > 0 && (
-          <div className="flex gap-1.5 px-3 pt-3">
+          <div className="px-3 pt-3">
             <button
               onClick={onSearch}
-              className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg bg-canvas px-2.5 text-left text-sm text-muted transition hover:text-fg"
+              className="flex h-9 w-full items-center gap-2 rounded-lg bg-canvas px-2.5 text-left text-sm text-muted transition hover:text-fg"
             >
               <Search size={16} />
               <span className="flex-1">Найти файл</span>
               <kbd className="whitespace-nowrap rounded border border-line px-1 text-xs text-faint">Ctrl P</kbd>
-            </button>
-            <button
-              onClick={onFindInFiles}
-              aria-label="Поиск по содержимому"
-              title="Поиск по содержимому (Ctrl+Shift+F)"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-canvas text-muted transition hover:text-fg"
-            >
-              <TextSearch size={16} />
             </button>
           </div>
         )}
@@ -186,46 +153,33 @@ export function ProjectNav({
           <TrashSection projectId={project.id} canEdit={canEdit} isOwner={project.myRole === "owner"} />
         </div>
 
-        <div className="space-y-2 border-t border-line p-3">
-          {canEdit && (
-            <div className="flex gap-2">
-              <Button size="sm" className="flex-1" onClick={() => onCreateFile("code")}>
-                <Plus size={16} />
-                Файл
-              </Button>
-              <GithubMenu onImport={onImport} onPush={onPush} canPush={files.length > 0} />
-            </div>
-          )}
-          {canEdit && onToggleTerminal && (
-            <button
-              onClick={onToggleTerminal}
-              aria-pressed={terminalOpen}
-              className={cn(
-                "flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-sm transition",
-                terminalOpen ? "bg-selected text-fg" : "text-muted hover:bg-raised hover:text-fg",
-              )}
-            >
-              <SquareTerminal size={16} className="text-ok" />
-              <span className="flex-1 text-left">Терминал</span>
-              <kbd className="whitespace-nowrap rounded border border-line px-1 text-xs text-faint">Ctrl `</kbd>
-            </button>
-          )}
-          <ExportButton projectId={project.id} projectName={project.name} />
-          <p className="flex items-center gap-2 px-1 text-sm text-muted">
-            <span
-              className={cn(
-                "h-2 w-2 rounded-full",
-                status === "open" ? "bg-ok animate-pulse-ring" : status === "connecting" ? "bg-warn" : "bg-faint",
-              )}
-            />
-            {status === "open"
-              ? `${online.length} в сети`
-              : status === "connecting"
-                ? "Подключение…"
-                : "Нет связи"}
-          </p>
-        </div>
+        <UserPanel />
       </aside>
+    </div>
+  );
+}
+
+/** The bottom of the sidebar, as in Discord: who you are and whether you are connected. */
+function UserPanel() {
+  const { user } = useAuth();
+  const status = useRealtimeStatus();
+  if (!user) return null;
+  const state =
+    status === "open"
+      ? { text: "в сети", dot: "bg-ok" }
+      : status === "connecting"
+        ? { text: "подключение…", dot: "bg-warn" }
+        : { text: "нет связи", dot: "bg-faint" };
+  return (
+    <div className="flex h-[3.75rem] shrink-0 items-center gap-2.5 bg-canvas/60 px-2">
+      <UserMenu placement="above" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{user.name}</p>
+        <p role="status" className="flex items-center gap-1.5 text-xs text-muted">
+          <span className={cn("h-2 w-2 shrink-0 rounded-full", state.dot)} />
+          {state.text}
+        </p>
+      </div>
     </div>
   );
 }

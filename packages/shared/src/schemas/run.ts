@@ -3,6 +3,8 @@ import { RUNNABLE_LANGUAGES } from "../constants.js";
 
 export const RUN_QUEUE_NAME = "code-runs";
 export const RUN_EVENTS_CHANNEL = "run-events";
+/** The API asks the runner to stop a run here; the runner that has it kills its container. */
+export const RUN_STOP_CHANNEL = "run-stop";
 export const RUN_TIMEOUT_MS = 10_000;
 export const MAX_RUN_OUTPUT_BYTES = 64 * 1024;
 export const MAX_RUN_CODE_CHARS = 100_000;
@@ -40,8 +42,12 @@ const runRef = {
   fileId: z.string().uuid(),
 };
 
-export const runStatusSchema = z.enum(["ok", "error", "timeout", "failed"]);
+export const runStatusSchema = z.enum(["ok", "error", "timeout", "failed", "stopped"]);
 export type RunStatus = z.infer<typeof runStatusSchema>;
+
+/** A request to stop a run, with the project it must belong to. */
+export const runStopSchema = z.object({ runId: z.string().uuid(), projectId: z.string().uuid() });
+export type RunStop = z.infer<typeof runStopSchema>;
 
 export const runStartedEventSchema = z.object({
   type: z.literal("run.started"),

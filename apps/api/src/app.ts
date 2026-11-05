@@ -41,6 +41,8 @@ export interface AppOptions {
   runEnabled?: boolean;
   /** Running code and the terminal only for people who know this code (the public test host). */
   runAccessCode?: string;
+  /** The path a proxy puts the API under ("/api"), so that the docs page asks for its files there. */
+  pathPrefix?: string;
 }
 
 /** Endpoints that cost a password hash or create an account: the ones worth limiting harder. */
@@ -122,7 +124,7 @@ export async function buildApp(options: AppOptions = {}) {
     },
     transform: jsonSchemaTransform,
   });
-  await app.register(swaggerUi, { routePrefix: "/docs" });
+  await app.register(swaggerUi, { routePrefix: "/docs", indexPrefix: options.pathPrefix ?? env.API_PATH_PREFIX });
 
   app.get("/health", async () => ({ status: "ok" }));
 
