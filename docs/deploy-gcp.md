@@ -7,6 +7,9 @@ HTTPS-сертификат. Своего домена не нужно: адре�
 
 Запуск кода и терминал на публичном сайте требуют кода доступа владельца (`RUN_ACCESS_CODE`).
 
+Развёрнуто 5 ноября 2026 года: **https://35-228-155-63.sslip.io**, проект
+`project-d64af781-2588-4bb2-a48`.
+
 ## Что создаётся
 
 | Ресурс | Параметры |
@@ -37,6 +40,10 @@ gcloud compute instances create collab --zone=europe-north1-a --machine-type=e2-
 ```bash
 node infra/gcp/deploy.mjs
 ```
+
+На Windows запускайте из PowerShell или cmd: в Git Bash `gcloud compute ssh` не находит ключ
+(скрипт это обходит, но ручные команды `gcloud compute ssh` из Git Bash падают с «Не удаётся
+найти указанный путь»).
 
 Скрипт собирает сайт на этом компьютере, упаковывает закоммиченный код (`git archive HEAD`),
 копирует оба архива на машину и запускает там `infra/gcp/remote-deploy.sh`: сборка образов,

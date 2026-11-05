@@ -79,6 +79,7 @@ pnpm dev:web      # фронтенд, http://localhost:5173
 - [docs/adr](docs/adr) — архитектурные решения (ADR-001…004)
 - [docs/websocket-protocol.md](docs/websocket-protocol.md) — протоколы реального времени
 - Swagger — `http://localhost:3001/docs` при запущенном api
+- [docs/deploy-gcp.md](docs/deploy-gcp.md) — развёрнуто в Google Cloud: https://35-228-155-63.sslip.io (`node infra/gcp/deploy.mjs`)
 - [docs/deploy-aws.md](docs/deploy-aws.md) — деплой на AWS (не проверен на реальном аккаунте)
 - [docs/thesis](docs/thesis) — черновики глав диплома
 
