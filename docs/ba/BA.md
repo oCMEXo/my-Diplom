@@ -25,7 +25,7 @@ To reach this goal, the work has five objectives:
 
 A questionnaire for students and developers is ready (Appendix C). But nobody has answered it yet, and there were no interviews. So no statement in this document uses survey or interview data. The questionnaire and the pilot sessions (section 2.10) will confirm or correct the estimated baselines (start values).
 
-# 1 Analytical part
+# Chapter 1. Analytical part
 
 ## 1.1 Current state of the process
 
@@ -120,7 +120,7 @@ Table 1.2 — Problems, epics and KPIs
 
 The new solution must do these things: open a permanent project by a link in a browser, also for guests without an account; let several people edit code, Markdown documents and a whiteboard at the same time, with visible cursors and a list of who is online; keep working when the connection stops and merge the edits automatically; run code in a shared sandbox with the same output for everyone; exchange the project with GitHub.
 
-# 2 System requirements
+# Chapter 2. System requirements
 
 ## 2.1 Vision and goals
 

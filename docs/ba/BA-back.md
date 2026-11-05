@@ -1,4 +1,4 @@
-# References
+# List of references
 
 1. Stack Overflow, "2024 Developer Survey: Work," 2024. [Online]. Available: https://survey.stackoverflow.co/2024/work (accessed Oct. 23, 2026).
 2. Y. Brun, R. Holmes, M. D. Ernst, and D. Notkin, "Proactive detection of collaboration conflicts," in *Proc. 19th ACM SIGSOFT Symp. Foundations of Software Engineering and 13th European Software Engineering Conf. (ESEC/FSE '11)*, Szeged, Hungary, 2011, pp. 168–178, doi: 10.1145/2025113.2025139.
@@ -164,6 +164,10 @@ Table E.1 — Terms used in this document
 | Traceability | Links that show which goal each user story comes from |
 | User story | A short description of a need: "As a …, I want …, so that …" |
 
-# Statement on the use of AI
+# Statements
 
-The author used the AI assistant Claude (Anthropic) through the Claude Code tool for these tasks: writing the English text of the Introduction, Chapters 1–2 and the appendices from the author's project and the department's requirements; rewriting this text in simple English; finding and checking bibliographic data and figures; using a browser for the practical tests of CodeShare.io, Yjs and Excalidraw and taking their screenshots; making the diagrams of Appendix B; calculating the keystroke-level estimate of Appendix D; and helping to build and test the software prototype. The author checked the document and is responsible for its content. The project is individual. It is not done for an organisation or with the data of an organisation.
+**Use of AI.** The author used the AI assistant Claude (Anthropic) through the Claude Code tool for these tasks: writing the English text of the Introduction, Chapters 1–2 and the appendices from the author's project and the department's requirements; rewriting this text in simple English; finding and checking bibliographic data and figures; using a browser for the practical tests of CodeShare.io, Yjs and Excalidraw and taking their screenshots; making the diagrams of Appendix B; calculating the keystroke-level estimate of Appendix D; and helping to build and test the software prototype. The author checked the document and is responsible for its content. The project is individual. It is not done for an organisation or with the data of an organisation.
+
+**Group contributions.** Not applicable: the project is individual.
+
+**Organisation consent.** Not applicable: the project is not done for an organisation and does not use the data of an organisation.

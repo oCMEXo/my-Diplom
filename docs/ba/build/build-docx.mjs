@@ -130,7 +130,7 @@ function mockupGrid(lines, chapter) {
         new Paragraph({
           alignment: AlignmentType.CENTER,
           spacing: { before: 0, after: 0, line: 240 },
-          children: runs(`Figure ${chapter}.${figureCount[chapter]} — ${alt}`, { size: 20 }),
+          children: runs(`Figure ${chapter}.${figureCount[chapter]} — ${alt}`, { size: 20, bold: true }),
         }),
       ],
     });
@@ -159,7 +159,7 @@ function convert(markdown) {
     if ((match = line.match(/^# (.+)/))) {
       const title = match[1];
       section = title;
-      chapter = title.match(/^(\d+)\s/)?.[1] ?? (title.match(/^Appendix ([A-Z])/)?.[1] ?? "");
+      chapter = title.match(/^Chapter (\d+)\./)?.[1] ?? (title.match(/^Appendix ([A-Z])/)?.[1] ?? "");
       blocks.push(new Paragraph({
         heading: HeadingLevel.HEADING_1,
         pageBreakBefore: true,
@@ -199,7 +199,7 @@ function convert(markdown) {
       blocks.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 200 },
-        children: runs(label, { size: 22 }),
+        children: runs(label, { size: 22, bold: true }),
       }));
       continue;
     }
@@ -212,10 +212,10 @@ function convert(markdown) {
       continue;
     }
     if (/^Table [A-Z0-9.]+ — /.test(line)) {
-      blocks.push(new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: runs(line, { italics: true }) }));
+      blocks.push(new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 120, after: 60 }, children: runs(line, { bold: true, size: 22 }) }));
       continue;
     }
-    if (section === "References" && (match = line.match(/^(\d+)\. (.+)/))) {
+    if (section === "List of references" && (match = line.match(/^(\d+)\. (.+)/))) {
       blocks.push(new Paragraph({
         indent: { left: 567, hanging: 567 },
         spacing: { after: 60 },
@@ -244,7 +244,7 @@ function convert(markdown) {
       blocks.push(new Paragraph({ indent: { left: 360 }, spacing: { after: line.startsWith("**Then") ? 160 : 0, line: 264 }, keepNext: line.startsWith("**Given") || line.startsWith("**When"), children: runs(line) }));
       continue;
     }
-    blocks.push(new Paragraph({ children: runs(line) }));
+    blocks.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: runs(line) }));
   }
   return blocks;
 }
@@ -252,23 +252,17 @@ function convert(markdown) {
 // ---------- title page ----------
 const center = (text, options = {}) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: runs(text, options) });
 const titlePage = [
-  center("Study programme: Informatics", { size: 24 }),
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
-  center("Diploma Project", { size: 28 }),
-  center("REAL-TIME COLLABORATIVE CODE EDITING PLATFORM BASED ON CRDT", { size: 32, bold: true }),
-  center("Business Analysis block: Introduction, Chapter 1 (Analytical part) and Chapter 2 (System requirements)", { size: 24, italics: true }),
-  new Paragraph({ spacing: { before: 2000 }, children: [] }),
-  ...[
-    ["Author:", "Artsiom Harminovich"],
-    ["Supervisor:", "[[TBD: supervisor's full name]]"],
-    ["Project type:", "Individual"],
-  ].map(([label, value]) => new Paragraph({
-    indent: { left: 4800 },
-    spacing: { after: 120 },
-    children: [new TextRun({ text: `${label} `, bold: true }), ...runs(value)],
-  })),
+  center("Business Analysis Block", { size: 28, bold: true }),
+  center("Introduction, Chapter 1 and Chapter 2 of the diploma project", { size: 24 }),
+  new Paragraph({ spacing: { before: 600 }, children: [] }),
+  center("Real-Time Collaborative Code Editing Platform Based on CRDT", { size: 32, bold: true }),
+  new Paragraph({ spacing: { before: 1800 }, children: [] }),
+  center("Author: Artsiom Harminovich", { size: 24 }),
+  center("Supervisor: Maksym Svynarenko", { size: 24 }),
+  center("Project type: individual", { size: 24 }),
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
-  center("2026", { size: 24 }),
+  center("November 2026", { size: 24 }),
 ];
 
 // ---------- document ----------
@@ -314,7 +308,7 @@ const doc = new Document({
       },
       children: [
         // Not a heading, so that it does not list itself.
-        new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: "Contents", bold: true, size: 32 })] }),
+        new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: "Table of contents", bold: true, size: 32 })] }),
         new TableOfContents("Contents", { hyperlink: true, headingStyleRange: "1-2" }),
         ...convert(main),
         ...convert(back),
