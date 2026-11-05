@@ -23,8 +23,8 @@ e2e/playwright-report/
 infra/local-host/.state/
 infra/local-host/bin/
 
-# Local demo stand
-.claude/demo-account.txt
+# Local assistant files
+.claude/
 
 # Scripts of the BA document, despite the name
 !docs/ba/build/
