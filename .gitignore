@@ -32,3 +32,6 @@ infra/local-host/bin/
 # Google Cloud deployment (web build, access code)
 infra/gcp/.state/
 infra/gcp/web/
+
+# Lock files of an office suite while a document is open
+.~lock.*#
