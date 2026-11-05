@@ -6,6 +6,7 @@
 // the VM from `git archive HEAD`, so changes that are not committed are not deployed.
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +17,9 @@ const INSTANCE = process.env.GCP_INSTANCE ?? "collab";
 
 const run = (command, options = {}) => {
   console.log(`\n$ ${command}`);
-  return execSync(command, { cwd: repo, stdio: options.capture ? ["ignore", "pipe", "inherit"] : "inherit", encoding: "utf8", env: { ...process.env, ...options.env } });
+  // Git Bash sets HOME to /c/Users/…, where gcloud on Windows cannot find its SSH key.
+  const home = process.platform === "win32" ? { HOME: os.homedir() } : {};
+  return execSync(command, { cwd: repo, stdio: options.capture ? ["ignore", "pipe", "inherit"] : "inherit", encoding: "utf8", env: { ...process.env, ...home, ...options.env } });
 };
 const gcloud = (args, options) => run(`gcloud ${args} --quiet`, options);
 // The first connection would otherwise stop to ask about the VM's host key.
