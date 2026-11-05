@@ -5,9 +5,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, LevelFormat, Packer,
-  PageBreak, PageNumber, Paragraph, ShadingType, Table, TableCell, TableOfContents, TableRow,
+  PageBreak, PageNumber, Paragraph, ShadingType, Tab, Table, TableCell, TableOfContents, TableRow,
   TextRun, VerticalAlign, WidthType,
 } from "docx";
+import { estimatePageNumbersWith } from "docx/layout";
 
 const here = import.meta.dirname;
 const root = path.resolve(here, "..");
@@ -106,6 +107,41 @@ function table(lines) {
   });
 }
 
+// Mockups in the main text go in two columns: the volume limit counts them, and Appendix B has full-size copies.
+const noBorder = { style: BorderStyle.NONE, size: 0, color: "auto" };
+const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder, insideHorizontal: noBorder, insideVertical: noBorder };
+
+function isMainTextMockup(line) {
+  const match = line.match(/^!\[(.+)\]\((.+)\)/);
+  return Boolean(match) && match[2].includes("mockup") && !/^[A-Z]\.\d+ — /.test(match[1]);
+}
+
+function mockupGrid(lines, chapter) {
+  const half = Math.floor(TEXT_W / 2);
+  const cell = (line) => {
+    const [, alt, file] = line.match(/^!\[(.+)\]\((.+)\)/);
+    figureCount[chapter] = (figureCount[chapter] ?? 0) + 1;
+    return new TableCell({
+      width: { size: half, type: WidthType.DXA },
+      borders: noBorders,
+      margins: { top: 40, bottom: 80, left: 60, right: 60 },
+      children: [
+        image(file, { maxWidthCm: 7.9, maxHeightCm: 5.2 }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 0, line: 240 },
+          children: runs(`Figure ${chapter}.${figureCount[chapter]} — ${alt}`, { size: 20 }),
+        }),
+      ],
+    });
+  };
+  const rows = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    rows.push(new TableRow({ cantSplit: true, children: [cell(lines[i]), lines[i + 1] ? cell(lines[i + 1]) : new TableCell({ width: { size: half, type: WidthType.DXA }, borders: noBorders, children: [new Paragraph({ children: [] })] })] }));
+  }
+  return new Table({ width: { size: half * 2, type: WidthType.DXA }, columnWidths: [half, half], borders: noBorders, rows });
+}
+
 // ---------- markdown blocks ----------
 let listInstance = 0;
 const figureCount = {};
@@ -114,6 +150,7 @@ function convert(markdown) {
   const blocks = [];
   const lines = markdown.replace(/\r/g, "").split("\n");
   let chapter = "";
+  let section = "";
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
@@ -121,6 +158,7 @@ function convert(markdown) {
     let match;
     if ((match = line.match(/^# (.+)/))) {
       const title = match[1];
+      section = title;
       chapter = title.match(/^(\d+)\s/)?.[1] ?? (title.match(/^Appendix ([A-Z])/)?.[1] ?? "");
       blocks.push(new Paragraph({
         heading: HeadingLevel.HEADING_1,
@@ -131,6 +169,17 @@ function convert(markdown) {
     }
     if ((match = line.match(/^## (.+)/))) {
       blocks.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(match[1])] }));
+      continue;
+    }
+    if (isMainTextMockup(line)) {
+      const group = [];
+      while (i < lines.length && (!lines[i].trim() || isMainTextMockup(lines[i]))) {
+        if (lines[i].trim()) group.push(lines[i]);
+        i++;
+      }
+      i--;
+      blocks.push(mockupGrid(group, chapter));
+      blocks.push(new Paragraph({ spacing: { before: 0, after: 120 }, children: [] }));
       continue;
     }
     if ((match = line.match(/^!\[(.+)\]\((.+)\)/))) {
@@ -166,6 +215,14 @@ function convert(markdown) {
       blocks.push(new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: runs(line, { italics: true }) }));
       continue;
     }
+    if (section === "References" && (match = line.match(/^(\d+)\. (.+)/))) {
+      blocks.push(new Paragraph({
+        indent: { left: 567, hanging: 567 },
+        spacing: { after: 60 },
+        children: [new TextRun({ children: [`[${match[1]}]`, new Tab()] }), ...runs(match[2])],
+      }));
+      continue;
+    }
     if ((match = line.match(/^(\s*)(-|\d+\.) (.+)/))) {
       const ordered = /\d/.test(match[2]);
       const instance = ++listInstance;
@@ -184,7 +241,7 @@ function convert(markdown) {
     }
     // Given/When/Then steps of an acceptance criterion: one compact, indented block.
     if (/^\*\*(Given|When|Then)\*\* /.test(line)) {
-      blocks.push(new Paragraph({ indent: { left: 360 }, spacing: { after: line.startsWith("**Then") ? 160 : 0, line: 276 }, keepNext: line.startsWith("**Given") || line.startsWith("**When"), children: runs(line) }));
+      blocks.push(new Paragraph({ indent: { left: 360 }, spacing: { after: line.startsWith("**Then") ? 160 : 0, line: 264 }, keepNext: line.startsWith("**Given") || line.startsWith("**When"), children: runs(line) }));
       continue;
     }
     blocks.push(new Paragraph({ children: runs(line) }));
@@ -195,7 +252,6 @@ function convert(markdown) {
 // ---------- title page ----------
 const center = (text, options = {}) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: runs(text, options) });
 const titlePage = [
-  center("[[TBD: University name]]", { size: 28, bold: true }),
   center("Study programme: Informatics", { size: 24 }),
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
   center("Diploma Project", { size: 28 }),
@@ -203,8 +259,8 @@ const titlePage = [
   center("Business Analysis block: Introduction, Chapter 1 (Analytical part) and Chapter 2 (System requirements)", { size: 24, italics: true }),
   new Paragraph({ spacing: { before: 2000 }, children: [] }),
   ...[
-    ["Author:", "Artsiom Harminovich [[TBD: group]]"],
-    ["Supervisor:", "[[TBD: supervisor's full name and academic title]]"],
+    ["Author:", "Artsiom Harminovich"],
+    ["Supervisor:", "[[TBD: supervisor's full name]]"],
     ["Project type:", "Individual"],
   ].map(([label, value]) => new Paragraph({
     indent: { left: 4800 },
@@ -212,7 +268,7 @@ const titlePage = [
     children: [new TextRun({ text: `${label} `, bold: true }), ...runs(value)],
   })),
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
-  center("[[TBD: City]], 2026", { size: 24 }),
+  center("2026", { size: 24 }),
 ];
 
 // ---------- document ----------
@@ -220,11 +276,13 @@ const main = readFileSync(path.join(root, "BA.md"), "utf8");
 const back = readFileSync(path.join(root, "BA-back.md"), "utf8");
 
 const doc = new Document({
-  features: { updateFields: true },
+  // Page numbers worked out as Word lays the pages out, so the table of contents arrives filled in
+  // and Word does not ask to update it on opening. It stays a real table that Word can update.
+  pageNumbers: estimatePageNumbersWith({ guess: true }),
   creator: "Artsiom Harminovich",
   title: "Real-Time Collaborative Code Editing Platform Based on CRDT — Business Analysis",
   styles: {
-    default: { document: { run: { font: FONT, size: 24 }, paragraph: { spacing: { line: 360, after: 120 } } } },
+    default: { document: { run: { font: FONT, size: 24 }, paragraph: { spacing: { line: 276, after: 120 } } } },
     paragraphStyles: [
       { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
         run: { size: 32, bold: true, font: FONT }, paragraph: { spacing: { before: 0, after: 240 }, outlineLevel: 0 } },
@@ -258,7 +316,6 @@ const doc = new Document({
         // Not a heading, so that it does not list itself.
         new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: "Contents", bold: true, size: 32 })] }),
         new TableOfContents("Contents", { hyperlink: true, headingStyleRange: "1-2" }),
-        new Paragraph({ children: [new TextRun({ text: "If the table of contents is empty, right-click it in Word and choose “Update Field”.", italics: true, size: 20, color: "808080" })] }),
         ...convert(main),
         ...convert(back),
       ],
