@@ -1,5 +1,6 @@
 import { RUNNABLE_LANGUAGES, type RunnableLanguage } from "./constants.js";
 
+/** Languages by file extension: the editor highlights all of them; only RUNNABLE_LANGUAGES run. */
 const EXTENSION_LANGUAGES: Record<string, string> = {
   py: "python",
   js: "javascript",
@@ -11,36 +12,171 @@ const EXTENSION_LANGUAGES: Record<string, string> = {
   json: "json",
   md: "markdown",
   html: "html",
+  htm: "html",
   css: "css",
+  scss: "scss",
+  less: "less",
   sql: "sql",
   sh: "shell",
+  bash: "shell",
   yml: "yaml",
   yaml: "yaml",
   java: "java",
   c: "c",
+  h: "c",
   cpp: "cpp",
+  cc: "cpp",
+  hpp: "cpp",
+  cs: "csharp",
   go: "go",
   rs: "rust",
   sol: "solidity",
   php: "php",
   rb: "ruby",
-  cs: "csharp",
   kt: "kotlin",
   swift: "swift",
+  dart: "dart",
+  scala: "scala",
+  lua: "lua",
+  r: "r",
+  pl: "perl",
+  ps1: "powershell",
+  bat: "bat",
+  cmd: "bat",
+  ini: "ini",
+  cfg: "ini",
   xml: "xml",
-  h: "c",
-  hpp: "cpp",
+  svg: "xml",
+  graphql: "graphql",
+  gql: "graphql",
+  proto: "protobuf",
+  tf: "hcl",
+  ex: "elixir",
+  exs: "elixir",
+  fs: "fsharp",
+  vb: "vb",
+  clj: "clojure",
+  txt: "plaintext",
 };
 
-export function inferLanguage(path: string): string | null {
-  const name = path.split("/").pop() ?? path;
+/** Files known by their whole name rather than an extension. */
+const NAMED_FILES: Record<string, string> = { dockerfile: "dockerfile" };
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  python: "Python",
+  javascript: "JavaScript",
+  typescript: "TypeScript",
+  json: "JSON",
+  markdown: "Markdown",
+  html: "HTML",
+  css: "CSS",
+  scss: "SCSS",
+  less: "Less",
+  sql: "SQL",
+  shell: "Shell",
+  yaml: "YAML",
+  java: "Java",
+  c: "C",
+  cpp: "C++",
+  csharp: "C#",
+  go: "Go",
+  rust: "Rust",
+  solidity: "Solidity",
+  php: "PHP",
+  ruby: "Ruby",
+  kotlin: "Kotlin",
+  swift: "Swift",
+  dart: "Dart",
+  scala: "Scala",
+  lua: "Lua",
+  r: "R",
+  perl: "Perl",
+  powershell: "PowerShell",
+  bat: "Batch",
+  ini: "INI",
+  xml: "XML",
+  graphql: "GraphQL",
+  protobuf: "Protocol Buffers",
+  hcl: "Terraform (HCL)",
+  elixir: "Elixir",
+  fsharp: "F#",
+  vb: "Visual Basic",
+  clojure: "Clojure",
+  dockerfile: "Dockerfile",
+  plaintext: "Текст",
+};
+
+function fileName(path: string) {
+  return path.split("/").pop() ?? path;
+}
+
+/** The extension in lower case, or null when the name has none (".env" counts as none). */
+export function extensionOf(path: string): string | null {
+  const name = fileName(path);
   const dot = name.lastIndexOf(".");
-  if (dot <= 0) return null;
-  return EXTENSION_LANGUAGES[name.slice(dot + 1).toLowerCase()] ?? null;
+  return dot > 0 && dot < name.length - 1 ? name.slice(dot + 1).toLowerCase() : null;
+}
+
+export function inferLanguage(path: string): string | null {
+  const named = NAMED_FILES[fileName(path).toLowerCase()];
+  if (named) return named;
+  const extension = extensionOf(path);
+  return extension ? (EXTENSION_LANGUAGES[extension] ?? null) : null;
 }
 
 export function toRunnableLanguage(language: string | null): RunnableLanguage | null {
   return (RUNNABLE_LANGUAGES as readonly string[]).includes(language ?? "")
     ? (language as RunnableLanguage)
     : null;
+}
+
+export function languageName(language: string): string {
+  return LANGUAGE_NAMES[language] ?? language;
+}
+
+/** What the platform does with a file: run and highlight it, only highlight it, or show it as text. */
+export type LanguageSupport = "run" | "highlight" | "text";
+
+export interface LanguageInfo {
+  language: string | null;
+  /** Shown to people: "Python", "C++", or "Текст" for a file the editor does not know. */
+  name: string;
+  extension: string | null;
+  support: LanguageSupport;
+  /** The extension is there but means nothing to the platform. */
+  unknown: boolean;
+}
+
+export function describeLanguage(path: string, language: string | null = inferLanguage(path)): LanguageInfo {
+  const extension = extensionOf(path);
+  if (!language || language === "plaintext") {
+    return { language, name: "Текст", extension, support: "text", unknown: !language && extension !== null };
+  }
+  return {
+    language,
+    name: languageName(language),
+    extension,
+    support: toRunnableLanguage(language) ? "run" : "highlight",
+    unknown: false,
+  };
+}
+
+/** Every language the platform knows, with its extensions, for the list people can look at. */
+export function languageCatalogue(): { language: string; name: string; extensions: string[]; support: LanguageSupport }[] {
+  const byLanguage = new Map<string, string[]>();
+  for (const [extension, language] of Object.entries(EXTENSION_LANGUAGES)) {
+    if (language === "plaintext") continue;
+    byLanguage.set(language, [...(byLanguage.get(language) ?? []), `.${extension}`]);
+  }
+  for (const [name, language] of Object.entries(NAMED_FILES)) {
+    byLanguage.set(language, [...(byLanguage.get(language) ?? []), name === "dockerfile" ? "Dockerfile" : name]);
+  }
+  return [...byLanguage.entries()]
+    .map(([language, extensions]) => ({
+      language,
+      name: languageName(language),
+      extensions,
+      support: (toRunnableLanguage(language) ? "run" : "highlight") as LanguageSupport,
+    }))
+    .sort((a, b) => (a.support === b.support ? a.name.localeCompare(b.name) : a.support === "run" ? -1 : 1));
 }

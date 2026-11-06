@@ -406,6 +406,32 @@ test("a shape can be added, moved and deleted on the board with the keyboard alo
   await page.context().close();
 });
 
+test("the new-file dialog tells what happens to each language, and lists them all", async ({ browser, request }) => {
+  const owner = await register(request, "Аня");
+  const project = await createProject(request, owner, "Языки");
+  const page = await openAs(browser, owner, `/projects/${project.id}`);
+  await page.getByRole("button", { name: "Создать файл" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Новый файл" });
+  const name = dialog.getByLabel("Имя файла");
+  const hint = dialog.getByRole("status");
+  await name.fill("main.py");
+  await expect(hint).toContainText("Python: подсветка и запуск");
+  await name.fill("main.go");
+  await expect(hint).toContainText("Go: подсветка. Запускать можно только JavaScript и Python");
+  await name.fill("notes.xyz");
+  await expect(hint).toContainText("Расширение .xyz не распознано");
+  await dialog.getByRole("button", { name: "Какие языки поддерживаются?" }).click();
+  await expect(dialog.getByText("Solidity")).toBeVisible();
+
+  await name.fill("main.go");
+  await dialog.getByRole("button", { name: "Создать", exact: true }).click();
+  // The editor names the language it took the file for; Go is highlighted but cannot be run.
+  await expect(page.getByRole("button", { name: "Go: подсветка, запуск недоступен" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Запустить" })).toHaveCount(0);
+  await page.context().close();
+});
+
 test("a shape can be drawn on the board with a finger", async ({ browser, request }) => {
   const owner = await register(request, "Аня");
   const project = await createProject(request, owner, "Палец");

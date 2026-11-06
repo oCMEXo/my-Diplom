@@ -4,6 +4,7 @@ import type { FileRecord } from "@collab/shared";
 import { api, ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
+import { LanguageHint } from "./Languages";
 import { Modal } from "./ui/Modal";
 
 /** Renames a file; a name with slashes ("src/app.js") also moves it into that folder. */
@@ -53,6 +54,8 @@ export function RenameFileDialog({
               <span className="text-bad">Файл с таким именем уже есть</span>
             ) : invalid ? (
               <span className="text-bad">Имя не должно начинаться или заканчиваться на «/» и содержать «..»</span>
+            ) : file.type === "code" ? (
+              <LanguageHint path={path} />
             ) : undefined
           }
         />

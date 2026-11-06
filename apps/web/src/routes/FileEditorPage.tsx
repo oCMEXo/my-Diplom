@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useOutletContext, useParams, useSearchParams } from "react-router-dom";
 import { Eye, History, MessageSquarePlus, Play, Square } from "lucide-react";
-import { inferLanguage, toRunnableLanguage } from "@collab/shared";
+import { describeLanguage, inferLanguage, toRunnableLanguage } from "@collab/shared";
 import { BoardEditor } from "../components/BoardEditor";
 import { CollabEditor, type EditorController } from "../components/CollabEditor";
 import { FileTabs } from "../components/FileTabs";
 import { MarkdownPreview } from "../components/MarkdownPreview";
 import { RunPanel } from "../components/RunPanel";
 import { VersionHistoryDialog } from "../components/VersionHistoryDialog";
+import { LanguagesDialog } from "../components/Languages";
 import { useRunAccess } from "../components/RunAccess";
 import { FILE_KINDS } from "../components/layout/ProjectNav";
 import { ProjectHeader, type SyncStatus } from "../components/layout/ProjectHeader";
@@ -37,6 +38,7 @@ export function FileEditorPage() {
   const revealLine = Number(searchParams.get("line")) || null;
   const revealColumn = Number(searchParams.get("col")) || undefined;
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [languagesOpen, setLanguagesOpen] = useState(false);
   const { following, follow } = useFollowing();
   useAnnounceFile(file?.id);
 
@@ -89,18 +91,47 @@ export function FileEditorPage() {
   }
 
   const kind = FILE_KINDS[file.type];
+  const languageInfo = file.type === "code" ? describeLanguage(file.path, file.language ?? inferLanguage(file.path)) : null;
+  // Says which language the editor took the file for, and opens the list of all of them.
+  const languageChip = languageInfo && (
+    <>
+      <button
+        onClick={() => setLanguagesOpen(true)}
+        aria-label={
+          languageInfo.support === "run"
+            ? `${languageInfo.name}: подсветка и запуск`
+            : languageInfo.support === "highlight"
+              ? `${languageInfo.name}: подсветка, запуск недоступен`
+              : "Язык не распознан: обычный текст"
+        }
+        title="Поддерживаемые языки"
+        className={cn(
+          "hidden shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium transition hover:bg-raised bar-md:inline-flex",
+          languageInfo.support === "text" ? "text-warn" : "text-faint hover:text-fg",
+        )}
+      >
+        {languageInfo.support === "text" ? "Текст" : languageInfo.name}
+      </button>
+      {languagesOpen && <LanguagesDialog onClose={() => setLanguagesOpen(false)} />}
+    </>
+  );
   const name = file.path.split("/").pop() ?? file.path;
   const header = {
     shell,
     status,
     title: file.path,
     icon: <kind.icon size={20} className={cn("shrink-0", kind.tone)} />,
-    badge: !canEdit ? (
-      <span className="inline-flex items-center gap-1 rounded-md bg-raised px-1.5 py-0.5 text-xs font-medium text-muted">
-        <Eye size={12} />
-        только чтение
-      </span>
-    ) : undefined,
+    badge: (
+      <>
+        {!canEdit && (
+          <span className="inline-flex items-center gap-1 rounded-md bg-raised px-1.5 py-0.5 text-xs font-medium text-muted">
+            <Eye size={12} />
+            только чтение
+          </span>
+        )}
+        {languageChip}
+      </>
+    ),
   };
 
   if (file.type === "board") {

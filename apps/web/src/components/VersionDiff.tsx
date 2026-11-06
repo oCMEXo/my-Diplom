@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { monacoLanguage } from "../lib/monaco-language";
 import * as monaco from "monaco-editor";
 import { MONACO_THEME } from "../lib/monaco-setup";
 import { useTheme } from "../lib/theme";
@@ -27,8 +28,8 @@ export function VersionDiff({ original, modified, language }: { original: string
       scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 },
     });
     const pair = {
-      original: monaco.editor.createModel("", language),
-      modified: monaco.editor.createModel("", language),
+      original: monaco.editor.createModel("", monacoLanguage(language)),
+      modified: monaco.editor.createModel("", monacoLanguage(language)),
     };
     editor.setModel(pair);
     models.current = pair;
