@@ -12,7 +12,8 @@ export function Field({
         {label}
       </label>
       <input id={id} className="field" {...input} />
-      {hint && <p className="text-sm text-faint">{hint}</p>}
+      {/* A block, not a paragraph: a hint may hold a list, as the one about languages does. */}
+      {hint && <div className="text-sm text-faint">{hint}</div>}
     </div>
   );
 }

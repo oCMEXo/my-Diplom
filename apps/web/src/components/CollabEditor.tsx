@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { monacoLanguage } from "../lib/monaco-language";
 import Editor, { type Monaco, type OnMount } from "@monaco-editor/react";
 import { MonacoBinding } from "y-monaco";
 import * as Y from "yjs";
@@ -29,9 +30,6 @@ interface PeerState {
 /** Below this height (px) the editor is still being laid out, so scrolling it would not stick. */
 const MIN_REVEAL_HEIGHT = 100;
 
-function languageFor(language: string | null): string {
-  return language ?? "plaintext";
-}
 
 export function CollabEditor({
   fileId,
@@ -180,7 +178,7 @@ export function CollabEditor({
   return (
     <Editor
       key={fileId}
-      language={languageFor(language)}
+      language={monacoLanguage(language)}
       onMount={handleMount}
       theme={MONACO_THEME[theme]}
       loading={<span className="text-base text-muted">Загружаем редактор…</span>}

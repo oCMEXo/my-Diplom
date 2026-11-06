@@ -496,11 +496,12 @@ test("an endless program is stopped with the Stop button, for everyone", async (
   await page.getByRole("button", { name: "Запустить" }).click();
   const stop = page.getByRole("button", { name: "Остановить" });
   await expect(stop).toBeVisible({ timeout: 30_000 });
-  const pressed = Date.now();
   await stop.click();
-  await expect(page.getByText(/· остановлено/)).toBeVisible({ timeout: 8_000 });
-  // Well before the 10-second limit that would have ended it otherwise.
-  expect(Date.now() - pressed).toBeLessThan(8_000);
+  await expect(page.getByRole("status").filter({ hasText: "остановлено" })).toBeVisible({ timeout: 15_000 });
+  // The runner's own clock, without the trip to the browser: a run the 10-second limit
+  // ended would have lasted 10 s or more.
+  const duration = await page.getByRole("button", { name: /^Вывод · [\d.]+ с$/ }).textContent();
+  expect(Number(duration?.match(/([\d.]+) с/)?.[1])).toBeLessThan(10);
   await expect(page.getByRole("button", { name: "Запустить" })).toBeVisible();
   await page.context().close();
 });

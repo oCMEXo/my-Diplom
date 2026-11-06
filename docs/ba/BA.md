@@ -389,4 +389,4 @@ Table 2.10 — Evaluation criteria linked to the KPIs
 | KPI-3, NFR-A2 | No merges by hand, 0 lost characters, all copies identical | Automated convergence and offline tests; pilot log | Automated tests pass; pilot not done |
 | KPI-4, NFR-P1 | p95 ≤ 100 ms with 50 editors | Load test with simulated users | About 10 ms on one machine over loopback, without network delay |
 | NFR-P2 | 200 files open in ≤ 3 s at 10 Mbit/s | Measurement by a script in a browser | 2.0 s (median of 10 runs, simulated network, server on the same machine) |
-| Must stories | Acceptance criteria of Appendix A | Automated end-to-end tests | 42 scenarios pass |
+| Must stories | Acceptance criteria of Appendix A | Automated end-to-end tests | 43 scenarios pass |

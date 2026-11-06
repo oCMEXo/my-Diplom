@@ -6,10 +6,11 @@ import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Segmented } from "./ui/Segmented";
 import { FILE_KINDS } from "./layout/ProjectNav";
+import { LanguageHint } from "./Languages";
 
 const EXAMPLE: Record<FileType, string> = { code: "main.py", doc: "README.md", board: "идеи.board" };
 const HINT: Record<FileType, string> = {
-  code: "Язык определяется по расширению: .py, .js, .ts, .go, .rs и т. д.",
+  code: "",
   doc: "Markdown с живым предпросмотром — удобно для заметок и заданий.",
   board: "Полотно для схем и набросков — рисуют все сразу.",
 };
@@ -70,6 +71,8 @@ export function CreateFileDialog({
           hint={
             duplicate ? <span className="text-bad">Файл с таким именем уже есть</span> : invalid ? (
               <span className="text-bad">Имя не должно начинаться или заканчиваться на «/» и содержать «..»</span>
+            ) : type === "code" ? (
+              <LanguageHint path={trimmed} />
             ) : (
               HINT[type]
             )
