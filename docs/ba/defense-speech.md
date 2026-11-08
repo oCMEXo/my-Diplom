@@ -4,7 +4,7 @@
 
 **Слот 10 минут:** доклад и вопросы комиссии вместе. Доклад чуть больше 4 минут, на вопросы остаётся около 6.
 
-**Слов в речи:** 465. По расчёту это чуть больше 4 минут, точное время покажет репетиция с таймером.
+**Слов в речи:** 471. По расчёту это чуть больше 4 минут, точное время покажет репетиция с таймером.
 
 **Как читать:** одна строка — одно предложение. После каждой строки короткая пауза.
 
@@ -40,14 +40,18 @@
 > This is for live sessions of students and mentors.  
 > Here you can see my five tasks, the object and the subject.  
 
-### Слайд 4: Today: the team loses time and edits [40 с]
+### Слайд 4: Today: the team loses time and edits [45 с]
 
 > **Today, a team can lose time and edits.**  
-> Imagine a student who calls a friend for help and shares the screen.  
-> Only the student can type, so the friend must get the code, install it and run it.  
-> Then someone puts the changes together by hand, and edits can get lost.  
-> And if the connection stops, the session stops.  
-> A time model shows that a new partner needs at least 105 seconds for the first edit.  
+> Imagine a student who calls a friend for help.  
+> The student shares the screen, but only the student can type.  
+> The friend must get the code, install it and run it.  
+> This takes time.  
+> Then they put the changes together by hand.  
+> Here, edits can get lost.  
+> If the connection stops, the session stops too.  
+> A new partner needs at least 105 seconds for the first edit.  
+> This number comes from a time model.  
 
 ### Слайд 5: Analogs: nobody combines all three [25 с]
 
@@ -101,7 +105,7 @@
 
 **Слайд 3: Goal: first shared edit in one minute, no lost edits.** Моя цель — первая совместная правка за одну минуту, без потерянных правок. Это для живых сессий студентов и наставников. Здесь вы видите пять моих задач, объект и предмет.
 
-**Слайд 4: Today: the team loses time and edits.** Сегодня команда может терять время и правки. Представьте студента, который звонит другу за помощью и показывает экран. Печатать может только студент, поэтому друг должен получить код, установить его и запустить. Потом кто-то вручную соединяет изменения, и правки могут потеряться. А если обрывается связь, останавливается и сессия. Модель времени показывает, что новому партнёру нужно минимум 105 секунд на первую правку.
+**Слайд 4: Today: the team loses time and edits.** Сегодня команда может терять время и правки. Представьте студента, который звонит другу за помощью. Студент показывает экран, но печатать может только он. Друг должен получить код, установить его и запустить. На это уходит время. Потом они вручную соединяют изменения. Здесь правки могут потеряться. Если обрывается связь, останавливается и сессия. Новому партнёру нужно минимум 105 секунд на первую правку. Это число из модели времени.
 
 **Слайд 5: Analogs: nobody combines all three.** Ни один из пяти продуктов, которые я сравнил, не даёт всех трёх вещей: лёгкого входа, настоящего проекта и работы без сети. В Live Share и Replit для правки нужен аккаунт. CodeShare работает без аккаунта, но это один файл на один день. И ни один из них не поддерживает работу без сети.
 
