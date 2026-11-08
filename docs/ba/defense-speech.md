@@ -2,14 +2,13 @@
 
 Презентация: https://claude.ai/artifact/TtYdwN51ke3VLoZECGBt54 (тот же текст лежит в заметках к слайдам).
 
-**Слот 15 минут:** 5 минут доклад, остальное — вопросы комиссии. Речь рассчитана на 4 мин 15 с
-(около 480 слов): так остаётся запас на волнение, паузы и переключение слайдов. В квадратных скобках —
-сколько секунд занимает слайд. Говорите по 9 основным слайдам; 6 запасных в PowerPoint скрыты из показа
-и нужны только для ответов на вопросы.
+**Слот 15 минут:** 5 минут доклад, остальное вопросы комиссии. Речь около 510 слов, это примерно 4,5
+минуты спокойным голосом. Говорите по 9 основным слайдам. 8 запасных слайдов нужны только для вопросов,
+в PowerPoint они скрыты из показа.
 
-Как репетировать: прочитайте вслух с таймером 3–4 раза. Потом говорите, глядя только на слайды:
-цифры на слайдах подскажут, о чём говорить дальше. Если всё равно выходит больше 4,5 минуты, не
-торопитесь, а пропустите два последних предложения на слайде 2 (object и subject написаны на слайде).
+Как репетировать: прочитайте вслух с таймером 3–4 раза, потом говорите, глядя только на слайды. Если
+выходит больше 5 минут, не торопитесь, а пропустите два последних предложения на слайде 2 (object и
+subject написаны на слайде).
 
 ## Речь
 
@@ -23,36 +22,36 @@
 
 ### 1. Problem [25 с]
 
-> First, the problem. Many developers do not work in one room. In the Stack Overflow survey of 2024,
-> eighty percent work remotely or in a hybrid mode. To write code together, they need many separate
-> tools, and each tool needs its own invitation.
+> First, the problem. It is a hypothesis. Eighty percent of developers work remotely or in a hybrid
+> mode. This shows that remote work is normal. It does not prove my problem. My hypothesis is this:
+> students and small teams lose time and work when they start to edit the same code together.
 
-Сначала проблема. Многие разработчики работают не в одной комнате. В опросе Stack Overflow 2024 года
-80% работают удалённо или гибридно. Чтобы писать код вместе, им нужно много отдельных инструментов, и в
-каждый нужно отдельное приглашение.
+Сначала проблема. Это гипотеза. 80% разработчиков работают удалённо или гибридно. Это показывает, что
+удалённая работа стала нормой, но не доказывает мою проблему. Моя гипотеза: студенты и небольшие команды
+теряют время и работу, когда начинают вместе править один код.
 
 ### 2. Goal [30 с]
 
-> My goal is a web platform for small teams. One person sends a link, and the others open it in a
-> browser. They work on code, documents and diagrams together. They install nothing and lose no edits.
-> The object is team work on code. The subject is the part that software can do.
+> My goal is to reduce the time to the first shared edit to one minute or less, and to remove lost
+> edits. This is for live sessions of students and mentors. I have five objectives, from the analysis to
+> a plan for checking the result. The object is team work on code. The subject is the part that software
+> can do.
 
-Моя цель — веб-платформа для небольших команд. Один человек отправляет ссылку, остальные открывают её в
-браузере. Они вместе работают с кодом, документами и диаграммами. Ничего не устанавливают и не теряют
-правки. Объект — командная работа над кодом. Предмет — та её часть, которую может делать программа.
-(Пять задач видны на слайде, вслух их перечислять не нужно.)
+Моя цель — сократить время до первой совместной правки до минуты и меньше и убрать потерю правок. Это
+для живых сессий студентов и наставников. Задач пять: от анализа до плана проверки результата. Объект —
+командная работа над кодом. Предмет — та её часть, которую может делать программа.
 
 ### 3. Today [35 с]
 
 > How does a team work today? Someone shares the screen, but only this person can type. When another
 > person must edit, the code goes to GitHub. The others download it, install it and run it. Then someone
-> merges the changes by hand. Here the team loses time and edits. Even in the best case, the start takes
-> 1.1 to 1.7 minutes. This is an estimate, not a measurement.
+> merges the changes by hand. And if the connection stops, the session stops. For a partner without an
+> account, the start takes at least 105 seconds. This is an estimate, not a measurement.
 
 Как команда работает сегодня? Кто-то показывает экран, но печатать может только он. Когда править должен
 другой, код уходит на GitHub. Остальные скачивают его, устанавливают и запускают. Потом кто-то вручную
-объединяет изменения. Здесь команда теряет время и правки. Даже в лучшем случае старт занимает 1,1–1,7
-минуты. Это оценка, а не замер. (Заинтересованные стороны видны на слайде.)
+объединяет изменения. А если обрывается связь, сессия останавливается. Партнёру без аккаунта на старт
+нужно минимум 105 секунд. Это оценка, а не замер.
 
 ### 4. Analogs [30 с]
 
@@ -66,15 +65,15 @@
 
 ### 5. Vision [35 с]
 
-> My vision is one browser workspace, opened by one link. I have four KPIs. Time to start: from 1.1 to
-> 1.7 minutes to one minute or less. Tools: from five to one. Merges with conflicts: from 17 percent to
-> zero. Edit delay: 100 milliseconds or less. The start values come from a model and from articles, not
-> from users. Voice and video are out of scope.
+> My vision is one browser workspace, opened by one link. I have four KPIs. Time to first shared edit:
+> 60 seconds or less. Tools per session: from five to three in the first release, and to one in the full
+> release. Sessions with lost work: zero. Shared typing: ninety percent of people. A pilot will measure
+> baselines and targets with the same method. Voice and video are out of scope.
 
 Моё видение — одно рабочее пространство в браузере, которое открывается одной ссылкой. У меня четыре
-KPI. Время старта: с 1,1–1,7 минуты до минуты или меньше. Инструменты: с пяти до одного. Слияния с
-конфликтами: с 17% до нуля. Задержка правки: не больше 100 мс. Исходные значения взяты из модели и
-статей, а не от пользователей. Голос и видео — вне рамок проекта.
+KPI. Время до первой совместной правки: 60 секунд или меньше. Инструменты: с пяти до трёх в первом
+выпуске и до одного в полном. Сессии с потерей работы: ноль. Совместный ввод: 90% людей. Пилот измерит
+исходные и целевые значения одним способом. Голос и видео вне рамок проекта.
 
 ### 6. Epics [30 с]
 
@@ -99,15 +98,15 @@ KPI. Время старта: с 1,1–1,7 минуты до минуты или
 
 ### 8. Concept [30 с]
 
-> Last, the concept. The browser talks to an API, a sync server and a code runner. Shared files use a
-> CRDT, the Yjs library. I chose CRDT, not OT: in my test both were equally fast, but CRDT also works
-> offline. The top risks are unsafe code, GitHub limits and the deadline. Thank you. I am ready for your
-> questions.
+> Last, the concept. I compared three options: joining existing tools, extending open-source demos, and
+> an own workspace. Only the own workspace gives easy entry, a real project and work during a connection
+> break. It costs more to build, so I use MoSCoW. The top risks are unsafe code, GitHub limits and the
+> deadline. Thank you. I am ready for your questions.
 
-Последнее — концепция. Браузер работает с API, сервером синхронизации и сервисом запуска кода. Общие
-файлы хранятся в CRDT, это библиотека Yjs. Я выбрал CRDT, а не OT: в моём тесте оба были одинаково
-быстрыми, но CRDT ещё и работает без сети. Главные риски — небезопасный код, лимиты GitHub и срок сдачи.
-Спасибо. Готов ответить на вопросы.
+Последнее — концепция. Я сравнил три варианта: объединить готовые инструменты, расширить открытые демо и
+сделать своё рабочее пространство. Только свой вариант даёт лёгкий вход, настоящий проект и работу при
+обрыве связи. Он дороже, поэтому я использую MoSCoW. Главные риски — небезопасный код, лимиты GitHub и
+срок сдачи. Спасибо. Готов ответить на вопросы.
 
 ## Произношение
 
@@ -117,7 +116,7 @@ KPI. Время старта: с 1,1–1,7 минуты до минуты или
 | OT | оу-ти |
 | KPI, KPIs | кей-пи-ай, кей-пи-айз |
 | GDPR | джи-ди-пи-ар |
-| Yjs | уай-джей-эс |
+| hypothesis | хай-ПО-те-сис |
 | hybrid | ХАЙ-брид |
 | remotely | ри-МОУТ-ли |
 | percent | пер-СЕНТ |
@@ -129,55 +128,62 @@ KPI. Время старта: с 1,1–1,7 минуты до минуты или
 | estimate (сущ.) | ЭС-ти-мет |
 | measurement | МЕ-жер-мент |
 | objectives | об-ДЖЕК-тивз |
+| baseline | БЕЙС-лайн |
+| pilot | ПАЙ-лот |
 | scope | скоуп |
-| operator | О-пе-рей-тер |
-| analysis | э-НЭ-ли-сис |
 | Replit | РЕП-лит |
-| 1.1 / 1.7 | one point one / one point seven |
-| 2024 | twenty twenty-four |
+| 105 | one hundred and five |
 
-## Ответы на типичные вопросы комиссии
+## Ответы на вопросы комиссии
 
-На вопросы уходит около 10 минут из 15, поэтому эта часть важна не меньше речи. Вопросы взяты из
-требований к защите. Говорите коротко: два-три предложения, потом остановитесь. Если вопрос про
-таблицу, откройте нужный запасной слайд (в PowerPoint во время показа: номер слайда и Enter).
+На вопросы уходит около 10 минут из 15. Говорите коротко: два-три предложения, потом остановитесь. Если
+вопрос про таблицу, откройте запасной слайд. В PowerPoint во время показа: номер слайда и Enter.
 
 | Вопрос | Запасной слайд |
 |---|---|
-| Откуда цифры, как измерите KPI | 11 — baselines and checks |
-| Сравнение с аналогами | 10 — full comparison |
-| Какие истории Must, что вне проекта | 12, 13 — backlog |
-| Самый опасный риск | 14 — risk register |
-| Главный сценарий | 15 — UC-1 |
+| Сравнение с аналогами | 10 |
+| Как измерите KPI | 11 |
+| Почему этот вариант решения, почему CRDT | 12 |
+| Связь целей и историй, почему 3 инструмента | 13 |
+| Какие истории Must, что вне проекта | 14, 15 |
+| Риски | 16 |
+| Главный сценарий | 17 |
 
 **How did you make sure the problem is real?**
-> The problem comes from three sources. The Stack Overflow survey shows that 80% work remotely or
-> hybrid. A study by Brun and others shows that 17% of merges had conflicts. And I modelled the process
-> of today and estimated the start time. I did not run my own survey yet. The questionnaire is ready,
-> and a pilot will check the numbers.
+> I am not sure yet, so I call it a hypothesis. Three sources support it: a study of remote pair
+> programming, a poll of students in England and a study of Git conflicts. None of them measures live
+> sessions. The questionnaire is ready, and a pilot with five pairs will check it. I wrote the rule
+> before the data.
 
-(Проблема подтверждена тремя источниками: опросом Stack Overflow, исследованием Brun et al. и моделью
-текущего процесса. Своего опроса ещё не было; анкета готова, цифры проверит пилот.)
+(Я ещё не уверен, поэтому называю это гипотезой. Три источника её поддерживают, но живые сессии не
+измеряют. Анкета готова, пилот проверит. Правило записано до данных.)
 
 **How is your solution better than the analogs?**
 > Live Share needs VS Code, and guests can only read. Replit needs an account for everyone. CodeShare is
-> one file for one day. My platform gives all three: entry by link with only a name, a real project with
-> roles, and offline merge.
+> one file for one day. My solution gives all three: entry by link with only a name, a real project with
+> roles, and work during a connection break.
 
 **Why these KPIs, and how will you measure them?**
-> Each KPI comes from one problem: slow start, many tools, lost edits and only one person typing. KPI-1
-> and KPI-2 I will measure in a pilot with five pairs of people. KPI-3 and KPI-4 I measure with
-> automated tests. The tests are done, the pilot is not done yet.
+> Each KPI comes from one problem: slow start, many tools, lost work and only one person typing. Five
+> pairs of new users do the same task with today's tools and on the platform. So baseline and target use
+> the same method. The 105 seconds is only a first estimate.
+
+**Why three tools and not one in the first release?**
+> Chat, documents and the whiteboard are Should stories. With Must stories, the session still needs a
+> messenger and a whiteboard. So the target is three tools first, and one tool in the full release.
+
+**Why is offline editing a Must story?**
+> A connection break can stop a session or lose work. In a poll in England, 52 percent of students said
+> that a bad connection affected their learning. But no source measures live coding sessions. So I have
+> a rule: if less than one third of people had a break in the last month, this story moves to Should.
 
 **What stays outside the project, and why?**
 > Voice and video calls, a debugger, private repositories and a full Git client. Voice and video are a
-> big separate system, and teams already have a call tool. They do not help to answer my research
-> question.
+> big separate system, and teams already have a call tool.
 
 **Which stories are Must? What will you drop if time is short?**
-> Nine stories are Must: access, editing together, offline merge and the file tree. Without them there
-> is no product. If time is short, I drop Could stories first, then Should stories. In my prototype all
-> Must stories are done, and 43 end-to-end tests check them.
+> Nine stories are Must: access, editing together, work during a connection break and the file tree.
+> Without them there is no product. If time is short, I drop Could stories first, then Should stories.
 
 **What personal data do you process, and on what legal basis?**
 > The e-mail and name of users, only a name for guests, password hashes, IP addresses in logs, and what
@@ -185,14 +191,23 @@ KPI. Время старта: с 1,1–1,7 минуты до минуты или
 > for security logs. A user can delete the account and the data.
 
 **What is the riskiest part, and what do you do about it?**
-> Running user code on the server. The code runs in a Docker container without network, with limits for
-> memory, CPU and time. A public server asks for an access code, and the operator can turn running off.
+> For the project, the problem hypothesis and the deadline. So the pilot comes first, and I use MoSCoW.
+> For other people, running user code on the server. It runs in a closed sandbox without network, with
+> limits for memory, CPU and time.
+
+**Why CRDT? Your requirements do not name it.**
+> Requirements say what is needed, and the design part chooses how. The story asks for work during a
+> connection break. In my test OT and CRDT were equally fast on one machine, about 10 milliseconds. But
+> CRDT merges offline work more easily.
+
+**You already have a prototype. Are these real requirements?**
+> This is a real risk, so it is in my risk table. To reduce it, each story links to a goal, the
+> requirements name no technologies, and the pilot can change the backlog.
 
 **Did you use AI in this work?**
 > Yes, I used Claude as an assistant: for the English text, for checking sources and for help with the
-> code. I checked the content, and I can explain every decision.
-
-(Этот ответ должен совпадать с тем, что написано в разделе Statements вашего документа.)
+> code. This is in the Statements part of the document. I checked the content, and I can explain every
+> decision.
 
 **Если не поняли вопрос:**
 > Sorry, could you repeat the question, please?
