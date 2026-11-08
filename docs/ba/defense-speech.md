@@ -2,7 +2,7 @@
 
 Презентация: https://claude.ai/artifact/TtYdwN51ke3VLoZECGBt54 (этот же текст лежит в заметках к слайдам).
 
-**Слот 15 минут:** 5 минут доклад, остальное вопросы комиссии.
+**Слот 10 минут:** доклад и вопросы комиссии вместе. Доклад около 4 минут, на вопросы остаётся около 6.
 
 **Длина речи:** 413 слов. По расчёту это около 4 минут, запас есть, спешить не нужно.
 
@@ -150,7 +150,7 @@
 
 ## Ответы на вопросы комиссии
 
-На вопросы уходит около 10 минут из 15. Отвечайте коротко и останавливайтесь. Если вопрос про таблицу,
+На вопросы остаётся около 6 минут из 10. Отвечайте этими короткими фразами и останавливайтесь. Если вопрос про таблицу,
 откройте запасной слайд. В PowerPoint во время показа: номер слайда и Enter.
 
 | Вопрос | Запасной слайд |
@@ -167,34 +167,27 @@
 (Как вы убедились, что проблема реальна?)
 
 > I am not sure yet, so I call it a hypothesis.  
-> Three sources support it, but no source measures live sessions.  
-> My survey is ready.  
-> A pilot with five pairs will check it.  
-> I wrote the rule before the data.  
+> Three sources support it, but none measures live sessions.  
+> A survey and a pilot will check it.  
 
 **How is your solution better than the analogs?**
 (Чем ваше решение лучше аналогов?)
 
-> Live Share needs VS Code, and a guest with no account can only read.  
-> Replit needs an account for everyone.  
-> CodeShare is one file for one day.  
-> My solution gives all three: entry by link, a real project and work without a connection.  
+> No analog gives all three: entry by link, a real project and work without a connection.  
+> Here is the table.  
 
 **Why these KPIs, and how will you measure them?**
 (Почему такие KPI и как вы их измерите?)
 
-> Each KPI comes from one problem: slow start, many tools, lost work and one person typing.  
-> Five pairs of new users do the same task two times.  
-> They use today's tools and my platform.  
+> Each KPI comes from one problem.  
+> Five pairs of new users do the same task with today's tools and with my platform.  
 > So I measure both in the same way.  
-> The 105 seconds is only a first estimate.  
 
 **Why three tools and not one in the first release?**
 (Почему в первом выпуске три инструмента, а не один?)
 
 > Chat, documents and the whiteboard are Should stories.  
-> So after the first release, people still need a messenger and a whiteboard.  
-> With the editor, that is three tools.  
+> So people still need a messenger and a whiteboard.  
 > In the full release, it is one tool.  
 
 **Why is offline editing a Must story?**
@@ -202,67 +195,53 @@
 
 > If the connection stops, people can lose work.  
 > In a poll in England, 52 percent of students said that a bad connection affected their learning.  
-> But no source measures live coding sessions.  
-> So I ask people about the last month.  
-> If less than one third had a break, this story moves to Should.  
+> If my survey shows less than one third with breaks, this story moves to Should.  
 
 **What stays outside the project, and why?**
 (Что осталось вне проекта и почему?)
 
 > Voice and video calls, a debugger, private repositories and a full Git client.  
-> Voice and video are a big separate system.  
 > Teams already have a call tool.  
 
 **Which stories are Must? What will you drop if time is short?**
 (Какие истории Must? Что уберёте, если не хватит времени?)
 
-> Nine stories are Must: access, editing together, work without a connection and the file tree.  
-> Without them, there is no product.  
-> If time is short, I drop Could stories first.  
-> Then I drop Should stories.  
+> Nine stories: access, editing together, work without a connection and the file tree.  
+> If time is short, I drop Could stories first, then Should stories.  
 
 **What personal data do you process, and on what legal basis?**
 (Какие персональные данные вы обрабатываете и на каком основании?)
 
-> For users: e-mail and name.  
-> For guests: only a name.  
-> I also keep password hashes, IP addresses in logs, and the text in files and chat.  
-> The legal basis for account data is the contract.  
-> For security logs, it is legitimate interest.  
-> A user can delete the account and the data.  
+> E-mail, name, password hash, IP address in logs, and the text in files and chat.  
+> Guests give only a name.  
+> The basis is the contract, and legitimate interest for security logs.  
 
 **What is the riskiest part, and what do you do about it?**
 (Что самое рискованное и что вы с этим делаете?)
 
-> For the project: my hypothesis can be wrong, and the deadline is fixed.  
-> So the pilot comes first, and I use MoSCoW.  
-> For other people: user code runs on the server.  
-> So it runs in a closed sandbox.  
-> The sandbox has no network, and it has limits for memory, CPU and time.  
+> My hypothesis can be wrong, so the pilot comes first.  
+> The deadline is fixed, so I use MoSCoW.  
+> User code runs in a closed sandbox with no network.  
 
 **Why CRDT? Your requirements do not name it.**
 (Почему CRDT? В требованиях его нет.)
 
-> Requirements say what is needed.  
-> The design part says how.  
-> The story asks for work during a connection break.  
-> In my test, OT and CRDT were equally fast on one machine, about 10 milliseconds.  
+> Requirements say what is needed, and the design part says how.  
+> In my test, OT and CRDT were equally fast on one machine.  
 > But CRDT merges offline work more easily.  
 
 **You already have a prototype. Are these real requirements?**
 (У вас уже есть прототип. Это настоящие требования?)
 
 > This is a real risk, so it is in my risk table.  
-> To reduce it, each story links to a goal.  
-> The requirements name no technologies.  
-> And the pilot can change the backlog.  
+> Each story links to a goal, and the pilot can change the backlog.  
 
 **Did you use AI in this work?**
 (Вы использовали ИИ в этой работе?)
 
 > Yes. I used Claude, an AI assistant.  
 > It helped to write the English text, to check sources and to write code.  
-> This is in the Statements part of the document.  
+> This is in the Statements part.  
 > I checked the content, and I can explain every decision.  
 
 **Если не поняли вопрос:**
