@@ -4,118 +4,144 @@
 
 **Слот 10 минут:** доклад и вопросы комиссии вместе. Доклад около 5 минут, на вопросы остаётся около 5.
 
-**Длина речи:** 522 слов. По расчёту это около 5 минут, точное время покажет репетиция с таймером.
+**Длина речи:** 542 слов. По расчёту это около 5 минут, точное время покажет репетиция с таймером.
 
 **Как читать:** одна строка — одно предложение. После каждой строки короткая пауза.
 
-**Слайды:** каждая часть речи относится к одному слайду и идёт в том же порядке, что и на нём. Заголовок части — это заголовок слайда. Номер слайда указан как в PowerPoint; цифра в углу самого слайда на 1 меньше, потому что титульный не считается.
+**Слайды:** каждая часть речи относится к одному слайду и идёт в том же порядке, что и на нём. Заголовок части — это заголовок слайда. Номер слайда указан как в PowerPoint.
+
+**Тезисы:** у каждого слайда один тезис, он звучит в речи слово в слово. Если забудете текст, скажите тезис и переходите к следующему слайду.
 
 **Слова:** сложные слова в речи заменены простыми. На слайдах термины из BA остались, их читать вслух не нужно.
 
-**Как репетировать:** прочитайте вслух с таймером 3–4 раза. Потом говорите, глядя только на слайды. Если выходит больше 5 минут, пропустите строку про 99% на слайде 8 и строку «And none of them» на слайде 5.
+**Как репетировать:** прочитайте вслух с таймером 3–4 раза. Потом говорите, глядя только на слайды. Если выходит больше 5 минут, пропустите строку «Easy means» на слайде 8 и строку «None of these» на слайде 5.
 
-Говорите по 9 основным слайдам. 8 запасных нужны только для вопросов, в PowerPoint они скрыты из показа.
+В презентации 9 слайдов: титульный и 8 основных.
 
 ## Речь
 
 ### Слайд 1: Real-Time Collaborative Code Editing Platform Based on CRDT [15 с]
 
+**Тезис:** Today I will show my plan for a real-time platform for editing code together, based on CRDT.
+
 > Hello, everyone.  
 > My name is Artsiom Harminovich.  
-> Today I will talk about a real-time platform for editing code together, based on CRDT.  
+> Today I will show my plan for a real-time platform for editing code together, based on CRDT.  
 > My supervisor is Maksym Svynarenko.  
 
-### Слайд 2: Hypothesis: a live session needs too many tools [30 с]
+### Слайд 2: Hypothesis: a live session needs too many tools [35 с]
 
-> Let's start with the problem.  
+**Тезис:** My idea is that a live session needs too many tools.
+
+> So what is the problem?  
 > My idea is that a live session needs too many tools.  
-> Eighty percent of developers do not work only in an office.  
-> But this does not show my problem.  
-> I think students and small teams lose time and work, and I have to test this.  
+> Tools matter when people are apart.  
+> In a Stack Overflow poll from 2024, 80 percent of developers do not work only in an office.  
+> But this number does not show the problem.  
+> Students and small teams may lose time and work.  
+> A test with users must check this.  
 
-### Слайд 3: Goal: first shared edit in one minute or less, no lost edits [25 с]
+### Слайд 3: Goal: first shared edit in one minute or less, no lost edits [20 с]
 
-> So what do I want to change?  
-> The first shared edit should take one minute or less.  
-> And no edits should be lost.  
+**Тезис:** The first shared edit in one minute or less, and no lost edits.
+
+> And what is my goal?  
+> The first shared edit in one minute or less, and no lost edits.  
 > This is for live sessions of students and mentors.  
 > My five tasks, the object and the subject are on the slide.  
 
 ### Слайд 4: Today: the team loses time and edits [45 с]
 
-> Now imagine a student with a bug who calls a friend.  
-> The student shares the screen, and only the student can type.  
-> If the friend wants to edit, the student sends the code.  
-> The friend downloads it and runs it, and this takes time.  
-> Then someone joins the changes by hand, and edits can be lost.  
-> And if the connection stops, the session stops too.  
-> My model says that a friend with no account needs at least 105 seconds for the first edit.  
+**Тезис:** But today a team can lose time and edits.
 
-### Слайд 5: Analogs: nobody combines all three [35 с]
+> But today a team can lose time and edits.  
+> Imagine a student with a bug who calls a friend and shares the screen.  
+> The friend cannot type, so the student sends the code.  
+> The friend downloads, installs and runs it, and this takes time.  
+> Then someone joins the changes by hand, and edits can get lost.  
+> If the connection stops, the session stops.  
+> My model says that a partner with no account needs at least 105 seconds for the first edit.  
 
-> There are products for this, and here are three of the five I compared.  
-> In Live Share and Replit, a guest with no account cannot edit.  
-> CodeShare has no accounts, but it is one file for one day.  
-> And none of them joins offline work by itself.  
-> So no product has all three: easy entry, a real project and offline work.  
+### Слайд 5: Analogs: nobody combines all three [30 с]
 
-### Слайд 6: Vision: one browser workspace, no lost edits [40 с]
+**Тезис:** Of the five I compared, none has easy entry, a real project and offline work together.
 
-> So here is my plan: one workspace in the browser for code, documents, a whiteboard and chat.  
-> I have four KPIs.  
-> First, time: from 105 seconds to 60 or less.  
+> Can other products solve this?  
+> Of the five I compared, none has easy entry, a real project and offline work together.  
+> Live Share and Replit have real projects, but a guest with no account cannot edit.  
+> CodeShare has easy entry, but it is one file for one day.  
+> None of these joins offline work by itself.  
+
+### Слайд 6: Vision: one browser workspace, no lost edits [35 с]
+
+**Тезис:** So my plan is one browser workspace.
+
+> So my plan is one browser workspace.  
+> Four KPIs will show if it works.  
+> First, time: 105 seconds from a model, down to 60 or less.  
 > Second, tools: from five to three, and later to one.  
-> Third, lost work: zero.  
-> And fourth, typing: from half of the people to ninety percent.  
-> A test with users will give the real numbers.  
-> Voice, video and a debugger are not in this project.  
+> Third, lost work: zero percent, and the test will give today's number.  
+> Fourth, shared typing: 50 percent from a model, up to at least 90.  
+> Voice, video and a debugger stay out.  
 
-### Слайд 7: Seven epics, 27 stories, nine of them Must [35 с]
+### Слайд 7: Seven epics, 27 stories, nine of them Must [40 с]
 
-> In the project, I have seven epics and 27 user stories, and nine of them are Must.  
+**Тезис:** To get there, I have seven epics and 27 user stories, each with a reason.
+
+> To get there, I have seven epics and 27 user stories, each with a reason.  
+> Nine are Must.  
 > Here is one chain.  
 > The problem is a slow start, so the goal is a fast start.  
 > The KPI is one minute, the epic is access, and the story is join by link.  
-> For the guest, it is simple: open the link, enter a name and edit together.  
+> Remember the friend?  
+> The friend will open the link, enter a name, edit together and see the cursors.  
 
-### Слайд 8: Every quality requirement has a number [25 с]
+### Слайд 8: Every quality requirement has a number [35 с]
 
-> Each quality rule has a number.  
-> For example, an edit gets to the others in 100 milliseconds or less.  
-> The service works 99 percent of the month.  
-> For GDPR, a guest gives only a name, and every user can delete the data.  
+**Тезис:** Each quality rule also has a number, so I can check it.
+
+> Each quality rule also has a number, so I can check it.  
+> Fast means an edit gets to others in 100 milliseconds or less.  
+> Stable means the service works at least 99 percent of the month.  
+> Easy means the first guest edit in 60 seconds, with no help.  
+> For GDPR, guests give no e-mail, and users can delete their data.  
 
 ### Слайд 9: Concept: one workspace, chosen from three options [40 с]
 
-> And last, the concept.  
-> In this picture, all users work in one place.  
-> I chose it from three options.  
-> Only my own workspace gives easy entry, a real project and offline work.  
+**Тезис:** Last, the picture shows my choice from three options: my own workspace.
+
+> Last, the picture shows my choice from three options: my own workspace.  
+> It costs the most to build.  
+> But only this option gives easy entry, a real project and offline work.  
 > There are three main risks.  
-> For unsafe code, I have a closed sandbox.  
-> For GitHub limits, I use the token of the user.  
-> And for the deadline, I use MoSCoW, so Could stories go first.  
-> Thank you, and I am ready for your questions.  
+> Unsafe user code?  
+> It will run in a closed sandbox.  
+> GitHub limits?  
+> I will use the user's token.  
+> Too much work for the deadline?  
+> With MoSCoW, I will drop Could stories first.  
+> Thank you.  
+> I am ready for your questions.  
 
 ## Перевод
 
-**Слайд 1: Real-Time Collaborative Code Editing Platform Based on CRDT.** Здравствуйте. Меня зовут Artsiom Harminovich. Сегодня я расскажу о платформе для совместного редактирования кода в реальном времени на основе CRDT. Мой руководитель — Maksym Svynarenko.
+**Слайд 1: Real-Time Collaborative Code Editing Platform Based on CRDT.** Здравствуйте. Меня зовут Artsiom Harminovich. Сегодня я покажу свой план платформы для совместного редактирования кода в реальном времени на основе CRDT. Мой руководитель — Maksym Svynarenko.
 
-**Слайд 2: Hypothesis: a live session needs too many tools.** Начнём с проблемы. Моя идея в том, что для живой сессии нужно слишком много инструментов. 80% разработчиков работают не только в офисе. Но это не показывает мою проблему. Я думаю, что студенты и небольшие команды теряют время и работу, и это нужно проверить.
+**Слайд 2: Hypothesis: a live session needs too many tools.** Так в чём проблема? Моя идея в том, что для живой сессии нужно слишком много инструментов. Инструменты важны, когда люди работают порознь. В опросе Stack Overflow за 2024 год 80 процентов разработчиков работают не только в офисе. Но это число не показывает саму проблему. Студенты и небольшие команды могут терять время и работу. Проверка с пользователями должна это подтвердить или опровергнуть.
 
-**Слайд 3: Goal: first shared edit in one minute or less, no lost edits.** Что я хочу изменить? Первая совместная правка должна занимать минуту или меньше. И правки не должны теряться. Это для живых сессий студентов и наставников. Пять задач, объект и предмет — на слайде.
+**Слайд 3: Goal: first shared edit in one minute or less, no lost edits.** А какая у меня цель? Первая совместная правка за минуту или меньше, и никаких потерянных правок. Это для живых сессий студентов и наставников. Пять задач, объект и предмет — на слайде.
 
-**Слайд 4: Today: the team loses time and edits.** Теперь представьте студента с ошибкой в коде, который звонит другу. Студент показывает экран, и печатать может только он. Если друг хочет что-то изменить, студент отправляет ему код. Друг скачивает и запускает его, и на это уходит время. Потом кто-то вручную объединяет изменения, и правки могут потеряться. А если обрывается связь, останавливается и сессия. По моей модели другу без аккаунта нужно минимум 105 секунд на первую правку.
+**Слайд 4: Today: the team loses time and edits.** Но сегодня команда может терять время и правки. Представьте студента с ошибкой в коде, который звонит другу и показывает экран. Друг не может печатать, поэтому студент отправляет код. Друг скачивает его, устанавливает и запускает, и на это уходит время. Потом кто-то вручную объединяет изменения, и правки могут потеряться. Если обрывается связь, останавливается и сессия. По моей модели партнёру без аккаунта нужно минимум 105 секунд на первую правку.
 
-**Слайд 5: Analogs: nobody combines all three.** Такие продукты есть, и вот три из пяти, которые я сравнил. В Live Share и Replit гость без аккаунта не может править. В CodeShare аккаунты не нужны, но это один файл на один день. И ни один из них не объединяет сам работу без сети. Так что ни у кого нет всех трёх вещей: лёгкого входа, настоящего проекта и работы без сети.
+**Слайд 5: Analogs: nobody combines all three.** Могут ли это решить другие продукты? Из пяти, которые я сравнил, ни у одного нет вместе лёгкого входа, настоящего проекта и работы без сети. В Live Share и Replit есть настоящие проекты, но гость без аккаунта не может править. В CodeShare вход лёгкий, но это один файл на один день. Ни один из этих продуктов не объединяет сам работу без сети.
 
-**Слайд 6: Vision: one browser workspace, no lost edits.** Вот мой план: одно рабочее пространство в браузере для кода, документов, доски и чата. У меня четыре KPI. Первый — время: со 105 секунд до 60 или меньше. Второй — инструменты: с пяти до трёх, а позже до одного. Третий — потеря работы: ноль. И четвёртый — ввод: с половины людей до 90%. Проверка с пользователями даст настоящие числа. Голоса, видео и отладчика в проекте нет.
+**Слайд 6: Vision: one browser workspace, no lost edits.** Итак, мой план — одно рабочее пространство в браузере. Четыре KPI покажут, работает ли это. Первый — время: 105 секунд по модели, снижаем до 60 или меньше. Второй — инструменты: с пяти до трёх, а позже до одного. Третий — потерянная работа: ноль процентов, а сегодняшнее число даст проверка. Четвёртый — совместный ввод: 50 процентов по модели, поднимаем минимум до 90. Голос, видео и отладчик остаются вне проекта.
 
-**Слайд 7: Seven epics, 27 stories, nine of them Must.** В проекте семь эпиков и 27 пользовательских историй, девять из них — Must. Вот одна цепочка. Проблема — медленный старт, поэтому цель — быстрый старт. KPI — одна минута, эпик — доступ, история — вход по ссылке. Для гостя это просто: открыть ссылку, ввести имя и править вместе со всеми.
+**Слайд 7: Seven epics, 27 stories, nine of them Must.** Чтобы прийти к этому, у меня есть семь эпиков и 27 пользовательских историй, и у каждой есть причина. Девять из них — Must. Вот одна цепочка. Проблема — медленный старт, поэтому цель — быстрый старт. KPI — одна минута, эпик — доступ, история — вход по ссылке. Помните друга? Друг откроет ссылку, введёт имя, будет править вместе со студентом и увидит курсоры.
 
-**Слайд 8: Every quality requirement has a number.** У каждого правила качества есть число. Например, правка доходит до других за 100 мс или быстрее. Сервис работает 99% времени в месяц. По GDPR гость указывает только имя, и любой пользователь может удалить данные.
+**Слайд 8: Every quality requirement has a number.** У каждого правила качества тоже есть число, поэтому я могу его проверить. Быстро — значит, правка доходит до других за 100 миллисекунд или меньше. Стабильно — значит, сервис работает минимум 99 процентов месяца. Просто — значит, первая правка гостя за 60 секунд, без помощи. По GDPR гости не указывают e-mail, а пользователи могут удалить свои данные.
 
-**Слайд 9: Concept: one workspace, chosen from three options.** И последнее — концепция. На этой схеме все пользователи работают в одном месте. Я выбрал её из трёх вариантов. Только своё рабочее пространство даёт лёгкий вход, настоящий проект и работу без сети. Есть три главных риска. Для небезопасного кода у меня закрытая песочница. Для лимитов GitHub я использую токен пользователя. А для срока сдачи — MoSCoW, поэтому первыми убираются истории Could. Спасибо, готов ответить на вопросы.
+**Слайд 9: Concept: one workspace, chosen from three options.** И последнее: на схеме мой выбор из трёх вариантов — своё рабочее пространство. Его дороже всего создать. Но только этот вариант даёт лёгкий вход, настоящий проект и работу без сети. Есть три главных риска. Небезопасный код пользователей? Он будет работать в закрытой песочнице. Лимиты GitHub? Я буду использовать токен пользователя. Слишком много работы для срока сдачи? С MoSCoW я первыми уберу истории Could. Спасибо. Я готов ответить на ваши вопросы.
 
 ## Произношение: слова, которые нельзя заменить
 
@@ -134,7 +160,11 @@
 | quality | КВО-ли-ти |
 | poll | поул |
 | imagine | и-МЭ-джин |
+| cursors | КЁР-серз |
+| Stack Overflow | стэк оу-вер-ФЛОУ |
 | Replit | РЕП-лит |
+| Yjs | уай-джей-эс (по буквам) |
+| Excalidraw | экс-КА-ли-дро |
 | 105 | one hundred and five |
 
 ## Если эти слова скажет комиссия
@@ -158,17 +188,23 @@
 ## Ответы на вопросы комиссии
 
 На вопросы остаётся около 5 минут из 10. Отвечайте этими короткими фразами и останавливайтесь. Если вопрос про таблицу,
-откройте запасной слайд. В PowerPoint во время показа: номер слайда и Enter.
+вернитесь к её слайду. В PowerPoint во время показа: номер слайда и Enter.
 
-| Вопрос | Запасной слайд |
+| Вопрос | Какой слайд открыть |
 |---|---|
-| Сравнение с аналогами | 10 |
-| Как измерите KPI | 11 |
-| Почему этот вариант решения, почему CRDT | 12 |
-| Связь целей и историй, почему 3 инструмента | 13 |
-| Какие истории Must, что вне проекта | 14, 15 |
-| Риски | 16 |
-| Главный сценарий | 17 |
+| Цель, задачи, объект и предмет | 3 |
+| Как работают сегодня | 4 |
+| Сравнение с другими продуктами | 5 |
+| KPI, что входит в проект | 6 |
+| Эпики, истории Must, главный сценарий | 7 |
+| Качество, GDPR | 8 |
+| Варианты решения, риски | 9 |
+
+**Where does the 80 percent come from?**
+(Откуда взялись 80 процентов?)
+
+> From the Stack Overflow poll of 2024.  
+> About 55 thousand developers answered this question.  
 
 **How did you make sure the problem is real?**
 (Как вы убедились, что проблема реальна?)
@@ -181,7 +217,21 @@
 (Чем ваше решение лучше аналогов?)
 
 > No other product gives all three: entry by link, a real project and offline work.  
-> You can see it in this table.  
+> You can see it in the table on slide five.  
+
+**Which five products did you compare?**
+(Какие пять продуктов вы сравнили?)
+
+> Live Share, Replit, CodeShare, a Yjs demo and Excalidraw.  
+> The full table is in chapter one of my document.  
+
+**What are the three options?**
+(Какие три варианта вы сравнили?)
+
+> Today's tools, open-source demos and my own workspace.  
+> Today's tools cost almost nothing, but a guest with no account cannot write.  
+> Demos cost more, and the parts do not fit together.  
+> My own workspace costs the most, but only it gives all three.  
 
 **Why these KPIs, and how will you measure them?**
 (Почему такие KPI и как вы их измерите?)
