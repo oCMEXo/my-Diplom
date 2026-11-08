@@ -3,10 +3,10 @@ flowchart LR
   editor([Editor]) -- edits files, chats,<br>runs code --> sys
   viewer([Viewer]) -- reads files<br>and chat --> sys
   guest([Guest]) -- joins by link<br>with a name --> sys
-  sys[["Collaborative code editing platform<br>(web client, REST API, sync server,<br>sandbox runner, database)"]]
+  sys[["Collaborative code<br>editing platform"]]
   sys -- import, push commits,<br>list branches --> gh[(GitHub)]
   sys -- runs on --> cloud[(Cloud hosting)]
-  sys -- runs user code in --> docker[(Docker sandbox)]
+  sys -- runs user code in --> sandbox[(Closed sandbox)]
   classDef ext fill:#eef2ff,stroke:#4f46e5,color:#000
-  class gh,cloud,docker ext
+  class gh,cloud,sandbox ext
   style sys fill:#fff7e0,stroke:#b7791f,color:#000

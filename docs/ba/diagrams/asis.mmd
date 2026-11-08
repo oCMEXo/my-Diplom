@@ -8,6 +8,7 @@ flowchart TB
     a3 --> d1
     d1 -- yes --> a4[Push code to GitHub<br>or send it as a file]
     a9[Merge the received changes<br>and resolve conflicts by hand] --> e((◉))
+    a2 -. the connection stops .-> a10[The session stops until<br>the connection is back]
   end
   subgraph P["Other participants"]
     direction TB
@@ -25,4 +26,4 @@ flowchart TB
   a2 -.-> c1
   a2 -.-> c2
   classDef loss fill:#fde2e1,stroke:#c0392b,color:#000
-  class b1,b2,a9,a3 loss
+  class b1,b2,a9,a3,a10 loss

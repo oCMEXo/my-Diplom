@@ -1,4 +1,4 @@
-// Renders docs/ba/diagrams/*.mmd to PNG (2x) in docs/ba/img with Mermaid in a real browser.
+// Renders docs/ba/diagrams/*.mmd to PNG (4x) in docs/ba/img with Mermaid in a real browser.
 //   node docs/ba/build/render-diagrams.mjs [name-prefix ...]
 // Playwright is taken from the e2e package; Mermaid is loaded from a CDN, so this needs the internet.
 import { readdirSync, readFileSync } from "node:fs";
@@ -17,7 +17,7 @@ const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").repla
 const browser = await chromium.launch({ channel: "chrome" });
 for (const file of readdirSync(src).filter((name) => name.endsWith(".mmd"))) {
   if (only.length && !only.some((name) => file.startsWith(name))) continue;
-  const page = await browser.newPage({ viewport: { width: 1400, height: 1000 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width: 1400, height: 1000 }, deviceScaleFactor: 4 });
   await page.setContent(`<!doctype html><html><body style="margin:0;padding:16px;background:#fff;display:inline-block">
     <pre class="mermaid">${escape(readFileSync(path.join(src, file), "utf8"))}</pre>
     <script type="module">

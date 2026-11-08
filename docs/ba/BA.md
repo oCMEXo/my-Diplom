@@ -1,29 +1,46 @@
 # Introduction
 
-**Relevance and problem.** Many people write software together, but they are not in the same room. In the Stack Overflow Developer Survey 2024, 54,806 people answered a question about their work. Of them, 80% work fully remotely (38%) or in a hybrid mode (42%) [1]. Students work in the same way. They do course projects, talk to lecturers and write code in pairs over video calls. But the tools for *live* work on the same code are separate. A normal session uses many tools. People talk in a messenger or a video call. They show code with screen sharing and send it through GitHub. The task is in one document, and the diagram is on an online whiteboard. Each person needs an invitation to each tool. Many tools need an account or an installed editor. When people change different copies of a file at the same time, they get merge conflicts or lose their work.
+**Relevance and problem.** Many people write software together, but they are not in one room. In the Stack Overflow Developer Survey 2024, 54,806 people answered a question about their work. Of them, 80% work remotely (38%) or in a hybrid mode (42%) [1]. This number shows that remote work is normal. It does not show that editing code together is a problem.
 
-This problem affects three groups: **students who work on team tasks, mentors and lecturers who help them, and small development teams** that need a short session together. These people lose time and effort when they start work on the same code, and they can lose their work. The problem is important now for two reasons. First, remote and hybrid work is now normal [1]. Second, the real-time tools on the market have limits: they work with one desktop editor, they need a paid plan, or they show one file without the rest of the project (section 1.3). The cost can be measured. A study of nine open-source projects shows this: one merge in six had a text conflict, and developers had to fix it by hand [2]. Also, experienced users who already have all accounts and tools need about one minute of work before the first shared edit (Appendix D). A partner without an account needs almost two minutes.
+So the problem of this work is a hypothesis:
 
-**Goal and objectives.** The goal of this work is to design and build a web platform where a small team opens a shared project by a link and works on code, documents and diagrams together in real time, without installing software and without losing edits when the connection stops.
+*Students, the mentors who help them and small teams lose time and work when they start to edit the same code in a live session, because they need many separate tools.*
 
-To reach this goal, the work has five objectives:
+A normal session looks like this. People talk in a messenger or a call. They show code with screen sharing and send it through GitHub. The task is in one document, and the diagram is on a whiteboard. Each tool needs its own invitation, and often an account or an installation.
 
-1. Study how people work on code together today, where they lose time and data, and how existing products solve this.
-2. Study the science of real-time editing (Operational Transformation and CRDT) and choose a method that works offline.
-3. Write the requirements for the platform: vision, KPIs, stakeholders, scope, epics, user stories, use cases, non-functional requirements, legal and ethical requirements, and risks.
-4. Design and build the platform, and check it against the KPIs and the non-functional requirements.
-5. Compare OT and CRDT in an experiment on the platform (delay, network traffic, memory, merging after offline work).
+Three sources support this hypothesis, but they do not prove it:
 
-**Object and subject.** The *object* of this work is a process: a small team works together on a software project in real time. The team writes and checks code, describes tasks and draws the design. The *subject* is the part of this process that software can do automatically. Software can let people edit the same files at the same time and keep the files the same for everyone. It can show who is online and let people talk. It can also control access, run code in a safe place and exchange the project with a Git repository.
+- In a study of remote pair programming, 94 students worked in pairs for one semester. The authors say that two technical problems are hard to solve: setting up the software of students and keeping a stable internet connection [2].
+- In a poll of 1,416 students in England in 2020, 52% said that a slow or unreliable connection affected their learning [3]. This was during the lockdown, and the poll was not about code.
+- A study of nine open-source projects found a text conflict in 17% of Git merges [4]. The study is from 2011, and it is about Git, not about live sessions. It only shows that work on separate copies has a cost.
 
-**Methods.** The requirements come from four methods:
+**What is not known yet.** We do not know how many students and teams have such sessions, or how often. We do not know how long the start really takes for new users. We do not know how often people lose work or lose the connection. Nobody from the target groups has been asked yet. So the questionnaire (Appendix C) and the pilot (section 2.10) must confirm or reject the hypothesis.
 
-- *Document analysis:* scientific papers about shared editing, product documentation, laws and standards (section 1.2).
-- *Comparison of analogs:* five existing products were compared on the same criteria. The products that work without registration were tested in two browser windows. Section 1.3 has the screenshots.
-- *Process modelling and task analysis:* a UML activity diagram shows the current process (Figure 1.1). The Keystroke-Level Model [3] splits the start of a session into small actions. This model gives a time estimate when there is no data from users (Appendix D).
-- *Prototype and experiment:* the requirements became better step by step on a working prototype. An experiment with up to 100 simulated users tested the main technical idea: a CRDT can be as fast as OT.
+**Why it matters now.** Remote and hybrid work is normal now [1]. Real-time tools exist, but they have limits. They need one desktop editor or a paid plan, or they show one file without the project (section 1.3).
 
-A questionnaire for students and developers is ready (Appendix C). But nobody has answered it yet, and there were no interviews. So no statement in this document uses survey or interview data. The questionnaire and the pilot sessions (section 2.10) will confirm or correct the estimated baselines (start values).
+**Goal and objectives.** The goal of this work is to reduce the time to the first shared edit in live sessions of students and mentors to one minute or less and to remove lost edits.
+
+The work has five objectives:
+
+1. Describe how people work on code together today and where they lose time and work.
+2. Study sources and compare existing products, to find what is missing.
+3. Define the vision, the KPIs, the stakeholders and the scope of a solution.
+4. Write the requirements and choose a solution concept from alternatives.
+5. Plan how to check the result: a pilot with new users, a questionnaire and criteria linked to the KPIs.
+
+The software and the experiment with OT and CRDT are not objectives of this block. They are in the explanatory note of the thesis.
+
+**Object and subject.** The *object* is a process: a small team works together on a software project in real time. The *subject* is the part of this process that software can do. Software can let people edit the same files at the same time. It can show who is online, let people talk and control access. It can also run code in a safe place and exchange the project with a Git repository.
+
+**Methods.** The requirements come from three methods:
+
+- *Document analysis:* scientific papers, product documentation, laws and standards (section 1.2).
+- *Comparison of analogs:* five products were compared on the same criteria. The products that work without registration were tested in two browser windows (section 1.3).
+- *Process modelling and task analysis:* a UML activity diagram shows the current process (Figure 1.1). The Keystroke-Level Model (KLM) [5] adds the times of small actions. It gives a time estimate when there is no data from users (Appendix D).
+
+A working prototype also exists. It shows that the requirements are possible. But it creates a risk: requirements can start to describe what is already built (R8 in section 2.9). To reduce this risk, each user story is linked to a goal or marked as an enabler or a legal need, and the requirements do not name technologies. The prototype is described in the explanatory note.
+
+A questionnaire is ready (Appendix C). Nobody has answered it yet, and there were no interviews. So this document has no survey or interview data.
 
 # Chapter 1. Analytical part
 
@@ -32,58 +49,70 @@ A questionnaire for students and developers is ready (Appendix C). But nobody ha
 **How the task is solved today.** Sometimes two or more people must work on the same code at the same time. For example: a lab task, a bug that a student cannot fix alone, a talk with a lecturer, or a code review. Usually they build the session from several general tools. The tools and their documentation show this typical AS-IS process (Figure 1.1, full size in Appendix B):
 
 1. The initiator starts a call in a messenger (Discord, Telegram, Zoom, Teams) and shares the screen.
-2. The others watch the screen and say what to change. Only the person who shares the screen can edit.
-3. When another person needs to edit, the code goes out as a file or to a GitHub repository. The others download it, install dependencies and run it on their computers.
-4. People send their changes back as files or commits. Someone merges them by hand and fixes conflicts.
-5. The task description is in a separate document (Google Docs). Diagrams are on a separate whiteboard (Miro, FigJam, Excalidraw). Each tool needs its own invitation and often its own account.
+2. The others watch and say what to change. Only the person who shares the screen can edit.
+3. When another person must edit, the code goes out as a file or to GitHub. The others download it, install dependencies and run it on their computers.
+4. People send their changes back. Someone merges them by hand and fixes conflicts.
+5. The task is in a separate document (Google Docs). Diagrams are on a separate whiteboard (Miro, FigJam, Excalidraw). Each tool needs its own invitation and often its own account.
+6. If the connection of the person who shares the screen stops, the session stops. If the connection of another person stops, this person drops out and must catch up.
 
-**Who is involved.** The initiator is usually a student or a team lead. Other team members take part, and sometimes a lecturer or a mentor. Sometimes an outside person joins, for example a student from another group. This person has no accounts in the team's tools.
+**Who is involved.** The initiator is usually a student or a team lead. Team members take part, and sometimes a lecturer or a mentor. Sometimes an outside person joins. This person has no accounts in the team's tools.
 
-**Where time and data are lost.**
+**Where time and work are lost.** This list comes from the process model, not from measurements.
 
-- *Start-up time.* Before people can edit together, each person must get access to several tools, install them or sign in, and get the code. A keystroke-level estimate shows the best case: experienced users who make no mistakes. It gives about 1.1 min when everything is ready and about 1.7 min when the partner must first register with the Git host. Installing Git, an editor and a runtime takes extra time (Appendix D).
-- *Changing between tools.* The reference session uses five tools: a messenger, a Git host, a local editor, a document and a whiteboard. The talk, the code, the task and the diagram are in different windows, and they are not linked.
-- *Lost edits and conflicts.* Copies of the same file become different. Brun et al. studied nine open-source projects. In these projects, 17% of merges had a text conflict, and someone had to fix it by hand [2].
-- *People who only watch.* With screen sharing, only one person types. The others cannot point at the code or fix it.
-- *"Works on my machine".* Each person runs the code on their own computer with a different setup. So the team does not see the same result.
+- *Start-up time.* Each person must get access, install tools or sign in, and get the code. The KLM gives the best case, for experts who make no mistakes: 64 s when everything is ready and 105 s when the partner must register first. Installing Git, an editor and a runtime takes extra time (Appendix D).
+- *Many tools.* The reference session uses five tools: a messenger, a Git host, a local editor, a document and a whiteboard. They are not linked.
+- *Lost edits and conflicts.* Copies of the same file become different. Someone must merge them by hand.
+- *People who only watch.* With screen sharing, only one person types.
+- *"Works on my machine".* Each person runs the code with a different setup. So the team does not see the same result.
+- *Connection breaks.* A live session depends on the network of every person. Sources show that an unstable connection is a real difficulty for students [2], [3]. But no source says how often it happens in live coding sessions. So the questionnaire asks about it (Appendix C, question 7).
 
 ![AS-IS process of a live coding session (UML activity diagram)](img/asis.png)
 
-**TO-BE.** In the new process (Figure 1.2) the initiator creates a project once and sends one invitation link. The others open it in a browser. A guest only enters a name. They all see the same files, each other's cursors and who is online. Code, Markdown documents and a whiteboard are files of one project, and the chat is next to them. The code runs on the server in a sandbox, so everybody sees the same output. The system merges edits automatically, also edits made offline, so nobody merges by hand. After the work, the team can push the project to GitHub.
+**TO-BE.** In the new process (Figure 1.2), the initiator creates a project once and sends one link. The others open it in a browser. A guest only enters a name. Everybody sees the same files, the cursors of others and who is online. Code, documents and a whiteboard are files of one project, and the chat is next to them. The code runs on the server, so everybody sees the same output. The system merges all edits, also edits made without a connection. Nobody merges by hand. After the work, the team can push the project to GitHub.
 
 ![TO-BE process on the platform (UML activity diagram)](img/tobe.png)
 
 ## 1.2 Review of sources
 
-The sources form four groups: methods of real-time shared editing, the cost of work on separate copies, how users feel the speed of a system, and official documents. Each group had a direct effect on the requirements in Chapter 2.
+The sources form five groups. Each group had a direct effect on the requirements in Chapter 2.
 
-**Methods of shared editing.** Ellis and Gibbs introduced Operational Transformation (OT) for group editors. OT changes operations that happen at the same time, so all copies become the same [4]. Sun and Ellis showed that correct transformation functions are hard to design. They also showed that real OT systems need a central server to put operations in order [5]. This is fine when everyone is online. But it makes long offline work hard, because the server must transform a long list of edits against everything that happened during this time. Shapiro et al. defined Conflict-free Replicated Data Types (CRDT). Copies of a CRDT always become the same without any central control. This property is called strong eventual consistency [6]. Nicolaescu et al. presented YATA, the algorithm inside the Yjs library. They showed that a CRDT can support almost real-time editing at an acceptable cost for documents of normal size [7]. Kleppmann and Beresford extended CRDTs to data with a JSON-like structure [8]. This model fits data that is not text, such as shapes on a whiteboard, where each property of an object can merge separately.
+**Methods of shared editing.** Ellis and Gibbs introduced Operational Transformation (OT). OT changes operations that happen at the same time, so all copies become the same [6]. Sun and Ellis showed that correct OT functions are hard to design. Real OT systems also need a central server to put operations in order [7]. This makes long offline work hard. Shapiro et al. defined Conflict-free Replicated Data Types (CRDT). Copies of a CRDT always become the same without central control [8]. Nicolaescu et al. showed that a CRDT can support almost real-time editing for documents of normal size [9]. Kleppmann and Beresford extended CRDTs to data with a JSON-like structure, such as shapes on a whiteboard [10].
 
-*Conclusion for the requirements:* people must be able to keep editing when the connection stops (US-09), so a CRDT is better than OT for the main synchronisation. The guarantee of CRDTs [6] is the basis of KPI-3 ("no lost edits"), and the whiteboard uses the object model of [8] (US-12).
+*Conclusion for the requirements:* automatic merging after a connection break is possible, so US-09 and NFR-A2 can be required. A whiteboard can merge in the same way (US-12). The final choice of a method belongs to the design part of the thesis.
 
-**Local-first and recent work.** Kleppmann et al. described *local-first software*: the main copy of the data is on the user's device, the software works offline, and CRDTs make shared work possible [9]. These ideas explain why offline work and automatic merging are useful for users, not only a technical detail. A recent study by Gentle and Kleppmann (EuroSys 2025) shows a weakness of classic text CRDTs: their metadata grows with the editing history. The study gives an algorithm that uses less memory and loads faster [10]. *Conclusion:* the growth of the document state is a project risk (R4 in section 2.9), and the experiment measures it. The implementation follows the Yjs documentation [11].
+**Local-first and recent work.** Kleppmann et al. described *local-first software*: the main copy of the data is on the device of the user, and the software works offline [11]. This shows why offline work is useful for users. Gentle and Kleppmann showed a weakness of classic text CRDTs: their data grows with the editing history [12]. Yjs is one open-source framework of this type [13].
 
-**The cost of separate copies and of starting a session.** Brun et al. studied nine open-source systems with 3.4 million lines of code. One merge in six (17%) had a text conflict. Conflicts were frequent and lasted a long time [2]. Their answer is to warn developers earlier. This work removes the cause, because there is only one shared copy. The figure is per merge in long projects, not per live session. So it is the closest published baseline, not an exact one. *Conclusion:* it sets the baseline of KPI-3, and automatic merging is a Must story (US-09). The Keystroke-Level Model of Card, Moran and Newell estimates the time that an expert needs for a routine task. It adds the times of small actions and needs no test users [3]. It counts work without errors, so the result is a lower limit. *Conclusion:* KPI-1 has an estimated baseline now (Appendix D), and the pilot will replace it with a measured value.
+*Conclusion:* the growth of shared documents is a project risk (R4 in section 2.9).
 
-**Quality of interactive systems and standards.** Nielsen says that users feel a reaction as instant if it takes 0.1 s or less [12]. *Conclusion:* the delay of an edit has a limit of 100 ms at the 95th percentile (NFR-P1, KPI-4). ISO/IEC 25010:2023 defines a product quality model [13]. Its characteristics give the structure of the non-functional requirements in section 2.7: performance efficiency, security, reliability (availability) and interaction capability (usability). The General Data Protection Regulation (GDPR) [14] decides how the system may process account data, chat messages and survey answers (section 2.8). WCAG 2.1 [15] gives the accessibility level for the interface. The OWASP Top 10 [16] lists the web risks that the security requirements cover (broken access control, cryptographic failures, injection).
+**Remote work on code by students.** Xinogalos et al. studied 94 students who did pair programming tasks remotely for one semester. Students with a bad experience named problems with coordination and technical problems. The authors say that setting up software and a stable connection are hard to solve [2]. In England, 52% of 1,416 polled students said that a slow or unreliable connection affected their learning, and 8% said that it affected them severely [3].
+
+*Conclusion:* the need for no setup (US-03) and for work during a connection break (P6, US-09) has a basis in sources. These sources do not measure live coding sessions, so the questionnaire must check them.
+
+**The cost of separate copies and of starting a session.** Brun et al. studied nine open-source systems. One merge in six (17%) had a text conflict [4]. This figure is per Git merge in long projects, and the study is from 2011. So it is not a baseline for live sessions. The KLM of Card, Moran and Newell estimates the time that an expert needs for a routine task, without test users [5]. It counts work without errors, so the result is a lower limit.
+
+*Conclusion:* the 17% supports problem P3, but KPI-3 gets its own baseline in the pilot. The KLM gives a first estimate for KPI-1, and the pilot measures the real value.
+
+**Quality and standards.** Nielsen says that users feel a reaction as instant if it takes 0.1 s or less [14]. ISO/IEC 25010:2023 defines a product quality model [15]. The General Data Protection Regulation (GDPR) decides how the system may process personal data [16]. WCAG 2.1 gives the accessibility level of the interface [17]. The OWASP Top 10 lists common web risks [18].
+
+*Conclusion:* the delay of an edit has a limit of 100 ms (NFR-P1). The model of ISO/IEC 25010 gives the structure of section 2.7. GDPR, WCAG and OWASP give the requirements of sections 2.7 and 2.8.
 
 ## 1.3 Analysis of analogs
 
-This section compares five products: three commercial products (VS Code Live Share, Replit, CodeShare.io) and two open-source projects (the Yjs framework for shared editing and the Excalidraw whiteboard). CodeShare.io, Yjs and Excalidraw were tried in practice: a session was opened in one browser tab and joined from a second tab, and edits were made in both tabs (Figures 1.3–1.5). Live Share and Replit need an account, so their properties come from the official documentation [17], [18].
+This section compares five products: three commercial products (VS Code Live Share, Replit, CodeShare.io) and two open-source projects (the Yjs framework and the Excalidraw whiteboard). CodeShare.io, Yjs and Excalidraw were tried in practice. A session was opened in one browser tab and joined from a second tab, and edits were made in both tabs (Figures 1.3–1.5). Live Share and Replit need an account, so their properties come from the official documentation [19], [20].
 
-**VS Code Live Share** [17] shares a project that is open in the host's VS Code or Visual Studio. Guests can edit and debug together, and use shared terminals and servers. People normally sign in with a Microsoft or GitHub account. Anonymous guests can join only in read-only mode, and the host must approve them. The data is end-to-end encrypted. The session exists only while the host is online, because the files are on the host's computer.
+**VS Code Live Share** [19] shares a project that is open in the VS Code or Visual Studio of the host. Guests can edit and debug together. People normally sign in with a Microsoft or GitHub account. Anonymous guests can only read, and the host must approve them. The session exists only while the host is online, because the files are on the computer of the host.
 
-**Replit** [18] is a browser IDE with collaboration built in. The owner invites teammates by e-mail or by a private link. Collaboration seats are part of the paid plans (5 seats on Core, 15 on Pro). The project, the running environment and the AI assistant are in the cloud.
+**Replit** [20] is a browser IDE with collaboration built in. The owner invites teammates by e-mail or by a private link. Collaboration seats are part of the paid plans (5 seats on Core, 15 on Pro).
 
-**CodeShare.io** [19] opens a shared editor without registration (Figure 1.3). Text typed in a second browser tab appeared in the first tab at once. But the document is one file without a project structure. The code cannot run, and people are anonymous (there are no names at the cursors). An unsaved document disappears after 24 hours if the owner does not create an account.
+**CodeShare.io** [21] opens a shared editor without registration (Figure 1.3). Text typed in a second tab appeared in the first tab at once. But the document is one file without a project. The code cannot run, and people have no names at their cursors. An unsaved document disappears after 24 hours if the owner has no account.
 
 ![CodeShare.io: a document shared between two tabs; note "Expires in 24 hours"](img/analog-codeshare.jpg)
 
-**Yjs** [11] is an open-source CRDT framework that connects to popular editors. Its public Monaco demo (Figure 1.4) shows real-time editing with the cursors of other people. But it is a building block, not a product: it has no projects, accounts, permissions, chat or code execution.
+**Yjs** [13] is an open-source framework that connects to popular editors. Its public Monaco demo (Figure 1.4) shows real-time editing with the cursors of other people. But it is a building block, not a product. It has no projects, accounts, permissions, chat or code execution.
 
 ![Yjs + Monaco demo: shared editor with the cursor of another person (open source)](img/analog-yjs-monaco.jpg)
 
-**Excalidraw** [20] is an open-source (MIT) whiteboard. It has "live collaboration" by link, with end-to-end encryption and without registration (Figure 1.5). It covers only the diagrams of a session. The drawing is stored in the browser, and there is no code, no documents and no project members.
+**Excalidraw** [22] is an open-source whiteboard. It has live collaboration by link, without registration (Figure 1.5). It covers only the diagrams of a session. The drawing is stored in the browser. There is no code, no documents and no project members.
 
 ![Excalidraw: starting a live collaboration session by link](img/analog-excalidraw.jpg)
 
@@ -97,56 +126,78 @@ Table 1.1 — Comparison of analogs
 | Join without an account | Read-only, with approval | No | Yes | Yes | Yes | Yes (guest by link) |
 | Project with many files and roles | Yes | Yes | No | No | No | Yes |
 | Code, documents and whiteboard in one place | Code only | Code (+ AI) | Code only | Text only | Whiteboard only | Code, Markdown, whiteboard |
-| Run code together | Yes (host's computer) | Yes | No | No | — | Yes (server sandbox) |
+| Run code together | Yes (host's computer) | Yes | No | No | — | Yes (on the server) |
 | Offline work with automatic merge | No | No | No | Yes (library) | No | Yes |
 | Session continues when the initiator leaves | No | Yes | Yes (24 h) | Yes | Yes | Yes |
 | Free collaboration | Yes | Paid plans | Yes (24 h) | Yes | Yes | Yes (self-hosted) |
 
-**What is missing.** No analog has all three things that the use cases need: (1) *easy entry*: a browser link with write access, without an account or installation; (2) *a permanent project with many files*, where code, documents, diagrams, chat and code execution are together; (3) *editing that works offline* and merges automatically. Live Share and Replit have rich projects, but they need accounts, and Replit collaboration needs a paid plan. The simple tools need nothing, but they lose the project, the names of people and, after 24 hours, the data. Yjs shows that the technology exists, but it is not a ready solution.
+**What is missing.** No analog has all three things together:
+
+1. *Easy entry:* a browser link with write access, without an account or installation.
+2. *A permanent project:* many files, with code, documents, diagrams, chat and code execution together.
+3. *Work during a connection break:* editing continues, and the edits merge automatically.
+
+Live Share and Replit have rich projects, but they need accounts, and Replit collaboration needs a paid plan. The simple tools need nothing, but they lose the project, the names of people and, after 24 hours, the data. Yjs shows that the technology exists, but it is not a ready solution.
 
 ## 1.4 Chapter conclusions
 
-The analysis found the problems in Table 1.2. Each problem is linked to a future epic and KPI.
+The analysis found the problems in Table 1.2. They are hypotheses until the questionnaire and the pilot check them. Each problem is linked to an epic and to a KPI or a check.
 
 Table 1.2 — Problems, epics and KPIs
 
-| ID | Problem | Epic | KPI |
+| ID | Problem | Epic | KPI or check |
 |---|---|---|---|
-| P1 | To start a session, people need invitations, accounts and installations in several tools | E1 Access and projects | KPI-1 Time to collaborate |
+| P1 | To start a session, people need invitations, accounts and installations in several tools | E1 Access and projects | KPI-1 Time to first shared edit |
 | P2 | A session uses several tools that are not connected | E3 Documents and whiteboard, E4 Communication, E5 Code execution, E6 GitHub | KPI-2 Tools per session |
-| P3 | Copies become different; edits are lost or must be merged by hand | E2 Real-time co-editing, E7 Files and history | KPI-3 Lost edits |
-| P4 | Only the person who shares the screen can type; the others only watch | E2 Real-time co-editing | KPI-4 Edit latency |
-| P5 | Code runs on different computers with different results | E5 Code execution | KPI-2 Tools per session |
+| P3 | Copies become different; edits are lost or must be merged by hand | E2 Real-time co-editing, E7 Files and history | KPI-3 Sessions with lost work |
+| P4 | Only the person who shares the screen can type; the others only watch | E2 Real-time co-editing | KPI-4 Shared typing |
+| P5 | Code runs on different computers with different results | E5 Code execution | Pilot check "same output" (Table 2.10) |
+| P6 | The connection of a person stops during a session; the session stops, or this person can lose work | E2 Real-time co-editing | KPI-3, with a planned connection break |
 
-The new solution must do these things: open a permanent project by a link in a browser, also for guests without an account; let several people edit code, Markdown documents and a whiteboard at the same time, with visible cursors and a list of who is online; keep working when the connection stops and merge the edits automatically; run code in a shared sandbox with the same output for everyone; exchange the project with GitHub.
+The new solution must do these things:
+
+- open a permanent project by a link in a browser, also for guests without an account;
+- let several people edit code, documents and a whiteboard at the same time, with visible cursors and a list of who is online;
+- keep working when a connection stops and merge the edits automatically;
+- run code on the server with the same output for everyone;
+- exchange the project with GitHub.
 
 # Chapter 2. System requirements
 
 ## 2.1 Vision and goals
 
-**Vision.** The platform is for students, mentors and small development teams who need to work on the same code together. It is a browser workspace that opens by one link, where people share code, documents, diagrams, chat and code execution in real time. Guests need no installation or account, unlike with screen sharing and desktop tools, and the platform never loses an edit, even when the connection stops.
+**Vision.** The platform is for students, mentors and small teams who work on the same code together. It is a browser workspace that opens by one link. People share code, documents, diagrams, chat and code execution there in real time. Guests need no installation or account, and nobody loses work when a connection stops.
 
 **Business goals.**
 
-- G1: Reduce the time to start a session to about one minute.
+- G1: Reduce the time to the first shared edit to one minute or less.
 - G2: Replace a set of separate tools with one workspace.
-- G3: Remove lost edits and merging by hand in live sessions.
-- G4: Make shared editing feel instant for a normal team and for a class-sized group.
+- G3: Remove lost work and merging by hand in live sessions, also when a connection stops.
+- G4: Let everybody in a session type at the same time, without a delay that they notice.
 
-Table 2.1 shows the KPIs for these goals. There is no user data yet. So the baselines come from the process model and the task analysis (KPI-1, KPI-2) and from the literature (KPI-3, KPI-4). The table gives the source of each one. A pilot with five pairs of people and automated tests will check the target values (section 2.10).
+Table 2.1 shows the KPIs. They measure results for people, not technical values. Technical values are in section 2.7.
+
+**One method for baseline and target.** The pilot of section 2.10 measures both. The same first-time users do the same task with today's tools and on the platform. The pilot is not done yet. So the baseline column shows the best estimate today and its source. The pilot will replace these estimates.
 
 Table 2.1 — KPIs with baseline and target values
 
-| KPI | Goal | Definition | Baseline | Target | How measured |
+| KPI | Goal | Definition | Baseline (today's tools) | Target (platform) | How measured |
 |---|---|---|---|---|---|
-| KPI-1 Time to collaborate | G1 | Time from the start of an invitation until both people edit the same file | About 1.1 min when ready, 1.7 min without an account; estimated lower limit (Appendix D) | ≤ 1 min in ≥ 90% of pilot sessions | Pilot sessions with a timer |
-| KPI-2 Tools per session | G2 | Number of separate apps or sites for text chat, code, the task and a diagram (voice calls are out of scope, section 2.3) | 5 (reference process, Figure 1.1) | 1 | Questionnaire after the session |
-| KPI-3 Lost edits | G3 | Share of merges of parallel work that lose edits or need a merge by hand | 17% of merges [2] | 0; all copies become identical in 100% of automated tests | Pilot log, convergence tests |
-| KPI-4 Edit latency | G4 | 95th percentile of the time between an edit and its appearance for other people | 100 ms limit of perception [12] | ≤ 100 ms with 50 editors at the same time | Load test with simulated users |
+| KPI-1 Time to first shared edit | G1 | Time from the start of the invitation until a partner without an account makes a first edit in the same file | To be measured. Estimate: 105 s, a lower limit for experts (Appendix D) | ≤ 60 s in ≥ 90% of sessions, and at most half of the measured baseline | Pilot with first-time users and a timer |
+| KPI-2 Tools per session | G2 | Number of separate apps or sites for text chat, code, the task and a diagram (no voice calls) | 5 (process model, Figure 1.1). The pilot checks it | 3 with Must stories; 1 with Must and Should stories | Count and questionnaire after each session |
+| KPI-3 Sessions with lost work | G3 | Share of sessions where someone merges by hand or loses work. Each session has one planned connection break of 30 s | To be measured. No published value for live sessions | 0% | Observation; the final text is compared with the edits made |
+| KPI-4 Shared typing | G4 | Share of participants who type in the shared file and rate the delay as not disturbing (4 or 5 of 5) | To be measured. Estimate: 50% in a pair, because only one person types (Figure 1.1) | ≥ 90% | Session log and a question after the session |
 
-The same method gives about 0.5 min for the platform. The KPI-1 target of 1 min leaves extra time, because real first-time users are slower than the experts in the model.
+**Why these values.**
+
+- KPI-1 uses 105 s and not 64 s, because the people who gain most have no account yet. The same model gives about 30 s for the platform (Appendix D). So the model compares with the model, and the pilot compares with the pilot.
+- The 17% of Git merges [4] is not a baseline, because it is not about live sessions.
+- The 100 ms limit [14] is not a baseline, because it is a limit and not a value of today's process. It stays in NFR-P1 and supports KPI-4.
+- KPI-3 has a planned connection break. Without it, KPI-3 would pass by design, because there is only one shared copy. The break tests the hard case.
 
 ## 2.2 Stakeholders and users
+
+Nobody from these groups has been interviewed yet. So the table and the personas are assumptions.
 
 Table 2.2 — Stakeholders
 
@@ -154,73 +205,92 @@ Table 2.2 — Stakeholders
 |---|---|---|
 | Student developer (team member) | Start work quickly, not lose edits, run code together | M |
 | Team lead / project owner (student) | Control who can edit, keep the project in one place, push to GitHub | M |
-| Lecturer / mentor | Join a student's project for a consultation, see and correct the code live | M |
+| Lecturer / mentor | Join a student's project, see and correct the code live | M |
 | Guest participant (classmate, interviewer) | Join once by a link without registration | L |
 | Author and developer of the platform | Finish the system within the diploma time and resources | H |
 | Diploma supervisor and committee | Relevance of the problem, quality of the requirements and the solution | H |
 | Operator of a hosted instance (e.g. university IT) | Security of running user code, cost, personal data rules | M |
 | GitHub (external system) | API use within rate limits and terms of service | L |
 
-**System users (actors in the scenarios).** *Owner* creates a project, invites people and manages roles. *Editor* edits files and runs code. *Viewer* can only read. *Guest* joins by a link with only a name and gets the role from the link. *Registered user* has an e-mail account and a list of projects. Roles have an order: owner > editor > viewer.
+**System users (actors in the scenarios).** *Owner* creates a project, invites people and manages roles. *Editor* edits files and runs code. *Viewer* can only read. *Guest* joins by a link with only a name and gets the role from the link. *Registered user* has an e-mail account and a list of projects.
 
 **Personas.** Both personas are examples made from the process analysis. They are not real people, and their words are only examples.
 
 *Anna, 20, second-year Computer Science student.* Works on a team task with three classmates, mostly in the evening at home. Uses Discord for calls and GitHub for code, but half of the team does not know Git well. Main problem: "Before we start, we spend fifteen minutes sending files and fixing merge conflicts." Needs: one link for the whole team, everyone typing at the same time, the task next to the code.
 
-*Dmitry, 38, lecturer and mentor.* Gives online consultations to students. Wants to open a student's code in a second, point at a line, fix it and run it. The student should not install anything or share the screen. Main problem: "I can only watch the screen and say what to change." Needs: guest access by link, visible cursors, running code with the same output for both.
+*Dmitry, 38, lecturer and mentor.* Gives online consultations to students. Wants to open a student's code, point at a line, fix it and run it. The student should not install anything or share the screen. Main problem: "I can only watch the screen and say what to change." Needs: guest access by link, visible cursors, running code with the same output for both.
 
 ## 2.3 Project scope
 
-**In scope.** Accounts (registration, sign-in, guest access); projects with members, roles and invitation links; a file tree with code files, Markdown documents and whiteboards; real-time shared editing with cursors, a list of who is online and offline merge; a project chat; running JavaScript and Python in a sandbox with shared output and an interactive terminal; trash, version history, search; import of a public GitHub repository, pushing changes as a commit and changing branches; a web interface for all screen sizes; deployment settings for a cloud environment and a local test host for demonstrations; REST API documentation (OpenAPI).
+**In scope.**
 
-**Out of scope.** Voice and video calls (a separate WebRTC system, not related to the research question; teams keep their usual call tool); a step-by-step debugger; a full Git client (merging, pulling the changes of other people, deleting files in the repository); import of private repositories; desktop or mobile apps; advanced design tools (pen tool, components, prototyping); payments and subscriptions.
+- Accounts (registration, sign-in, guest access) and projects with members, roles and invitation links.
+- A file tree with code files, Markdown documents and whiteboards.
+- Shared editing with cursors, a list of who is online and merging after a connection break.
+- A project chat, trash, version history and search.
+- Running JavaScript and Python on the server with shared output, and an interactive terminal.
+- Import of a public GitHub repository, pushing changes as a commit and changing branches.
+- A web interface for all screen sizes.
+
+**Out of scope.**
+
+- Voice and video calls: this is a separate large system, and teams keep their usual call tool.
+- A step-by-step debugger and a full Git client (merging, pulling the changes of other people).
+- Import of private repositories, desktop or mobile apps, advanced design tools, payments.
+
+**Releases.** The first release has the Must stories. The full release has the Must and Should stories. Could stories come if time remains.
 
 Table 2.3 — Assumptions and constraints
 
 | Type | Description |
 |---|---|
 | Deadline | The BA block is due on 30 October 2026. The defense is on 9–17 November 2026. The final thesis follows the department schedule |
-| Resources | One developer; work on a personal computer with Docker; no money for paid services, so demonstrations run on a local test host and any cloud deployment stays small |
-| Access to APIs | The GitHub REST API allows 60 requests per hour per IP without a token. Above this limit, the system uses the user's own token and never stores it on the server |
-| Access to data | No real user data is available or needed. Tests use generated accounts. Survey answers, when collected, are anonymous |
-| Technology | Users have a modern browser (last two versions of Chrome, Firefox, Edge, Safari). Code execution needs Docker on the server |
+| Resources | One developer and a personal computer. No money for paid services, so any cloud deployment stays small |
+| Access to APIs | GitHub allows 60 API requests per hour per IP without a token. Above this limit, the system uses the user's own token and never stores it on the server |
+| Access to users | Nobody has been asked yet. The pilot needs five pairs of first-time users, and the questionnaire needs at least 15 answers |
+| Access to data | Tests use generated accounts. Survey answers are anonymous |
+| Technology | Users have a modern browser (last two versions of Chrome, Firefox, Edge, Safari). Code execution needs a server that can run isolated programs |
 
 ## 2.4 Solution concept
 
-The platform is a web application (Figure 2.1). A user works in the browser. The client application talks to three parts: a REST API (accounts, projects, files, chat, runs), a synchronisation server, and a terminal endpoint. The synchronisation server keeps the shared documents (a CRDT, Yjs) and sends edits, cursors and the list of people online over WebSocket. A runner service runs code in isolated Docker containers. A relational database stores projects, members, files, messages and versions. A message broker works with queues and events. The external systems are GitHub (import, push, branches) and the cloud hosting provider.
+The solution is a browser workspace that a team opens by one link (Figure 2.1). People install nothing. The workspace keeps the project in one place: files, members, chat and versions. It merges the edits of all people, also edits made without a connection. It runs code in a closed sandbox on the server, so everybody sees the same result. The external systems are GitHub and the cloud hosting provider.
 
 ![Context diagram of the platform](img/context.png)
 
-Before this choice, two other options were compared (Table 2.4).
+Three options were compared by their value for users and their cost (Table 2.4).
 
 Table 2.4 — Alternatives of the solution
 
-| Criterion | A1: Add-on for an existing editor (like Live Share) | A2: Own web platform with OT (ShareDB) | Chosen: own web platform with CRDT (Yjs) |
+| Criterion | A1: Join existing tools (Live Share, a shared document, a whiteboard) | A2: Extend open-source demos (Yjs demo, Excalidraw) | A3 (chosen): Own browser workspace |
 |---|---|---|---|
-| Entry for guests | Editor installation, account | Browser link | Browser link |
-| Offline editing | Not supported | Limited: the server must transform long lists of edits | Built in: copies merge without a central server |
-| Session without the initiator | No (files are on the host) | Yes | Yes |
-| Non-text data (whiteboard) | Not covered | Needs a separate OT type | Shared types (maps, arrays) of the same library |
-| Measured edit delay, p95, 50 users (one machine, loopback) | — | about 9 ms, up to 12.3 ms in one run | about 10 ms, up to 11.1 ms in one run |
-| Risk | Depends on a closed platform | Complex transformation logic | Document state grows (R4) |
+| Entry for a guest (P1) | The host needs an editor; a guest without an account can only read | Browser link, no account | Browser link, only a name |
+| Tools per session (P2) | 4: editor, messenger, document, whiteboard | 3: demo editor, whiteboard, messenger | 3 with Must stories, 1 with Must and Should stories |
+| Permanent project with roles | Only while the host is online | No; it must be built | Yes |
+| Work during a connection break (P6) | The session depends on the host | Text: yes. Other parts: must be built | Yes |
+| Same result of a run (P5) | Yes, on the computer of the host | No; it must be built | Yes, on the server |
+| Cost to build | Almost none: a short guide | Medium: projects, roles, chat and code execution are missing | High: one developer, all stories (R5) |
+| Cost to run | None for the team, but several accounts | Small server | Server for sync and code execution (R6) |
+| Main risk | Depends on closed products | The demos were not made to work together | Scope against the deadline (R5) |
 
-*Reason for the choice.* A1 cannot give easy entry and a permanent project (P1). A2 and the chosen option have the same delay in the experiment of this work: about 10 ms at the 95th percentile with 50 users, in three runs on one machine over loopback, so network delay is not included. But a CRDT supports offline editing and the whiteboard directly. So the CRDT is the choice, and its weakness, a larger document state, is managed as a risk.
+*Reason for the choice.* A1 costs almost nothing, so it is the option to beat. It stays in the pilot as "today's tools". But it cannot give a guest write access without an account, and the project lives only on the computer of the host. A2 is cheaper at the start. But the missing parts are most of the work, and they would not fit together well. Only A3 gives easy entry, a permanent project and work during a connection break together. Its high cost is managed by MoSCoW (R5).
+
+This section does not choose technologies. The design part of the thesis chooses them, as decision records. For example, it chooses the method of synchronisation (CRDT, which is in the topic of the thesis) because of US-09 and NFR-A2.
 
 ## 2.5 Functional requirements
 
-The functional requirements form seven epics (Table 2.5) and 27 user stories with MoSCoW priorities. The full backlog with acceptance criteria is in Appendix A. This section lists the epics, the key stories and the traceability from goals to stories.
+The functional requirements form seven epics (Table 2.5) and 27 user stories with MoSCoW priorities. The full backlog with acceptance criteria is in Appendix A.
 
 Table 2.5 — Epics
 
 | Epic | Description | Stories | Goal |
 |---|---|---|---|
-| E1 Access and projects | Accounts, guest access, projects, invitations, roles | US-01 – US-06, US-27 | G1 |
-| E2 Real-time co-editing | Editing at the same time, cursors, list of people online, offline merge | US-07 – US-10 | G3, G4 |
+| E1 Access and projects | Accounts, guest access, projects, invitations, roles | US-01 – US-06, US-27 | G1, enablers, legal |
+| E2 Real-time co-editing | Editing at the same time, cursors, people online, merging after a break | US-07 – US-10 | G2, G3, G4 |
 | E3 Documents and whiteboard | Markdown with preview, shared whiteboard | US-11, US-12 | G2 |
 | E4 Communication | Project chat | US-13 | G2 |
-| E5 Code execution | Running code in a sandbox, terminal, access code | US-14 – US-16 | G2 |
+| E5 Code execution | Running code, terminal, access code | US-14 – US-16 | G2, enabler |
 | E6 GitHub integration | Import, push, branches | US-17 – US-19 | G2 |
-| E7 Files and history | File tree, trash, version history of code and documents, search | US-20 – US-23 | G3 |
+| E7 Files and history | File tree, trash, version history, search | US-20 – US-23 | G3, enablers |
 
 Things that are out of scope are written as *Won't* stories (US-24 – US-26), so the decision is visible.
 
@@ -234,7 +304,6 @@ Table 2.6 — Key user stories (from Appendix A)
 | US-08 | As a participant, I want to see the cursors and names of others and who is online, so that we do not edit the same place by accident. | Must |
 | US-09 | As a participant with a bad connection, I want to keep editing offline and have my edits merged automatically, so that I lose no work. | Must |
 | US-14 | As an editor, I want to run a JavaScript or Python file in a sandbox and see the output together with others, so that we check the same result. | Should |
-| US-12 | As a team member, I want a shared whiteboard with shapes, text and arrows, so that we can draw the design next to the code. | Should |
 
 **Acceptance criteria of key Must stories (Given/When/Then).**
 
@@ -251,17 +320,12 @@ Table 2.6 — Key user stories (from Appendix A)
 **When** one of them types a line,
 **Then** the line appears in the other editor within 100 ms (95th percentile, NFR-P1), and both copies are identical after the edits stop.
 
-*US-08 Cursors and the list of people online.*
-**Given** two participants in the same project,
-**When** one of them moves the cursor in a file,
-**Then** the other sees a cursor with the name of the first participant at that position, and both are in the list of people online.
-
 *US-09 Offline editing.*
 **Given** an editor who loses the connection while a file is open,
 **When** the editor keeps typing and the connection comes back,
 **Then** the system merges the offline edits and the edits of others automatically, without a conflict dialog and without losing any character.
 
-**Mockups of key stories.** Figures 2.2–2.5 show the layouts of four key stories. They are screenshots of the working prototype, and its interface language is Russian. Full-size copies are in Appendix B.
+**Mockups of key stories.** Figures 2.2–2.5 show the layout ideas of four key stories. They are screens of the prototype, in Russian. They are not a final design. Full-size copies are in Appendix B.
 
 ![US-03: the invitation page. It shows who invites, to which project and with which role. The guest enters only a name](img/mockup-invite.png)
 
@@ -271,16 +335,26 @@ Table 2.6 — Key user stories (from Appendix A)
 
 ![US-17: creating a project from a public GitHub repository](img/mockup-import.png)
 
-**Traceability.** Table 2.7 links each business goal to its KPI, epics and the Must and Should stories.
+**Traceability.** Table 2.7 links each goal to its KPI, epics and stories. Each story has one line. An *enabler* serves no goal alone, but other stories need it. A *legal* story comes from a law.
 
 Table 2.7 — Traceability goal → KPI → epic → story
 
 | Goal | KPI | Epic | Stories |
 |---|---|---|---|
-| G1 Fast start | KPI-1 | E1 | US-01, US-02, US-03, US-04, US-05 (Must); US-06, US-27 (Should) |
-| G2 One workspace | KPI-2 | E3, E4, E5, E6 | US-11, US-12, US-13, US-14, US-17 (Should); US-15, US-16, US-18, US-19 (Could) |
-| G3 No lost edits | KPI-3 | E2, E7 | US-09, US-20 (Must); US-21, US-22, US-23 (Should) |
-| G4 Instant co-editing | KPI-4 | E2 | US-07, US-08 (Must); US-10 (Should) |
+| G1 Fast start | KPI-1 | E1 | US-01, US-02, US-03 (Must) |
+| G2 One workspace | KPI-2 | E2, E3, E4, E5, E6 | US-10, US-11, US-12, US-13, US-14, US-17 (Should); US-15, US-18, US-19 (Could) |
+| G3 No lost work | KPI-3 | E2, E7 | US-09 (Must); US-21, US-22 (Should) |
+| G4 Shared typing | KPI-4 | E2 | US-07, US-08 (Must) |
+| Enablers | — | E1, E5, E7 | US-04, US-05, US-20 (Must); US-06, US-23 (Should); US-16 (Could) |
+| Legal (section 2.8) | — | E1 | US-27 (Should) |
+
+**What the first release gives.** Must stories are 9 of 27 (33%). They serve G1, G3 and G4.
+
+They reach G2 only in part, because chat, documents, the whiteboard and code execution are Should stories. With Must stories, the shared editor replaces the local editor and the Git host, and the task can be a text file in the project. A session still needs a messenger and a whiteboard. So the KPI-2 target is 3 for the first release and 1 for the full release.
+
+Problem P5 is solved only in the full release (US-14).
+
+US-27 is a Should story. In the pilot, the operator deletes data by hand if someone asks. The story must be ready before a public release.
 
 ## 2.6 Use case scenarios
 
@@ -293,13 +367,13 @@ Table 2.7 — Traceability goal → KPI → epic → story
   1. The guest opens the invitation link.
   2. The system shows the project name, the person who invites and the role from the link.
   3. The guest enters a name and confirms.
-  4. The system creates a guest account, adds the guest to the project with the role from the link and opens the project on a start file.
+  4. The system creates a guest account, adds the guest to the project and opens a start file.
   5. The guest types in the file.
-  6. The system sends the edits to all participants who have the file open and shows the cursor of the guest with the name. The guest appears in the list of people online.
+  6. The system sends the edits to all participants who have the file open. It shows the cursor of the guest with the name. The guest appears in the list of people online.
 - *Alternative flows:*
   - A1 (step 2): the link is invalid or was replaced. The system shows an explanation and a link to the guest's own projects. The use case ends.
   - A2 (step 1): the visitor is already signed in. The system adds the membership and opens the project. Steps 2–3 do not happen.
-  - A3 (step 4): the link gives the role "viewer". The project opens in read-only mode, the editor shows "read only", and step 5 is not possible.
+  - A3 (step 4): the link gives the role "viewer". The project opens in read-only mode, and step 5 is not possible.
 
 Appendix B has the system sequence diagram of UC-1 (Figure B.5).
 
@@ -310,19 +384,19 @@ Appendix B has the system sequence diagram of UC-1 (Figure B.5).
 - *Postcondition:* all participants see the output, the status and the duration of the run.
 - *Main flow:*
   1. The editor presses "Run".
-  2. The system takes the current text of the file and the other text files of the project and puts a run in the queue.
-  3. The system runs the program in an isolated container without network access.
+  2. The system takes the current text of the file and the other text files of the project.
+  3. The system runs the program in a closed sandbox without network access.
   4. The system sends the output to all participants who have the file open.
   5. The system shows the status ("finished" or "error") and the duration. If there is an error, it highlights the line with the error.
 - *Alternative flows:*
-  - A1 (step 3): the program runs longer than 10 s. The system stops the container and shows the status "timeout".
-  - A2 (step 1): the server is a public test host with an access code. The system asks for the code once and continues after a correct code.
+  - A1 (step 3): the program runs longer than 10 s. The system stops it and shows the status "timeout".
+  - A2 (step 1): the server is a public host with an access code. The system asks for the code once and continues after a correct code.
 
 Appendix B has the activity diagram of UC-2 (Figure B.6).
 
 ## 2.7 Non-functional requirements
 
-The non-functional requirements follow the quality characteristics of ISO/IEC 25010:2023 [13]. Each one has a measurable indicator and a link to KPIs and stories (Table 2.8).
+The non-functional requirements follow the quality characteristics of ISO/IEC 25010:2023 [15]. Each one says what must be true and gives a value, not how to build it. Each one links to a KPI or a story (Table 2.8).
 
 Table 2.8 — Non-functional requirements
 
@@ -330,10 +404,10 @@ Table 2.8 — Non-functional requirements
 |---|---|---|---|
 | NFR-P1 | Performance | Edit delay ≤ 100 ms at the 95th percentile with 50 editors of one document at the same time | KPI-4; US-07, US-08 |
 | NFR-P2 | Performance | A project with up to 200 files opens (file tree and first file) in ≤ 3 s on a 10 Mbit/s connection | KPI-1; US-03 |
-| NFR-P3 | Performance | Output of a simple program appears in ≤ 3 s after pressing "Run"; the system stops any run after 10 s | US-14 |
-| NFR-S1 | Security | The system stores passwords only as Argon2id hashes; access tokens live 15 min, refresh tokens live 30 days and change at every use | US-05 |
-| NFR-S2 | Security | Every REST and WebSocket request checks project membership and role; a non-member gets 404 (on a WebSocket, close code 4403); removed members lose open connections within 5 s | US-04 |
-| NFR-S3 | Security | User code runs without network, with a read-only file system, ≤ 0.5 CPU, as a user without special rights; a run has ≤ 128 MB memory and ≤ 64 processes, the interactive terminal ≤ 256 MB and ≤ 128 processes | US-14, US-15 |
+| NFR-P3 | Performance | Output of a simple program appears in ≤ 3 s after pressing "Run"; the system stops any run after 10 s | P5; US-14 |
+| NFR-S1 | Security | Passwords are stored only as salted, slow hashes [18]; a sign-in key works ≤ 15 min; a sign-in ends after ≤ 30 days without use | US-05 |
+| NFR-S2 | Security | A person who is not a member cannot read or change a project and does not learn that it exists; a removed member loses access within 5 s | US-04 |
+| NFR-S3 | Security | User code has no network, cannot change the system files and has no special rights; ≤ 0.5 CPU; a run has ≤ 128 MB memory and ≤ 64 processes, the terminal ≤ 256 MB and ≤ 128 processes | US-14, US-15 |
 | NFR-S4 | Security | On a public instance, sign-in and registration have a limit of 20 requests per minute per IP; code execution needs an access code | US-05, US-16 |
 | NFR-A1 | Availability | A hosted instance works ≥ 99% of a calendar month (≤ 7.3 h without service), not counting planned maintenance | KPI-1 |
 | NFR-A2 | Availability | Edits made without a connection stay on the device and merge after reconnection with 0 lost characters | KPI-3; US-09 |
@@ -343,20 +417,30 @@ Table 2.8 — Non-functional requirements
 
 ## 2.8 Legal and ethical requirements
 
-**Personal data and the legal basis (GDPR [14]).** The platform processes this personal data: the e-mail address and name of registered users; the name of guests (no e-mail); password hashes; refresh tokens; IP addresses in technical logs; any personal data that users write in files and chat messages. There are two legal bases. Performance of a contract (Art. 6(1)(b)) covers account and project data, because the user signed up for the service. Legitimate interest in security (Art. 6(1)(f)) covers logs and rate limits. These requirements follow from the principles of Art. 5 and the rights of data subjects:
+**Personal data and the legal basis (GDPR [16]).** The platform processes this personal data:
+
+- the e-mail address and name of registered users;
+- the name of guests (no e-mail);
+- password hashes and sign-in keys;
+- IP addresses in technical logs;
+- any personal data that users write in files and chat messages.
+
+There are two legal bases. Performance of a contract (Art. 6(1)(b)) covers account and project data, because the user signed up for the service. Legitimate interest in security (Art. 6(1)(f)) covers logs and rate limits.
+
+These requirements follow from Art. 5 and the rights of data subjects:
 
 - data minimisation: guests have no e-mail, and the system uses no analytics or tracking cookies;
-- storage limitation: the system removes deleted files after 30 days, and refresh tokens expire after 30 days;
-- right to erasure, or deletion of data (Art. 17): a user can delete the account and personal data (US-27, Should; implemented: the system deletes the account, the messages of the user and owned projects, and the offline copies in the browser);
-- security of processing (Art. 32): TLS for all connections, hashed passwords, role checks (NFR-S1–S4);
+- storage limitation: the system removes deleted files after 30 days, and long-term sign-in keys end after 30 days;
+- right to erasure (Art. 17): a user can delete the account and personal data (US-27);
+- security of processing (Art. 32): encrypted connections, hashed passwords, role checks (NFR-S1–S4);
 - a privacy notice is open to everyone, with links from the sign-in, registration and invitation pages;
 - a production instance is hosted in the EU/EEA.
 
-**Consent of survey and interview participants.** This work has not collected any data from participants yet. The prepared questionnaire is anonymous, does not ask for names or e-mail addresses, and starts with a clear consent question (Art. 6(1)(a)). Each interview or pilot session starts with oral consent, and the notes contain no names. Only summary results are published.
+**Consent of survey and interview participants.** No data from participants has been collected yet. The questionnaire is anonymous, does not ask for names or e-mail addresses and starts with a consent question (Art. 6(1)(a)). Each interview or pilot session starts with oral consent, and the notes contain no names. Only summary results are published.
 
-**Licences.** The platform uses open-source components with licences that allow free use (Yjs, Hocuspocus, Monaco Editor, React, Konva and xterm.js under MIT; Prisma under Apache 2.0) and the Inter and JetBrains Mono fonts under the SIL Open Font License. Their licence notices stay in place. User code runs in official Node.js and Python Docker images. Files imported from GitHub keep the licence of the source repository, and the platform does not change it.
+**Licences.** The platform may use only open-source components with licences that allow free use, such as MIT, Apache 2.0 and the SIL Open Font License. Their licence notices stay in place. Files imported from GitHub keep the licence of the source repository.
 
-**Standards.** The interface aims at WCAG 2.1 level AA [15] for contrast and keyboard access (NFR-U3). The security requirements cover the relevant OWASP Top 10 categories [16]: broken access control (NFR-S2), cryptographic failures (NFR-S1) and injection (safe database queries, code execution in a sandbox, NFR-S3).
+**Standards.** The interface aims at WCAG 2.1 level AA [17] for contrast and keyboard access (NFR-U3). The security requirements cover these OWASP Top 10 categories [18]: broken access control (NFR-S2), cryptographic failures (NFR-S1) and injection (NFR-S3).
 
 ## 2.9 Risks
 
@@ -364,29 +448,41 @@ Table 2.9 — Project risks (P is probability, I is impact: H/M/L)
 
 | ID | Risk | P | I | Mitigation | Dependency |
 |---|---|---|---|---|---|
-| R1 | The estimated KPI baselines differ from real user experience | M | M | Run the prepared questionnaire and the pilot; report n and ranges, not only medians; give the source of each baseline | KPI-1 – KPI-3 |
-| R2 | People abuse code execution or escape from the sandbox on a hosted instance | L | H | Container limits (NFR-S3), no network, access code on public hosts, an option to turn execution off | E5, NFR-S3 |
-| R3 | GitHub API rate limits block import and branch changes | H | M | Use the user's token for API calls, download archives via codeload, clear error messages | E6 |
-| R4 | The CRDT document state grows with the editing history and makes opening slower | M | M | Measure the state size in the experiment; snapshots; follow newer algorithms [10] | KPI-4, NFR-P2 |
+| R1 | The problem hypothesis is wrong, or the estimated baselines differ from real experience | M | H | Run the questionnaire and the pilot; report n and ranges; change the scope if needed (rule in section 2.10) | KPI-1 – KPI-4 |
+| R2 | People abuse code execution or escape from the sandbox on a hosted instance | L | H | Limits of NFR-S3, no network, access code on public hosts, an option to turn execution off | E5, NFR-S3 |
+| R3 | GitHub API rate limits block import and branch changes | H | M | Use the user's token, download archives, clear error messages | E6 |
+| R4 | Shared documents grow with the editing history, and opening becomes slower | M | M | Measure the size; keep snapshots; follow newer algorithms [12] | NFR-P2 |
 | R5 | One developer and a fixed deadline: the scope does not fit | M | H | MoSCoW: drop Could stories first; build and test Must stories first | All epics |
 | R6 | Cloud costs are higher than the free tier | M | M | Deployment on one host, local test hosting for demonstrations | NFR-A1 |
-| R7 | Personal data leak (accounts, chat) | L | H | Hashing, TLS, minimisation, role checks, dependency updates | Section 2.8 |
+| R7 | Personal data leak (accounts, chat) | L | H | Hashing, encryption, minimisation, role checks, dependency updates | Section 2.8 |
+| R8 | The requirements describe what is already built, not what users need, because a prototype exists | M | M | Link each story to a goal; do not name technologies; let the pilot and the questionnaire correct the backlog | All epics |
 
-The part of the project with the highest risk is code execution (R2). It is the only feature that runs unknown code on the server. Container limits keep this code away from the server, the operator can turn execution off, and public test hosts ask for an access code that only the operator knows.
+The part with the highest risk for other people is code execution (R2). It is the only feature that runs unknown code on the server. The limits of NFR-S3 separate this code from the server. The operator can turn execution off, and public hosts ask for an access code.
 
 ## 2.10 Chapter conclusions
 
-The requirements specification fixes these things: the vision and four business goals with KPIs and baselines; the stakeholders, actors and personas; the scope with assumptions and constraints; the solution concept (a web platform with a CRDT), chosen over two alternatives; 27 user stories in seven epics with MoSCoW priorities and acceptance criteria; two use case scenarios with a system sequence diagram and an activity diagram; twelve non-functional requirements with measurable indicators; the legal and ethical requirements; and seven risks with mitigations.
+**What is fixed.** The specification fixes the vision and four goals with KPIs, the stakeholders, the scope, the solution concept, 27 user stories in seven epics, two use cases, twelve non-functional requirements, the legal requirements and eight risks.
 
-The result is checked against the KPIs of section 2.1 and the key NFRs (Table 2.10). Things that need real users, above all the pilot, are not done yet. Things that a machine can check are already done.
+**How the result will be checked.** Nothing with real users has been done yet. There are two checks.
+
+*Pilot.* Five pairs of first-time users do the same small task twice: with their usual tools and on the platform. Two or three pairs start with the platform, so that practice does not favour one side. In each run, the connection of one person stops for 30 s. A timer and a simple log record the results, and a short questionnaire follows each run. Five pairs are a small sample. The result shows a direction, not statistics.
+
+*Questionnaire.* The rule is set before the data. With at least 15 answers:
+
+- The hypothesis is confirmed if at least half of the people work on code with others at least once a month, and at least half choose start-up, lost work or connection problems among their top problems.
+- US-09 stays Must only if at least one third had a connection break during a session in the last month. If not, it moves to Should.
+
+Table 2.10 links the criteria to the KPIs. The results of automated tests and load tests are in the explanatory note.
 
 Table 2.10 — Evaluation criteria linked to the KPIs
 
-| KPI / NFR | Criterion | Method | Status at the time of writing |
-|---|---|---|---|
-| KPI-1, NFR-U1 | ≤ 1 min in ≥ 90% of sessions; ≥ 4 of 5 first-time participants make an edit within 60 s | Pilot with five pairs and a timer | Pilot not done; estimate 0.5 min (Appendix D) |
-| KPI-2 | 1 tool per session | Questionnaire after the pilot session | Pilot not done |
-| KPI-3, NFR-A2 | No merges by hand, 0 lost characters, all copies identical | Automated convergence and offline tests; pilot log | Automated tests pass; pilot not done |
-| KPI-4, NFR-P1 | p95 ≤ 100 ms with 50 editors | Load test with simulated users | About 10 ms on one machine over loopback, without network delay |
-| NFR-P2 | 200 files open in ≤ 3 s at 10 Mbit/s | Measurement by a script in a browser | 2.0 s (median of 10 runs, simulated network, server on the same machine) |
-| Must stories | Acceptance criteria of Appendix A | Automated end-to-end tests | 43 scenarios pass |
+| KPI / problem / NFR | Criterion | Method |
+|---|---|---|
+| Problem hypothesis, P6 | The rule above | Questionnaire, at least 15 answers |
+| KPI-1, NFR-U1 | ≤ 60 s in ≥ 90% of platform sessions and at most half of the measured baseline; ≥ 4 of 5 first-time participants make an edit within 60 s | Pilot, both sides, timer |
+| KPI-2 | 3 tools with Must stories; 1 tool with Must and Should stories | Count and questionnaire after each run |
+| KPI-3, NFR-A2 | 0% of sessions with a merge by hand or lost work, with a planned break of 30 s; 0 lost characters | Pilot observation; automated tests |
+| KPI-4, NFR-P1 | ≥ 90% of participants type and rate the delay as not disturbing; p95 ≤ 100 ms with 50 editors | Pilot log and question; load test |
+| P5, NFR-P3 | All participants see the same output; first output in ≤ 3 s | Pilot step in the full release; measurement |
+| NFR-P2 | 200 files open in ≤ 3 s at 10 Mbit/s | Measurement by a script in a browser |
+| Must stories | Acceptance criteria of Appendix A | Automated end-to-end tests |
