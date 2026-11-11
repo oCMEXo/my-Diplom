@@ -77,6 +77,7 @@ pnpm dev:web      # фронтенд, http://localhost:5173
 ## Документация
 
 - [docs/db](docs/db) — база данных: словарь данных, ER-диаграмма, миграции и DDL, как создать базу
+- [docs/ux](docs/ux) — UX-спецификация: сценарии с ошибками, визуальный стиль, компоненты, экраны (PDF)
 - [docs/deploy-local.md](docs/deploy-local.md) — показать сайт другим с этого компьютера (`pnpm host:test`)
 - [docs/adr](docs/adr) — архитектурные решения (ADR-001…004)
 - [docs/websocket-protocol.md](docs/websocket-protocol.md) — протоколы реального времени

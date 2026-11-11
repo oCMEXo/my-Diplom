@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>UX-спецификация Collab</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1f2328; margin: 0; }
+  h1 { font-size: 22pt; margin: 0 0 6pt; }
+  h2 { font-size: 15pt; margin: 18pt 0 8pt; padding-bottom: 3pt; border-bottom: 2px solid #5865f2; break-after: avoid; }
+  h3 { font-size: 12pt; margin: 14pt 0 6pt; break-after: avoid; }
+  p, li { margin: 0 0 5pt; }
+  ul, ol { margin: 0 0 6pt; padding-left: 18pt; }
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 10pt; font-size: 9.5pt; }
+  th, td { border: 1px solid #c9ced6; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+  th { background: #eef0f4; }
+  tr { break-inside: avoid; }
+  figure { margin: 6pt 0 12pt; text-align: center; break-inside: avoid; }
+  figure img { max-width: 100%; border: 1px solid #c9ced6; border-radius: 4pt; }
+  figure.flow { break-before: page; }
+  figure.flow img { border: none; max-width: 100%; max-height: 245mm; }
+  figcaption { font-size: 9pt; color: #57606a; margin-top: 3pt; }
+  .page { break-before: page; }
+  .title { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
+  .title .sub { font-size: 13pt; color: #57606a; }
+  .meta td { border: none; padding: 2pt 0; font-size: 11pt; }
+  .err { color: #b01c1c; }
+  .note { background: #f4f5ff; border-left: 3px solid #5865f2; padding: 6pt 8pt; margin: 6pt 0 10pt; }
+  .sw { display: inline-block; width: 26pt; height: 13pt; border: 1px solid #8b919c; border-radius: 3pt; vertical-align: middle; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; }
+  .crop img { max-height: 60mm; }
+  code { font-family: Consolas, monospace; font-size: 9.5pt; background: #f1f2f4; padding: 0 2pt; border-radius: 2pt; }
+</style>
+</head>
+<body>
+
+<section class="title">
+  <h1>UX-спецификация</h1>
+  <p class="sub">Collab — платформа для совместного редактирования кода в реальном времени</p>
+  <table class="meta">
+    <tr><td>Автор: Artsiom Harminovich</td></tr>
+    <tr><td>Руководитель: Maksym Svynarenko</td></tr>
+    <tr><td>Критерий: Refined UX</td></tr>
+    <tr><td>Ноябрь 2026</td></tr>
+  </table>
+  <p class="note">Все экраны в этом документе — снимки работающего приложения. Их делает автотест
+  <code>e2e/tests/ux-screens.spec.ts</code> на тестовых данных, поэтому снимки можно повторить
+  после любых изменений интерфейса. Интерфейс на русском языке, тёмная тема (есть и светлая).</p>
+</section>
+
+<section class="page">
+<h2>1. Продукт и пользователи</h2>
+<p>Collab — общее рабочее пространство проекта в браузере: файлы кода, документы Markdown, доска для схем,
+чат и запуск кода. В проект заходят по одной ссылке, гость — без регистрации.</p>
+
+<table>
+  <tr><th>Пользователь</th><th>Цель</th><th>Что ему важно</th></tr>
+  <tr><td>Студент — владелец проекта</td><td>Быстро собрать команду над кодом</td><td>Одна ссылка вместо приглашений в 4–5 сервисах; проект не теряется после сессии</td></tr>
+  <tr><td>Гость (друг, однокурсник)</td><td>Помочь с кодом прямо сейчас</td><td>Ничего не устанавливать и не регистрироваться; сразу печатать в общем файле</td></tr>
+  <tr><td>Наставник или преподаватель</td><td>Посмотреть код и подсказать</td><td>Видеть, кто что правит; роль «наблюдатель», чтобы ничего не сломать</td></tr>
+</table>
+
+<h3>Принципы интерфейса</h3>
+<ol>
+  <li><b>Вход за минуту.</b> Ссылка → имя → редактор. Никаких лишних шагов для гостя.</li>
+  <li><b>Правки не теряются.</b> При обрыве связи можно продолжать работу, состояние видно в шапке.</li>
+  <li><b>Ошибка объясняет, что делать.</b> Текст говорит, что случилось и как это исправить, без кодов ошибок.</li>
+  <li><b>Ошибку видно до отправки, если это возможно.</b> Поле сразу показывает проблему, а кнопка остаётся неактивной.</li>
+  <li><b>Безопасность важнее подсказки.</b> При входе текст не сообщает, какое поле неверно, чтобы не выдавать, есть ли аккаунт.</li>
+</ol>
+</section>
+
+<section class="page">
+<h2>2. Сценарий 1. Гость присоединяется по ссылке и правит файл</h2>
+<p><b>Пользователь:</b> гость без аккаунта. <b>Начало:</b> получил ссылку-приглашение в мессенджере.
+<b>Результат:</b> гость правит файл вместе со всеми, правки видны у каждого.</p>
+
+<h3>Основной путь</h3>
+<ol>
+  <li>Гость открывает ссылку. Экран приглашения показывает, кто зовёт, название проекта и роль (экран 3).</li>
+  <li>Вводит имя. Пока поле пустое, кнопка неактивна.</li>
+  <li>Нажимает «Присоединиться как гость». Открывается проект.</li>
+  <li>Гость печатает в файле. Другие видят текст и курсор с его именем, в шапке — «Синхронизировано».</li>
+</ol>
+
+<h3>Альтернативы и ошибки</h3>
+<table>
+  <tr><th>Условие</th><th>Что видит пользователь</th><th>Что дальше</th></tr>
+  <tr><td>Ссылка неверная или владелец её заменил</td><td class="err">«Не получилось присоединиться. Ссылка-приглашение недействительна или устарела» (экран 4)</td><td>Кнопка «К моим проектам»; попросить новую ссылку</td></tr>
+  <tr><td>Имя не введено</td><td>Кнопка «Присоединиться как гость» неактивна (экран 3)</td><td>Ввести имя (до 100 символов)</td></tr>
+  <tr><td>Ссылка даёт роль «наблюдатель»</td><td>«Вы сможете смотреть, но не менять» (экран 5)</td><td>Файлы открываются только для чтения</td></tr>
+  <tr><td>Человек уже вошёл в аккаунт</td><td>Экран приглашения пропускается</td><td>Сразу добавлен в проект</td></tr>
+  <tr><td>Связь оборвалась во время правки</td><td>В шапке «Подключение…» или «Офлайн — правки сохранятся локально» (экран 8)</td><td>Продолжать печатать; после восстановления связи правки сливаются, в шапке снова «Синхронизировано» (экран 9)</td></tr>
+</table>
+<figure class="flow"><img src="img/flow-1-join.png"><figcaption>Рис. 1 — Схема сценария 1 с ветками и ошибками</figcaption></figure>
+</section>
+
+<section class="page">
+<h2>3. Сценарий 2. Регистрация, вход и новый проект</h2>
+<p><b>Пользователь:</b> студент, будущий владелец проекта. <b>Начало:</b> впервые открыл сайт.
+<b>Результат:</b> проект создан (пустой или из репозитория GitHub), ссылка-приглашение отправлена команде.</p>
+
+<h3>Основной путь</h3>
+<ol>
+  <li>«Создать аккаунт»: имя, email, пароль. Под паролем подсказка «Не короче 8 символов».</li>
+  <li>Открывается список «Мои проекты». «Новый проект» → название → проект открыт.</li>
+  <li>Меню проекта → «Пригласить»: выбрать роль (редактор или наблюдатель) и скопировать ссылку.</li>
+</ol>
+
+<h3>Альтернативы и ошибки</h3>
+<table>
+  <tr><th>Условие</th><th>Что видит пользователь</th><th>Что дальше</th></tr>
+  <tr><td>Email уже зарегистрирован</td><td class="err">«Этот email уже зарегистрирован» (экран 2)</td><td>Перейти ко входу по ссылке «Войти»</td></tr>
+  <tr><td>Пароль короче 8 символов</td><td>Подсказка под полем; браузер не отправляет форму</td><td>Ввести пароль подлиннее</td></tr>
+  <tr><td>Неверный email или пароль при входе</td><td class="err">«Неверный email или пароль» — без указания, что именно неверно (экран 1)</td><td>Ввести снова или войти как гость</td></tr>
+  <tr><td>Проект из GitHub: вставлена не ссылка на репозиторий</td><td class="err">«Не похоже на ссылку на репозиторий GitHub. Пример: https://github.com/owner/repo» (экран 7)</td><td>Исправить ссылку по примеру</td></tr>
+  <tr><td>Репозиторий приватный или не существует</td><td class="err">«Репозиторий или ветка не найдены. Приватные репозитории пока не поддерживаются.»</td><td>Проверить адрес; открыть доступ к репозиторию</td></tr>
+  <tr><td>GitHub не отвечает</td><td class="err">«Не удалось связаться с GitHub. Попробуйте ещё раз.»</td><td>Повторить позже</td></tr>
+  <tr><td>Владелец хочет закрыть старую ссылку</td><td>«Новая ссылка»: старая сразу перестаёт работать</td><td>Отправить новую ссылку</td></tr>
+</table>
+<figure class="flow"><img src="img/flow-2-start.png"><figcaption>Рис. 2 — Схема сценария 2 с ветками и ошибками</figcaption></figure>
+</section>
+
+<section class="page">
+<h2>4. Сценарий 3. Файлы и общий запуск кода</h2>
+<p><b>Пользователь:</b> редактор проекта. <b>Начало:</b> открыт проект. <b>Результат:</b> программа
+запущена, все участники видят один и тот же вывод, статус и время работы.</p>
+
+<h3>Основной путь</h3>
+<ol>
+  <li>«Создать файл» или «Переименовать»: имя с папкой, например <code>src/app.py</code>.</li>
+  <li>Пишет код вместе с другими.</li>
+  <li>«Запустить». Вывод, статус и время появляются у всех, у кого открыт файл.</li>
+</ol>
+
+<h3>Альтернативы и ошибки</h3>
+<table>
+  <tr><th>Условие</th><th>Что видит пользователь</th><th>Что дальше</th></tr>
+  <tr><td>Имя файла уже занято</td><td class="err">Под полем сразу при вводе: «Файл с таким именем уже есть»; кнопка неактивна (экран 6)</td><td>Выбрать другое имя</td></tr>
+  <tr><td>Имя начинается или заканчивается на «/», содержит «..»</td><td class="err">«Имя не должно начинаться или заканчиваться на «/» и содержать «..»»</td><td>Исправить имя</td></tr>
+  <tr><td>Файл не на JavaScript и не на Python</td><td class="err">«Запускать можно только файлы JavaScript и Python»</td><td>Запускать файл с кодом</td></tr>
+  <tr><td>Публичный сервер с кодом доступа</td><td>Окно «Код доступа»; при ошибке <span class="err">«Неверный код доступа»</span></td><td>Ввести код, его даёт владелец сервера</td></tr>
+  <tr><td>Сервис запуска недоступен</td><td class="err">«Запуск кода сейчас недоступен. Попробуйте чуть позже.»</td><td>Повторить позже; правка файлов работает</td></tr>
+  <tr><td>Слишком много запусков сразу</td><td class="err">«Сейчас запускается слишком много программ. Попробуйте через минуту.»</td><td>Повторить через минуту</td></tr>
+  <tr><td>Программа работает дольше 10 с</td><td>Статус «превышено время (10 с)», программа остановлена</td><td>Проверить бесконечный цикл</td></tr>
+  <tr><td>Ошибка в программе</td><td>Статус «ошибка», строка с ошибкой подсвечена, сообщение показано первым</td><td>Перейти к строке и исправить</td></tr>
+</table>
+<figure class="flow"><img src="img/flow-3-run.png"><figcaption>Рис. 3 — Схема сценария 3 с ветками и ошибками</figcaption></figure>
+</section>
+
+<section class="page">
+<h2>5. Визуальный стиль</h2>
+<p>Стиль спокойный и плотный, как в рабочих мессенджерах: тёмная тема по умолчанию, светлая — по
+переключателю в меню профиля. Все цвета заданы токенами (CSS-переменные в <code>apps/web/src/index.css</code>,
+имена в <code>tailwind.config.js</code>), поэтому обе темы используют одни и те же имена.</p>
+
+<h3>Цвета</h3>
+<table>
+  <tr><th>Токен</th><th>Тёмная тема</th><th>Светлая тема</th><th>Где используется</th></tr>
+  <tr><td><code>canvas</code></td><td><span class="sw" style="background:rgb(30,31,34)"></span> 30 31 34</td><td><span class="sw" style="background:rgb(227,229,232)"></span> 227 229 232</td><td>Фон приложения</td></tr>
+  <tr><td><code>surface</code></td><td><span class="sw" style="background:rgb(43,45,49)"></span> 43 45 49</td><td><span class="sw" style="background:rgb(242,243,245)"></span> 242 243 245</td><td>Панели, карточки, окна</td></tr>
+  <tr><td><code>main</code></td><td><span class="sw" style="background:rgb(49,51,56)"></span> 49 51 56</td><td><span class="sw" style="background:rgb(255,255,255)"></span> 255 255 255</td><td>Область редактора</td></tr>
+  <tr><td><code>fg</code> / <code>muted</code></td><td><span class="sw" style="background:rgb(219,222,225)"></span> <span class="sw" style="background:rgb(181,186,193)"></span></td><td><span class="sw" style="background:rgb(49,51,56)"></span> <span class="sw" style="background:rgb(78,80,88)"></span></td><td>Основной и второстепенный текст</td></tr>
+  <tr><td><code>accent</code></td><td colspan="2"><span class="sw" style="background:rgb(88,101,242)"></span> 88 101 242 (одинаковый в обеих темах)</td><td>Главные кнопки, ссылки, фокус</td></tr>
+  <tr><td><code>ok</code></td><td><span class="sw" style="background:rgb(45,199,112)"></span> 45 199 112</td><td><span class="sw" style="background:rgb(21,105,58)"></span> 21 105 58</td><td>Успех, «в сети»</td></tr>
+  <tr><td><code>bad</code></td><td><span class="sw" style="background:rgb(252,135,139)"></span> 252 135 139</td><td><span class="sw" style="background:rgb(176,28,28)"></span> 176 28 28</td><td>Ошибки и предупреждения об удалении</td></tr>
+  <tr><td><code>warn</code></td><td><span class="sw" style="background:rgb(240,178,50)"></span> 240 178 50</td><td><span class="sw" style="background:rgb(140,72,6)"></span> 140 72 6</td><td>Роль «владелец», «Подключение…»</td></tr>
+</table>
+<p>Цвета текста подобраны с контрастом не ниже 4,5 : 1 к фону (WCAG 2.1 AA), поэтому цвет ошибки
+в светлой теме темнее, чем в тёмной.</p>
+
+<h3>Шрифты, размеры, формы</h3>
+<table>
+  <tr><th>Что</th><th>Значение</th></tr>
+  <tr><td>Шрифт интерфейса</td><td>Inter Variable; код — JetBrains Mono Variable (оба подключены в приложение, не зависят от системы)</td></tr>
+  <tr><td>Размеры текста</td><td>16 px — то, что читают; 14 px — то, что рядом с ним (подсказки, подписи); 12 px — метки. Заголовки 20 и 24 px</td></tr>
+  <tr><td>Скругления</td><td>8 px у кнопок и полей, 12 px у окон и карточек</td></tr>
+  <tr><td>Тени</td><td><code>card</code> для карточек, <code>pop</code> для окон и меню</td></tr>
+  <tr><td>Иконки</td><td>Lucide, контурные, 14–24 px, всегда с подписью или <code>aria-label</code></td></tr>
+  <tr><td>Анимация</td><td>Короткая: появление 0,18 с, окно 0,2 с. Только чтобы показать, откуда что появилось</td></tr>
+  <tr><td>Ширина экрана</td><td>От 360 до 1920 px; на телефоне панели открываются поверх редактора</td></tr>
+</table>
+</section>
+
+<section class="page">
+<h2>6. Библиотека компонентов</h2>
+<p>Компоненты лежат в <code>apps/web/src/components/ui</code> и <code>components/layout</code>.
+Ниже — состояния, которые важны для ошибок и валидации, и снимки настоящих компонентов.</p>
+<table>
+  <tr><th>Компонент</th><th>Назначение</th><th>Варианты и состояния</th></tr>
+  <tr><td><b>Button</b></td><td>Все действия</td><td>primary (одно главное действие на экране), secondary, ghost, danger (удаление); размеры sm/md/lg; неактивная; «в процессе» с другим текстом («Входим…», «Создаём…»)</td></tr>
+  <tr><td><b>Field</b></td><td>Поле ввода с подписью</td><td>подпись над полем; подсказка под полем; подсказка-ошибка красным; фокус с рамкой цвета accent</td></tr>
+  <tr><td><b>ErrorNote</b></td><td>Ошибка формы от сервера</td><td>красная плашка над полями, <code>role="alert"</code> — экранный диктор читает её сразу</td></tr>
+  <tr><td><b>Modal</b></td><td>Диалоги</td><td>заголовок, пояснение, кнопка «Закрыть», закрытие по Esc; фокус остаётся внутри окна</td></tr>
+  <tr><td><b>ErrorScreen</b></td><td>Страница не открылась</td><td>иконка, понятная причина, одна кнопка выхода (экран 4)</td></tr>
+  <tr><td><b>Статус синхронизации</b></td><td>Шапка файла</td><td>«Синхронизировано», «Подключение…», «Офлайн — правки сохранятся локально»; <code>role="status"</code></td></tr>
+  <tr><td><b>RoleBadge</b></td><td>Роль участника</td><td>владелец, редактор, наблюдатель — цвет и иконка</td></tr>
+  <tr><td><b>Avatar</b></td><td>Участник</td><td>инициалы на цвете человека; тот же цвет у его курсора</td></tr>
+  <tr><td><b>Segmented</b>, <b>Spinner</b>, <b>Logo</b></td><td>Переключатели, ожидание, знак</td><td>—</td></tr>
+  <tr><td><b>FileTree</b>, <b>SidePanel</b>, <b>ProjectHeader</b></td><td>Каркас проекта</td><td>кнопки файла появляются при наведении и фокусе; чат и участники в боковой панели</td></tr>
+</table>
+<div class="grid">
+  <figure class="crop"><img src="img/c-button-primary.png"><figcaption>Button primary</figcaption></figure>
+  <figure class="crop"><img src="img/c-status-connection.png"><figcaption>Статус синхронизации при обрыве связи</figcaption></figure>
+  <figure class="crop"><img src="img/c-error-note.png"><figcaption>ErrorNote</figcaption></figure>
+  <figure class="crop"><img src="img/c-field-hint.png"><figcaption>Field с подсказкой</figcaption></figure>
+</div>
+<figure class="crop"><img src="img/c-modal.png" style="max-height:70mm"><figcaption>Modal с ошибкой в подсказке поля и неактивной главной кнопкой</figcaption></figure>
+</section>
+
+<section class="page">
+<h2>7. Ключевые экраны с ошибками и валидацией</h2>
+<figure><img src="img/01-login-error.png"><figcaption>Экран 1 — Вход: «Неверный email или пароль». Сообщение не говорит, какое поле неверно, чтобы нельзя было узнать, есть ли такой аккаунт. Введённые данные остаются в полях</figcaption></figure>
+<figure><img src="img/02-register-taken.png"><figcaption>Экран 2 — Регистрация: «Этот email уже зарегистрирован». Правило пароля видно заранее под полем, а не после ошибки</figcaption></figure>
+</section>
+
+<section class="page">
+<figure><img src="img/03-join-empty-name.png"><figcaption>Экран 3 — Приглашение: роль видна до входа; пока имя пустое, главная кнопка неактивна. Под полем — зачем нужно имя и ссылка на то, какие данные хранятся</figcaption></figure>
+<figure><img src="img/04-join-invalid.png"><figcaption>Экран 4 — Ссылка недействительна: причина простыми словами и один понятный выход</figcaption></figure>
+</section>
+
+<section class="page">
+<figure><img src="img/05-join-viewer.png"><figcaption>Экран 5 — Ссылка только для просмотра: человек знает заранее, что не сможет менять файлы</figcaption></figure>
+<figure><img src="img/06-rename-taken.png"><figcaption>Экран 6 — Переименование: ошибка видна во время ввода, кнопка неактивна, запрос на сервер не уходит</figcaption></figure>
+</section>
+
+<section class="page">
+<figure><img src="img/07-import-invalid.png"><figcaption>Экран 7 — Импорт из GitHub: ошибка с примером правильной ссылки; под полем — какие ссылки подходят и какие файлы будут пропущены</figcaption></figure>
+<figure><img src="img/09-offline.png"><figcaption>Экран 8 — Связь оборвалась: шапка показывает «Подключение…», а пользователь продолжает печатать</figcaption></figure>
+</section>
+
+<section class="page">
+<figure><img src="img/10-back-online.png"><figcaption>Экран 9 — Связь вернулась: «Синхронизировано», правки, сделанные без связи, на месте и видны остальным</figcaption></figure>
+
+<h2>8. Правила текстов ошибок</h2>
+<ol>
+  <li>Сказать, что случилось, и что делать дальше: «Попробуйте ещё раз», «Пример: …».</li>
+  <li>Без кодов и технических слов: не «404», а «Ссылка-приглашение недействительна или устарела».</li>
+  <li>Ошибку поля показывать под этим полем и во время ввода, если её можно проверить без сервера.</li>
+  <li>Ошибку от сервера показывать одной плашкой над формой (<code>role="alert"</code>), введённые данные не стирать.</li>
+  <li>Если действие сейчас невозможно, кнопка неактивна, а рядом видно почему.</li>
+  <li>При входе не уточнять, что именно неверно: это защищает аккаунты.</li>
+</ol>
+</section>
+
+</body>
+</html>
