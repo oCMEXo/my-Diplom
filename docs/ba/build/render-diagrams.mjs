@@ -9,8 +9,9 @@ const here = import.meta.dirname;
 const require = createRequire(path.resolve(here, "../../../e2e/package.json"));
 const { chromium } = require("@playwright/test");
 
-const src = path.resolve(here, "../diagrams");
-const out = path.resolve(here, "../img");
+// DIAGRAMS_SRC and DIAGRAMS_OUT let other folders use the same renderer, e.g. docs/db for the ER diagram.
+const src = process.env.DIAGRAMS_SRC ? path.resolve(process.env.DIAGRAMS_SRC) : path.resolve(here, "../diagrams");
+const out = process.env.DIAGRAMS_OUT ? path.resolve(process.env.DIAGRAMS_OUT) : path.resolve(here, "../img");
 const only = process.argv.slice(2);
 const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/&lt;br>/g, "<br>");
 

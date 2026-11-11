@@ -18,7 +18,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "db:generate": "pnpm --filter @collab/db generate",
-    "db:migrate": "pnpm --filter @collab/db migrate"
+    "db:migrate": "pnpm --filter @collab/db migrate",
+    "db:schema-sql": "pnpm --filter @collab/db schema-sql"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",

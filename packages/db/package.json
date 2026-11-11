@@ -10,6 +10,7 @@
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
+    "schema-sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script --output ../../docs/db/schema.sql",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "echo \"(no tests yet)\""
