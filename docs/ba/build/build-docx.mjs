@@ -4,11 +4,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
-  AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, LevelFormat, Packer,
+  AlignmentType, BorderStyle, Document, Footer, FootnoteReferenceRun, HeadingLevel, ImageRun, LevelFormat, Packer,
   PageBreak, PageNumber, Paragraph, ShadingType, Tab, Table, TableCell, TableOfContents, TableRow,
   TextRun, VerticalAlign, WidthType,
 } from "docx";
 import { estimatePageNumbersWith } from "docx/layout";
+import { references } from "./references.mjs";
 
 const here = import.meta.dirname;
 const root = path.resolve(here, "..");
@@ -18,15 +19,48 @@ const MARGIN = { top: 1134, bottom: 1134, left: 1701, right: 851 }; // 2 / 2 / 3
 const TEXT_W = PAGE_W - MARGIN.left - MARGIN.right; // 9354 DXA ≈ 16.5 cm
 const EMU_PER_PX = 9525;
 
+// ---------- citations: Chicago notes ----------
+// [@key] (or several, separated by commas) becomes one footnote. The document has a full bibliography,
+// so every note uses the short form (Chicago Manual of Style, 17th ed., 14.19). The note number goes
+// after a following punctuation mark.
+const footnotes = {};
+let footnoteCount = 0;
+
+function footnote(keys) {
+  const joined = keys.map((key) => {
+    const source = references[key];
+    if (!source) throw new Error(`unknown source [@${key}]`);
+    return source.short.replace(/\.("?)$/, "$1"); // drop the final period, also one before a closing quote
+  }).join("; ");
+  // Chicago puts the final period inside a closing quotation mark.
+  const text = joined.endsWith('"') ? `${joined.slice(0, -1)}."` : `${joined}.`;
+  footnoteCount += 1;
+  footnotes[footnoteCount] = { children: [new Paragraph({ spacing: { after: 0, line: 240 }, children: runs(text, { size: 20 }) })] };
+  return footnoteCount;
+}
+
+function bibliography() {
+  const sortKey = (entry) => entry.replace(/[*"‘’]/g, "").toLowerCase();
+  return Object.values(references)
+    .map((source) => source.bib)
+    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
+    .map((entry) => new Paragraph({ indent: { left: 567, hanging: 567 }, spacing: { after: 80 }, children: runs(entry) }));
+}
+
 // ---------- inline text ----------
 function runs(text, base = {}) {
   const out = [];
-  const pattern = /(\[\[TBD:[^\]]*\]\]|\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`)/g;
+  const pattern = /( ?\[@[a-z0-9]+\](?:,\s*\[@[a-z0-9]+\])*[.,;:]?|\[\[TBD:[^\]]*\]\]|\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`)/g;
   let last = 0;
   for (const match of text.matchAll(pattern)) {
     if (match.index > last) out.push(new TextRun({ text: text.slice(last, match.index), ...base }));
     const token = match[0];
-    if (token.startsWith("[[TBD:")) {
+    if (token.trimStart().startsWith("[@")) {
+      const keys = [...token.matchAll(/\[@([a-z0-9]+)\]/g)].map((m) => m[1]);
+      const punctuation = token.match(/[.,;:]$/)?.[0];
+      if (punctuation) out.push(new TextRun({ text: punctuation, ...base }));
+      out.push(new FootnoteReferenceRun(footnote(keys)));
+    } else if (token.startsWith("[[TBD:")) {
       out.push(new TextRun({ text: `[TBD:${token.slice(6, -2)}]`, highlight: "yellow", ...base }));
     } else if (token.startsWith("**")) {
       out.push(...runs(token.slice(2, -2), { ...base, bold: true }));
@@ -113,7 +147,7 @@ const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBo
 
 function isMainTextMockup(line) {
   const match = line.match(/^!\[(.+)\]\((.+)\)/);
-  return Boolean(match) && match[2].includes("mockup") && !/^[A-Z]\.\d+ — /.test(match[1]);
+  return Boolean(match) && (match[2].includes("mockup") || match[2].includes("analog")) && !/^A\d+\.\d+ — /.test(match[1]);
 }
 
 function mockupGrid(lines, chapter) {
@@ -159,7 +193,7 @@ function convert(markdown) {
     if ((match = line.match(/^# (.+)/))) {
       const title = match[1];
       section = title;
-      chapter = title.match(/^Chapter (\d+)\./)?.[1] ?? (title.match(/^Appendix ([A-Z])/)?.[1] ?? "");
+      chapter = title.match(/^Chapter (\d+)\./)?.[1] ?? (title.match(/^Appendix (\d+)/) ? `A${title.match(/^Appendix (\d+)/)[1]}` : "");
       blocks.push(new Paragraph({
         heading: HeadingLevel.HEADING_1,
         pageBreakBefore: true,
@@ -184,7 +218,7 @@ function convert(markdown) {
     }
     if ((match = line.match(/^!\[(.+)\]\((.+)\)/))) {
       const [, alt, file] = match;
-      const fixed = alt.match(/^([A-Z]\.\d+) — (.+)/);
+      const fixed = alt.match(/^(A\d+\.\d+) — (.+)/);
       const appendix = Boolean(fixed);
       const mockup = file.includes("mockup") || file.includes("analog");
       blocks.push(image(file, appendix
@@ -215,12 +249,8 @@ function convert(markdown) {
       blocks.push(new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 120, after: 60 }, children: runs(line, { bold: true, size: 22 }) }));
       continue;
     }
-    if (section === "List of references" && (match = line.match(/^(\d+)\. (.+)/))) {
-      blocks.push(new Paragraph({
-        indent: { left: 567, hanging: 567 },
-        spacing: { after: 60 },
-        children: [new TextRun({ children: [`[${match[1]}]`, new Tab()] }), ...runs(match[2])],
-      }));
+    if (section === "List of references" && line.trim() === "{{bibliography}}") {
+      blocks.push(...bibliography());
       continue;
     }
     if ((match = line.match(/^(\s*)(-|\d+\.) (.+)/))) {
@@ -268,8 +298,11 @@ const titlePage = [
 // ---------- document ----------
 const main = readFileSync(path.join(root, "BA.md"), "utf8");
 const back = readFileSync(path.join(root, "BA-back.md"), "utf8");
+// Converted before the document, so that all footnotes exist when it is made.
+const body = [...convert(main), ...convert(back)];
 
 const doc = new Document({
+  footnotes,
   // Page numbers worked out as Word lays the pages out, so the table of contents arrives filled in
   // and Word does not ask to update it on opening. It stays a real table that Word can update.
   pageNumbers: estimatePageNumbersWith({ guess: true }),
@@ -310,8 +343,7 @@ const doc = new Document({
         // Not a heading, so that it does not list itself.
         new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: "Table of contents", bold: true, size: 32 })] }),
         new TableOfContents("Contents", { hyperlink: true, headingStyleRange: "1-2" }),
-        ...convert(main),
-        ...convert(back),
+        ...body,
       ],
     },
   ],

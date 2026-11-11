@@ -1,31 +1,12 @@
 # List of references
 
-1. Stack Overflow, "2024 Developer Survey: Work," 2024. [Online]. Available: https://survey.stackoverflow.co/2024/work (accessed Oct. 23, 2026).
-2. S. Xinogalos, M. Satratzemi, A. Chatzigeorgiou, and D. Tsompanoudi, "Student perceptions on the benefits and shortcomings of distributed pair programming assignments," in *Proc. 2017 IEEE Global Engineering Education Conf. (EDUCON)*, Athens, Greece, 2017, pp. 1513–1521, doi: 10.1109/EDUCON.2017.7943050.
-3. Office for Students, "'Digital poverty' risks leaving students behind," Sep. 3, 2020. [Online]. Available: https://www.officeforstudents.org.uk/news-blog-and-events/press-and-media/digital-poverty-risks-leaving-students-behind/ (accessed Nov. 8, 2026).
-4. Y. Brun, R. Holmes, M. D. Ernst, and D. Notkin, "Proactive detection of collaboration conflicts," in *Proc. 19th ACM SIGSOFT Symp. Foundations of Software Engineering and 13th European Software Engineering Conf. (ESEC/FSE '11)*, Szeged, Hungary, 2011, pp. 168–178, doi: 10.1145/2025113.2025139.
-5. S. K. Card, T. P. Moran, and A. Newell, "The keystroke-level model for user performance time with interactive systems," *Commun. ACM*, vol. 23, no. 7, pp. 396–410, 1980, doi: 10.1145/358886.358895.
-6. C. A. Ellis and S. J. Gibbs, "Concurrency control in groupware systems," in *Proc. 1989 ACM SIGMOD Int. Conf. Management of Data*, Portland, OR, USA, 1989, pp. 399–407, doi: 10.1145/67544.66963.
-7. C. Sun and C. Ellis, "Operational transformation in real-time group editors: Issues, algorithms, and achievements," in *Proc. 1998 ACM Conf. Computer Supported Cooperative Work (CSCW '98)*, Seattle, WA, USA, 1998, pp. 59–68, doi: 10.1145/289444.289469.
-8. M. Shapiro, N. Preguiça, C. Baquero, and M. Zawirski, "Conflict-free replicated data types," in *Stabilization, Safety, and Security of Distributed Systems (SSS 2011)*, Lecture Notes in Computer Science, vol. 6976. Berlin, Germany: Springer, 2011, pp. 386–400, doi: 10.1007/978-3-642-24550-3_29.
-9. P. Nicolaescu, K. Jahns, M. Derntl, and R. Klamma, "Near real-time peer-to-peer shared editing on extensible data types," in *Proc. 2016 ACM Int. Conf. Supporting Group Work (GROUP '16)*, Sanibel Island, FL, USA, 2016, pp. 39–49, doi: 10.1145/2957276.2957310.
-10. M. Kleppmann and A. R. Beresford, "A conflict-free replicated JSON datatype," *IEEE Trans. Parallel Distrib. Syst.*, vol. 28, no. 10, pp. 2733–2746, 2017, doi: 10.1109/TPDS.2017.2697382.
-11. M. Kleppmann, A. Wiggins, P. van Hardenberg, and M. McGranaghan, "Local-first software: You own your data, in spite of the cloud," in *Proc. 2019 ACM SIGPLAN Int. Symp. New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! 2019)*, Athens, Greece, 2019, pp. 154–178, doi: 10.1145/3359591.3359737.
-12. J. Gentle and M. Kleppmann, "Collaborative text editing with Eg-walker: Better, faster, smaller," in *Proc. 20th European Conf. Computer Systems (EuroSys '25)*, Rotterdam, The Netherlands, 2025, doi: 10.1145/3689031.3696076.
-13. Yjs, "Yjs Docs." [Online]. Available: https://docs.yjs.dev/ (accessed Oct. 23, 2026).
-14. J. Nielsen, *Usability Engineering*. Boston, MA, USA: Academic Press, 1993.
-15. *Systems and Software Engineering — Systems and Software Quality Requirements and Evaluation (SQuaRE) — Product Quality Model*, ISO/IEC 25010:2023, 2023.
-16. European Parliament and Council of the European Union, "Regulation (EU) 2016/679 (General Data Protection Regulation)," *Official Journal of the European Union*, L 119, pp. 1–88, May 4, 2016.
-17. W3C, "Web Content Accessibility Guidelines (WCAG) 2.1," W3C Recommendation, 2018. [Online]. Available: https://www.w3.org/TR/WCAG21/ (accessed Oct. 23, 2026).
-18. OWASP Foundation, "OWASP Top 10:2021," 2021. [Online]. Available: https://owasp.org/Top10/ (accessed Oct. 23, 2026).
-19. Microsoft, "Security — Live Share," Microsoft Learn. [Online]. Available: https://learn.microsoft.com/en-us/visualstudio/liveshare/reference/security (accessed Nov. 5, 2026).
-20. Replit, "Invite teammates," Replit Docs. [Online]. Available: https://docs.replit.com/build/invite-teammates (accessed Nov. 5, 2026).
-21. Codeshare, "Share code in real-time with developers in your browser." [Online]. Available: https://codeshare.io (accessed Oct. 23, 2026).
-22. Excalidraw, "Excalidraw — virtual whiteboard for sketching hand-drawn like diagrams," GitHub repository. [Online]. Available: https://github.com/excalidraw/excalidraw (accessed Oct. 23, 2026).
+The sources follow the Chicago notes-bibliography style: a note at the bottom of the page for each citation, and this list in alphabetical order.
 
-# Appendix A. Backlog
+{{bibliography}}
 
-Table A.1 — Epics and user stories (MoSCoW: M is Must, S is Should, C is Could, W is Won't)
+# Appendix 1. Backlog
+
+Table A1.1 — Epics and user stories (MoSCoW: M is Must, S is Should, C is Could, W is Won't)
 
 | ID | Epic | User story | Acceptance criteria | MoSCoW |
 |---|---|---|---|---|
@@ -57,29 +38,44 @@ Table A.1 — Epics and user stories (MoSCoW: M is Must, S is Should, C is Could
 | US-25 | — | As a developer, I want a step-by-step debugger. | Out of scope (section 2.3). | W |
 | US-26 | — | As a student, I want to import a private GitHub repository. | Out of scope for this release (section 2.3). | W |
 
-# Appendix B. Diagrams
+# Appendix 2. Diagrams
 
-![B.1 — AS-IS process of a live coding session (UML activity diagram)](img/asis.png)
+![A2.1 — AS-IS process of a live coding session (UML activity diagram)](img/asis.png)
 
-![B.2 — TO-BE process on the platform (UML activity diagram)](img/tobe.png)
+![A2.2 — TO-BE process on the platform (UML activity diagram)](img/tobe.png)
 
-![B.3 — Context diagram](img/context.png)
+![A2.3 — Context diagram](img/context.png)
 
-![B.4 — Use case diagram](img/usecases.png)
+![A2.4 — Use case diagram](img/usecases.png)
 
-![B.5 — System sequence diagram of UC-1 "Join a project by invitation and co-edit a file"](img/ssd-uc1.png)
+![A2.5 — System sequence diagram of UC-1 "Join a project by invitation and co-edit a file"](img/ssd-uc1.png)
 
-![B.6 — Activity diagram of UC-2 "Run code and share the result"](img/activity-uc2.png)
+**UC-2 Run code and share the result**
 
-![B.7 — US-03: the invitation page, full size](img/mockup-invite.png)
+- *Actor:* Editor (also: other participants).
+- *Precondition:* the editor has a JavaScript or Python file open. Code execution is turned on at the server.
+- *Postcondition:* all participants see the output, the status and the duration of the run.
+- *Main flow:*
+  1. The editor presses "Run".
+  2. The system takes the current text of the file and the other text files of the project.
+  3. The system runs the program in a closed sandbox without network access.
+  4. The system sends the output to all participants who have the file open.
+  5. The system shows the status ("finished" or "error") and the duration. If there is an error, it highlights the line with the error.
+- *Alternative flows:*
+  - A1 (step 3): the program runs longer than 10 s. The system stops it and shows the status "timeout".
+  - A2 (step 1): the server is a public host with an access code. The system asks for the code once and continues after a correct code.
 
-![B.8 — US-07, US-08: editing a file together, full size](img/mockup-editor.png)
+![A2.6 — Activity diagram of UC-2 "Run code and share the result"](img/activity-uc2.png)
 
-![B.9 — US-12: the shared whiteboard, full size](img/mockup-board.png)
+![A2.7 — US-03: the invitation page](img/mockup-invite.png)
 
-![B.10 — US-17: creating a project from a public GitHub repository, full size](img/mockup-import.png)
+![A2.8 — US-07, US-08: editing a file together](img/mockup-editor.png)
 
-# Appendix C. Survey questionnaire
+![A2.9 — US-12: the shared whiteboard](img/mockup-board.png)
+
+![A2.10 — US-17: creating a project from a public GitHub repository](img/mockup-import.png)
+
+# Appendix 3. Survey questionnaire
 
 The questionnaire is ready for online use in Russian. Nobody has answered it yet. The English translation is below. Questions 2 and 8 check the problem hypothesis. Questions 4–7 give first values for KPI-1, KPI-2, KPI-3 and problem P6. Section 2.10 has the rule for the answers.
 
@@ -96,48 +92,48 @@ The questionnaire is ready for online use in Russian. Nobody has answered it yet
 10. How important are these things (1–5): join by a link without registration; live cursors and edits; running code together in the browser; chat next to the code; a whiteboard in the same project; offline work with later synchronisation; version history; pushing to GitHub.
 11. What would you add to such a tool? (open answer)
 
-# Appendix D. Keystroke-level estimate of KPI-1
+# Appendix 4. Keystroke-level estimate of KPI-1
 
-The Keystroke-Level Model [5] adds the times of small actions: M is thinking before an action (1.35 s). P is pointing with the mouse (1.1 s). K is a key press or a click (0.2 s, an average skilled typist). H is moving a hand between the keyboard and the mouse (0.4 s). R is waiting for the system. The R values are assumptions for a small project on a good connection. The model is for experts who make no mistakes, so all figures are lower limits. The installation of Git, an editor and a runtime is not included, because it depends on the computer. The reference task: a small project is already in a Git repository, and two people start to edit the same file.
+The Keystroke-Level Model [@card] adds the times of small actions: M is thinking before an action (1.35 s). P is pointing with the mouse (1.1 s). K is a key press or a click (0.2 s, an average skilled typist). H is moving a hand between the keyboard and the mouse (0.4 s). R is waiting for the system. The R values are assumptions for a small project on a good connection. The model is for experts who make no mistakes, so all figures are lower limits. The installation of Git, an editor and a runtime is not included, because it depends on the computer. The reference task: a small project is already in a Git repository, and two people start to edit the same file.
 
-Table D.1 — AS-IS, both people have all accounts and tools
-
-| Step | M | P | K | H | R, s | Time, s |
-|---|---|---|---|---|---|---|
-| Owner: open repository settings, then Collaborators | 1 | 2 | 2 | 1 | 2 | 6.4 |
-| Owner: add the partner by user name | 1 | 2 | 12 | 2 | 1 | 7.8 |
-| Owner: send the repository link in a messenger | 2 | 1 | 8 | 2 | 0 | 6.2 |
-| Partner: open the invitation and accept it | 1 | 2 | 2 | 0 | 4 | 8.0 |
-| Partner: clone the repository | 1 | 0 | 15 | 1 | 3 | 7.8 |
-| Partner: enter the folder and open the editor | 2 | 0 | 23 | 0 | 3 | 10.3 |
-| Partner: install the dependencies | 1 | 0 | 12 | 0 | 10 | 13.8 |
-| Partner: open the file | 1 | 1 | 1 | 1 | 1 | 4.1 |
-| **Total** | 10 | 8 | 75 | 7 | 24 | **64.1** |
-
-Table D.2 — AS-IS, extra steps when the partner has no account at the Git host
+Table A4.1 — AS-IS, both people have all accounts and tools
 
 | Step | M | P | K | H | R, s | Time, s |
 |---|---|---|---|---|---|---|
-| Partner: fill in the registration form | 3 | 4 | 46 | 2 | 2 | 20.5 |
-| Partner: confirm the e-mail address with a code | 2 | 2 | 12 | 2 | 12 | 20.1 |
-| **Total** | 5 | 6 | 58 | 4 | 14 | **40.6** |
+| Owner: open repository settings, then Collaborators | 1 | 2 | 2 | 1 | 2 | 6.35 |
+| Owner: add the partner by user name | 1 | 2 | 12 | 2 | 1 | 7.75 |
+| Owner: send the repository link in a messenger | 2 | 1 | 8 | 2 | 0 | 6.20 |
+| Partner: open the invitation and accept it | 1 | 2 | 2 | 0 | 4 | 7.95 |
+| Partner: clone the repository | 1 | 0 | 15 | 1 | 3 | 7.75 |
+| Partner: enter the folder and open the editor | 2 | 0 | 23 | 0 | 3 | 10.30 |
+| Partner: install the dependencies | 1 | 0 | 12 | 0 | 10 | 13.75 |
+| Partner: open the file | 1 | 1 | 1 | 1 | 1 | 4.05 |
+| **Total** | 10 | 8 | 75 | 7 | 24 | **64.10** |
 
-Table D.3 — TO-BE on the platform, the partner joins as a guest
+Table A4.2 — AS-IS, extra steps when the partner has no account at the Git host
 
 | Step | M | P | K | H | R, s | Time, s |
 |---|---|---|---|---|---|---|
-| Owner: create a project from the repository link | 2 | 2 | 16 | 2 | 3 | 11.9 |
-| Owner: open Invite and copy the link | 1 | 2 | 2 | 0 | 1 | 5.0 |
-| Owner: send the link in a messenger | 1 | 0 | 5 | 1 | 0 | 2.8 |
-| Guest: open the link | 1 | 1 | 1 | 1 | 2 | 5.1 |
-| Guest: enter a name and confirm | 1 | 0 | 9 | 1 | 2 | 5.6 |
-| **Total** | 6 | 5 | 33 | 5 | 8 | **30.2** |
+| Partner: fill in the registration form | 3 | 4 | 46 | 2 | 2 | 20.45 |
+| Partner: confirm the e-mail address with a code | 2 | 2 | 12 | 2 | 12 | 20.10 |
+| **Total** | 5 | 6 | 58 | 4 | 14 | **40.55** |
 
-**Result.** The task takes about 64 s (83 key presses and pointing actions) when everybody is ready. It takes about 105 s (147) when the partner must register first. On the platform it takes about 30 s (38). These are estimates for experts, not measurements. KPI-1 uses the case with no account: 105 s against 30 s. The pilot of section 2.10 will measure first-time users on both sides.
+Table A4.3 — TO-BE on the platform, the partner joins as a guest
 
-# Appendix E. Terms
+| Step | M | P | K | H | R, s | Time, s |
+|---|---|---|---|---|---|---|
+| Owner: create a project from the repository link | 2 | 2 | 16 | 2 | 3 | 11.90 |
+| Owner: open Invite and copy the link | 1 | 2 | 2 | 0 | 1 | 4.95 |
+| Owner: send the link in a messenger | 1 | 0 | 5 | 1 | 0 | 2.75 |
+| Guest: open the link | 1 | 1 | 1 | 1 | 2 | 5.05 |
+| Guest: enter a name and confirm | 1 | 0 | 9 | 1 | 2 | 5.55 |
+| **Total** | 6 | 5 | 33 | 5 | 8 | **30.20** |
 
-Table E.1 — Terms used in this document
+**Result.** The task takes about 64 s (83 key presses and pointing actions) when everybody is ready. It takes about 105 s (147) when the partner must register first. On the platform it takes about 30 s (38). These are estimates for experts, not measurements. The times have two decimals, so the rows add up to the totals. KPI-1 uses the case with no account: 105 s against 30 s. The pilot of section 2.10 will measure first-time users on both sides.
+
+# Appendix 5. Terms
+
+Table A5.1 — Terms used in this document
 
 | Term | Meaning |
 |---|---|
@@ -169,7 +165,7 @@ Table E.1 — Terms used in this document
 
 # Statements
 
-**Use of AI.** The author used the AI assistant Claude (Anthropic) through the Claude Code tool for these tasks: writing the English text of the Introduction, Chapters 1–2 and the appendices from the author's project and the department's requirements; rewriting this text in simple English; changing the text after the interim review of the expert (goal, KPIs, problems, traceability, alternatives, non-functional requirements); finding and checking bibliographic data and figures; using a browser for the practical tests of CodeShare.io, Yjs and Excalidraw and taking their screenshots; making the diagrams of Appendix B; calculating the keystroke-level estimate of Appendix D; and helping to build and test the software prototype. The author checked the document and is responsible for its content. The project is individual. It is not done for an organisation or with the data of an organisation.
+**Use of AI.** The author used the AI assistant Claude (Anthropic) through the Claude Code tool for these tasks: writing the English text of the Introduction, Chapters 1–2 and the appendices from the author's project and the department's requirements; rewriting this text in simple English; changing the text after the interim and final reviews of the expert (goal, KPIs, problems, traceability, alternatives, analogs, non-functional and legal requirements, reference style); finding and checking sources, bibliographic data and figures, including the documentation of CodeSandbox, StackBlitz, GitHub Codespaces and JetBrains Code With Me; using a browser for the practical tests of CodeShare.io, Yjs and Excalidraw and taking their screenshots; making the diagrams of Appendix 2; calculating the keystroke-level estimate of Appendix 4; and helping to build and test the software prototype. The author checked the document and is responsible for its content. The project is individual. It is not done for an organisation or with the data of an organisation.
 
 **Group contributions.** Not applicable: the project is individual.
 

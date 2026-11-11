@@ -208,7 +208,7 @@
 
 > From KLM, a known time model that adds up each small step.  
 > It counts an expert with no mistakes, so real people need more.  
-> The full count is in Appendix D.  
+> The full count is in Appendix 4.  
 
 **How is your solution better than the analogs?**
 (Чем ваше решение лучше аналогов?)
