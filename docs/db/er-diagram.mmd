@@ -1,0 +1,70 @@
+erDiagram
+  users ||--o{ refresh_tokens : "сессии входа"
+  users ||--o{ projects : "владеет"
+  users ||--o{ project_members : "участвует"
+  projects ||--o{ project_members : "состав"
+  projects ||--o{ files : "содержит"
+  files ||--o{ file_versions : "версии"
+  users |o--o{ file_versions : "автор версии"
+  projects ||--o{ messages : "чат"
+  users ||--o{ messages : "пишет"
+
+  users {
+    text id PK "UUID"
+    text email UK "в нижнем регистре"
+    text name
+    text password_hash "Argon2id"
+    boolean is_guest
+    timestamp created_at
+  }
+  refresh_tokens {
+    text id PK "UUID"
+    text user_id FK
+    text token_hash "SHA-256"
+    timestamp expires_at
+    timestamp created_at
+  }
+  projects {
+    text id PK "UUID"
+    text name
+    text owner_id FK
+    text invite_code UK
+    ProjectRole invite_role
+    text github_owner "NULL"
+    text github_repo "NULL"
+    text github_branch "NULL"
+    timestamp created_at
+  }
+  project_members {
+    text project_id PK, FK
+    text user_id PK, FK
+    ProjectRole role
+  }
+  files {
+    text id PK "UUID"
+    text project_id FK "UK1"
+    text branch "UK1"
+    text path "UK1"
+    FileKind type
+    text language "NULL"
+    bytea yjs_state "NULL"
+    text source_sha "NULL"
+    timestamp updated_at
+    timestamp deleted_at "NULL"
+    text trashed_path "NULL"
+  }
+  file_versions {
+    text id PK "UUID"
+    text file_id FK
+    text content
+    integer size
+    text author_id FK "NULL"
+    timestamp created_at
+  }
+  messages {
+    text id PK "UUID"
+    text project_id FK
+    text author_id FK
+    text body
+    timestamp created_at
+  }

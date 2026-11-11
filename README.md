@@ -68,6 +68,7 @@ pnpm dev:web      # фронтенд, http://localhost:5173
 
 - `pnpm lint` / `pnpm typecheck` / `pnpm test` — по всем пакетам
 - `pnpm db:generate` / `pnpm db:migrate` — Prisma
+- `pnpm db:schema-sql` — собрать полный DDL из схемы в `docs/db/schema.sql`
 - `pnpm --filter @collab/e2e e2e` — сквозные тесты (нужны Postgres, Redis и
   Chrome; с `E2E_RUNNER=1` и запущенным runner — ещё и запуск кода)
 - `pnpm --filter @collab/bench bench` — исследовательский стенд CRDT vs OT
@@ -75,6 +76,7 @@ pnpm dev:web      # фронтенд, http://localhost:5173
 
 ## Документация
 
+- [docs/db](docs/db) — база данных: словарь данных, ER-диаграмма, миграции и DDL, как создать базу
 - [docs/deploy-local.md](docs/deploy-local.md) — показать сайт другим с этого компьютера (`pnpm host:test`)
 - [docs/adr](docs/adr) — архитектурные решения (ADR-001…004)
 - [docs/websocket-protocol.md](docs/websocket-protocol.md) — протоколы реального времени
