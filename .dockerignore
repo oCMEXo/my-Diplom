@@ -1,8 +1,7 @@
 **/node_modules
 **/dist
-.git
-.claude
-.github
+# Hidden files and folders at the top level: Git, CI and local tool settings
+.*
 **/.env
 bench/results
 bench/results-run.log
