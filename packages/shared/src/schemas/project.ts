@@ -1,11 +1,13 @@
 import { z } from "zod";
-import { PROJECT_ROLES } from "../constants.js";
+import { PROJECT_ROLES, PROJECT_TEMPLATES } from "../constants.js";
 import { emailSchema } from "./auth.js";
 
 export const projectRoleSchema = z.enum(PROJECT_ROLES);
 
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(200),
+  /** Without it the project starts empty. */
+  template: z.enum(PROJECT_TEMPLATES).optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 

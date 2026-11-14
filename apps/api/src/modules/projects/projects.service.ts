@@ -5,6 +5,7 @@ import { requireProjectRole } from "../../lib/authorization.js";
 import { generateInviteCode } from "../../lib/invite-code.js";
 import { announceAccessChange } from "../../lib/access-changes.js";
 import { hub } from "../../lib/hub.js";
+import { templateFiles } from "./templates.js";
 
 interface ProjectLike {
   id: string;
@@ -42,6 +43,7 @@ export async function createProject(userId: string, input: CreateProjectInput) {
       ownerId: userId,
       inviteCode: generateInviteCode(),
       members: { create: { userId, role: "owner" } },
+      files: input.template ? { create: templateFiles(input.template) } : undefined,
     },
   });
 

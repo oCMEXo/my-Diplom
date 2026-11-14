@@ -82,6 +82,10 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
         <p className="relative z-10 text-sm text-white/40">Дипломный проект ·{" "}
           <Link to="/privacy" className="underline hover:text-white/70">
             данные и приватность
+          </Link>
+          {" · "}
+          <Link to="/terms" className="underline hover:text-white/70">
+            условия использования
           </Link></p>
       </aside>
 

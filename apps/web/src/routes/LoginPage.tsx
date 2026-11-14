@@ -73,7 +73,13 @@ export function LoginPage() {
           <Sparkles size={18} className="text-accent-ink" />
           Продолжить как гость
         </Button>
-        <p className="text-center text-sm text-faint">Гостю не нужны ни почта, ни пароль — достаточно открыть ссылку.</p>
+        <p className="text-center text-sm text-faint">
+          Гостю не нужны ни почта, ни пароль. Входя, вы принимаете{" "}
+          <Link to="/terms" className="underline hover:text-fg">
+            условия использования
+          </Link>
+          .
+        </p>
 
         <p className="pt-2 text-center text-base text-muted">
           Нет аккаунта?{" "}

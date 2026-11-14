@@ -14,6 +14,9 @@ import { hashPassword, verifyPassword } from "../../lib/password.js";
 import { signAccessToken } from "../../lib/jwt.js";
 import { generateRefreshToken, hashRefreshToken } from "../../lib/refresh-token.js";
 import { AppError } from "../../lib/errors.js";
+import { env } from "../../env.js";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface UserLike {
   id: string;
@@ -151,6 +154,33 @@ export async function deleteAccount(userId: string, input: DeleteAccountInput) {
     await announceAccessChange(
       role === "owner" ? { projectId, reason: "deleted" } : { projectId, userId, reason: "left" },
     );
+  }
+}
+
+/**
+ * Deletes guest accounts that nobody uses: older than `days`, in no project and with no live session.
+ * Their chat messages go with them, as when a person deletes the account. Returns how many went.
+ */
+export async function purgeStaleGuests(now = new Date(), days = env.GUEST_RETENTION_DAYS, batchSize = 200) {
+  const unused = {
+    isGuest: true,
+    createdAt: { lt: new Date(now.getTime() - days * DAY_MS) },
+    memberships: { none: {} },
+    ownedProjects: { none: {} },
+    refreshTokens: { none: { expiresAt: { gt: now } } },
+  };
+  let purged = 0;
+  for (;;) {
+    const batch = await prisma.user.findMany({ where: unused, select: { id: true }, take: batchSize });
+    if (batch.length === 0) return purged;
+    const ids = batch.map((user) => user.id);
+    // The conditions are repeated, so a guest who joins a project in between keeps the account and the messages.
+    const [, { count }] = await prisma.$transaction([
+      prisma.message.deleteMany({ where: { authorId: { in: ids }, author: unused } }),
+      prisma.user.deleteMany({ where: { id: { in: ids }, ...unused } }),
+    ]);
+    purged += count;
+    if (batch.length < batchSize) return purged;
   }
 }
 

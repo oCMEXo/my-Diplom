@@ -10,6 +10,7 @@ import { LoginPage } from "./routes/LoginPage";
 import { RegisterPage } from "./routes/RegisterPage";
 import { JoinPage } from "./routes/JoinPage";
 import { PrivacyPage } from "./routes/PrivacyPage";
+import { TermsPage } from "./routes/TermsPage";
 import { ProjectsPage } from "./routes/ProjectsPage";
 import { ProjectPage } from "./routes/ProjectPage";
 import { FileEditorPage } from "./routes/FileEditorPage";
@@ -49,6 +50,7 @@ export function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/join/:code" element={<JoinPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<ProjectsPage />} />
                 <Route path="/projects/:projectId" element={<ProjectPage />}>
