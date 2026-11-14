@@ -21,7 +21,8 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["list"]],
+  // In CI a failed scenario also becomes a note on the run, visible without opening the log.
+  reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     colorScheme: "dark",

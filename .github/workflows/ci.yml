@@ -71,7 +71,19 @@ jobs:
         run: docker pull node:22-alpine && docker pull python:3.12-alpine
 
       - name: Test
-        run: pnpm test
+        run: |
+          set -o pipefail
+          pnpm test 2>&1 | tee test.log
+
+      # pnpm puts the package name before every line, so the test runner's own notes about failures
+      # never reach the summary of the run. This step shows the failed tests there.
+      - name: Show the failed tests
+        if: failure()
+        run: |
+          sed -E 's/\x1b\[[0-9;]*m//g' test.log \
+            | grep -E ' FAIL |AssertionError|Error: |Unhandled|ELIFECYCLE' \
+            | head -9 \
+            | while IFS= read -r line; do echo "::error title=Failed test::${line}"; done
 
   e2e:
     runs-on: ubuntu-latest
