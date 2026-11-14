@@ -127,7 +127,7 @@ test("a guest can keep the account, and is warned before leaving without it", as
   expect((await projects.json()).map((item: { id: string }) => item.id)).toContain(project.id);
 });
 
-test("an account can be deleted, and the privacy page is open to everyone", async ({ browser, request }) => {
+test("an account can be deleted, and the privacy page and the terms are open to everyone", async ({ browser, request }) => {
   const owner = await register(request, "Аня");
   const project = await createProject(request, owner, "Будет удалён");
   const page = await openAs(browser, owner, "/");
@@ -152,6 +152,29 @@ test("an account can be deleted, and the privacy page is open to everyone", asyn
 
   await page.getByRole("link", { name: /данные и приватность/i }).first().click();
   await expect(page.getByRole("heading", { name: "Данные и приватность" })).toBeVisible();
+  await expect(page.getByText("Гостевой аккаунт, которого нет ни в одном проекте")).toBeVisible();
+
+  await page.getByRole("link", { name: "Условия использования" }).click();
+  await expect(page.getByRole("heading", { name: "Условия использования" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Запуск кода" })).toBeVisible();
+});
+
+test("a new project can start from an example with a guide and code that is ready to run", async ({ browser, request }) => {
+  const owner = await register(request, "Аня");
+  const page = await openAs(browser, owner, "/");
+
+  await page.getByRole("button", { name: "Новый проект" }).first().click();
+  await page.getByRole("radio", { name: "С примером" }).click();
+  await expect(page.getByLabel("Название")).toBeFocused();
+  await page.getByLabel("Название").fill("Первый проект");
+  await page.getByRole("radio", { name: "JavaScript" }).click();
+  await page.getByRole("button", { name: "Создать", exact: true }).click();
+
+  // The project opens on the guide, which says what to do first.
+  await expect(page.getByRole("heading", { name: "С чего начать" })).toBeVisible();
+  await page.getByRole("link", { name: "main.js" }).click();
+  await expect.poll(() => editorText(page)).toContain("function fib(n)");
+  await expect(page.getByRole("button", { name: "Запустить" })).toBeVisible();
 });
 
 test("following a participant goes to their file and keeps their cursor in view", async ({ browser, request }) => {

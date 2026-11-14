@@ -28,6 +28,19 @@
 		reverse_proxy runner:3003
 	}
 
+	# A messenger builds the preview of a link from the page's HTML and does not run the web app.
+	# Its robot gets a small page with the title and the picture from the API, so an invitation link
+	# shows who invites and to which project. Keep the list in step with infra/local-host/src/server.ts.
+	@preview {
+		method GET
+		path / /join/*
+		header_regexp User-Agent (?i)(telegrambot|whatsapp|facebookexternalhit|twitterbot|slackbot|discordbot|vkshare|linkedinbot|viber|skypeuripreview)
+	}
+	handle @preview {
+		rewrite * /preview{path}
+		reverse_proxy api:3001
+	}
+
 	handle {
 		root * /srv/web
 		@fresh path / /index.html /sw.js /manifest.webmanifest /registerSW.js

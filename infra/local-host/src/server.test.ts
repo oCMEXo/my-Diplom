@@ -114,6 +114,23 @@ let terminal: http.Server;
     expect(fs.existsSync(path.join(webRoot, "assets", "app-abc123.js.br"))).toBe(false);
   });
 
+  it("sends the robots of messengers to the preview page of the API, and people to the app", async () => {
+    const robot = { headers: { "User-Agent": "TelegramBot (like TwitterBot)" } };
+
+    await get("/join/abc123", robot);
+    expect(seen.url).toBe("/preview/join/abc123");
+    await get("/?from=chat", robot);
+    expect(seen.url).toBe("/preview/");
+
+    seen.url = undefined;
+    const person = await get("/join/abc123", { headers: { "User-Agent": "Mozilla/5.0" } });
+    expect(await person.text()).toContain("<title>app</title>");
+    // Only pages that have a preview go to the API: a robot asking for a file gets the file.
+    const file = await get("/assets/app-abc123.js", robot);
+    expect(await file.text()).toBe("console.log(1)");
+    expect(seen.url).toBeUndefined();
+  });
+
   it("sends basic security headers", async () => {
     const response = await get("/");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");

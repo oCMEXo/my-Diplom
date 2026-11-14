@@ -8,6 +8,7 @@ import {
   deleteAccount,
   loginAsGuest,
   loginUser,
+  purgeStaleGuests,
   refreshSession,
   registerUser,
   upgradeGuest,
@@ -67,6 +68,77 @@ describe("loginAsGuest", () => {
 
     expect(a.user.id).not.toBe(b.user.id);
     expect(a.user.email).not.toBe(b.user.email);
+  });
+});
+
+describe("purgeStaleGuests", () => {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const userIds: string[] = [];
+  const projectIds: string[] = [];
+
+  afterAll(async () => {
+    await prisma.project.deleteMany({ where: { id: { in: projectIds } } });
+    await prisma.message.deleteMany({ where: { authorId: { in: userIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+  });
+
+  /** A guest whose account is `days` old; the session ended unless `liveSession` is set. */
+  async function guestFrom(days: number, { liveSession = false } = {}) {
+    const { user } = await loginAsGuest({ name: "Гость" });
+    userIds.push(user.id);
+    await prisma.user.update({ where: { id: user.id }, data: { createdAt: new Date(Date.now() - days * DAY_MS) } });
+    if (!liveSession) {
+      await prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { expiresAt: new Date(Date.now() - DAY_MS) } });
+    }
+    return user;
+  }
+
+  const exists = async (id: string) => (await prisma.user.findUnique({ where: { id } })) !== null;
+
+  it("deletes an old guest who is in no project, with the messages", async () => {
+    const owner = await registerUser({ email: `${randomUUID()}@example.com`, name: "Аня", password: "password123" });
+    userIds.push(owner.user.id);
+    const project = await createProject(owner.user.id, { name: "Проект" });
+    projectIds.push(project.id);
+    const guest = await guestFrom(45);
+    // The guest wrote in the chat and was then removed from the project.
+    await prisma.projectMember.create({ data: { projectId: project.id, userId: guest.id, role: "editor" } });
+    const message = await createMessage(guest.id, project.id, { body: "привет" });
+    await prisma.projectMember.delete({ where: { projectId_userId: { projectId: project.id, userId: guest.id } } });
+
+    expect(await purgeStaleGuests()).toBeGreaterThanOrEqual(1);
+
+    expect(await exists(guest.id)).toBe(false);
+    expect(await prisma.message.findUnique({ where: { id: message.id } })).toBeNull();
+    expect(await exists(owner.user.id)).toBe(true);
+  });
+
+  it("keeps a guest who is new, is in a project or still has a session", async () => {
+    const owner = await registerUser({ email: `${randomUUID()}@example.com`, name: "Аня", password: "password123" });
+    userIds.push(owner.user.id);
+    const project = await createProject(owner.user.id, { name: "Проект" });
+    projectIds.push(project.id);
+    const fresh = await guestFrom(5);
+    const member = await guestFrom(45);
+    await prisma.projectMember.create({ data: { projectId: project.id, userId: member.id, role: "viewer" } });
+    const signedIn = await guestFrom(45, { liveSession: true });
+
+    await purgeStaleGuests();
+
+    expect(await exists(fresh.id)).toBe(true);
+    expect(await exists(member.id)).toBe(true);
+    expect(await exists(signedIn.id)).toBe(true);
+  });
+
+  it("never deletes a registered account", async () => {
+    const old = await registerUser({ email: `${randomUUID()}@example.com`, name: "Старый", password: "password123" });
+    userIds.push(old.user.id);
+    await prisma.user.update({ where: { id: old.user.id }, data: { createdAt: new Date(Date.now() - 400 * DAY_MS) } });
+    await prisma.refreshToken.deleteMany({ where: { userId: old.user.id } });
+
+    await purgeStaleGuests();
+
+    expect(await exists(old.user.id)).toBe(true);
   });
 });
 

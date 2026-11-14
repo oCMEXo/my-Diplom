@@ -45,6 +45,20 @@ function route(url: string, options: HostOptions) {
 
 const NO_CACHE = new Set(["/", "/index.html", "/sw.js", "/manifest.webmanifest", "/registerSW.js"]);
 
+/** The robots that messengers send to build a link preview. Keep in step with infra/gcp/Caddyfile. */
+const PREVIEW_ROBOTS = /telegrambot|whatsapp|facebookexternalhit|twitterbot|slackbot|discordbot|vkshare|linkedinbot|viber|skypeuripreview/i;
+
+/**
+ * A robot does not run the web app, so for the start page and for invitation links it gets a small
+ * page with the title and the picture from the API (`/preview/*`).
+ */
+function previewPath(request: http.IncomingMessage) {
+  const url = request.url ?? "/";
+  const path = url.split("?")[0]!;
+  if (request.method !== "GET" || !PREVIEW_ROBOTS.test(request.headers["user-agent"] ?? "")) return null;
+  return path === "/" || path.startsWith("/join/") ? `/preview${path}` : null;
+}
+
 /**
  * One address for everything: the built web app, the REST API under `/api`, the sync server under
  * `/collab` and the terminals under `/terminal` (WebSockets included). That is what lets a single public tunnel carry the whole site.
@@ -88,6 +102,13 @@ export function createHostServer(options: HostOptions) {
       request.url = routed.rest;
       setClientAddress(request);
       proxy.web(request, response, { target: routed.target });
+      return;
+    }
+    const preview = previewPath(request);
+    if (preview) {
+      request.url = preview;
+      setClientAddress(request);
+      proxy.web(request, response, { target: options.apiTarget });
       return;
     }
     web(request, response, () => {

@@ -52,6 +52,13 @@ export function RegisterPage() {
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
           {loading ? "Создаём…" : "Создать аккаунт"}
         </Button>
+        <p className="text-center text-sm text-faint">
+          Создавая аккаунт, вы принимаете{" "}
+          <Link to="/terms" className="underline hover:text-fg">
+            условия использования
+          </Link>
+          .
+        </p>
         <p className="pt-2 text-center text-base text-muted">
           Уже есть аккаунт?{" "}
           <Link to={loginLink} className="font-medium text-accent-ink hover:underline">

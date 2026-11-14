@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FolderPlus, GitBranch } from "lucide-react";
-import type { ImportResult, Project } from "@collab/shared";
+import { FileCode, FolderPlus, GitBranch } from "lucide-react";
+import type { ImportResult, Project, ProjectTemplate } from "@collab/shared";
 import { api, ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Segmented } from "./ui/Segmented";
 
-type Source = "empty" | "github";
+type Source = "empty" | "example" | "github";
 
 /** "https://github.com/owner/repo/tree/dev" -> "repo"; falls back to the raw text. */
 export function projectNameFromRepoUrl(url: string) {
@@ -23,11 +23,13 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
   const [source, setSource] = useState<Source>("empty");
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
+  const [template, setTemplate] = useState<ProjectTemplate>("python");
   const [created, setCreated] = useState<Project | null>(null);
 
   const create = useMutation({
     mutationFn: async () => {
       if (source === "empty") return api.post<Project>("/projects", { name: name.trim() });
+      if (source === "example") return api.post<Project>("/projects", { name: name.trim(), template });
       const project = created ?? (await api.post<Project>("/projects", { name: projectNameFromRepoUrl(url) }));
       setCreated(project);
       await api.post<ImportResult>(`/projects/${project.id}/import/github`, { url: url.trim() });
@@ -39,7 +41,7 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
     },
   });
 
-  const ready = source === "empty" ? name.trim() : url.trim();
+  const ready = source === "github" ? url.trim() : name.trim();
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -55,6 +57,7 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
           onChange={setSource}
           options={[
             { value: "empty", label: "Пустой проект", icon: <FolderPlus size={22} /> },
+            { value: "example", label: "С примером", icon: <FileCode size={22} /> },
             { value: "github", label: "Из GitHub", icon: <GitBranch size={22} /> },
           ]}
         />
@@ -64,18 +67,32 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
             {created && " Проект уже создан — можно открыть его и повторить импорт."}
           </ErrorNote>
         )}
-        {source === "empty" ? (
-          // Different keys make React create a new field on switching, so autoFocus moves the cursor there.
-          <Field
-            key="name"
-            autoFocus
-            data-autofocus
-            label="Название"
-            placeholder="Например, Курсовая по алгоритмам"
-            maxLength={200}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
+        {source !== "github" ? (
+          <>
+            {/* Different keys make React create a new field on switching, so autoFocus moves the cursor there. */}
+            <Field
+              key={source}
+              autoFocus
+              data-autofocus
+              label="Название"
+              placeholder="Например, Курсовая по алгоритмам"
+              maxLength={200}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              hint={source === "example" ? "В проекте будут короткая инструкция и файл, который можно сразу запустить." : undefined}
+            />
+            {source === "example" && (
+              <Segmented
+                label="Язык примера"
+                value={template}
+                onChange={setTemplate}
+                options={[
+                  { value: "python", label: "Python" },
+                  { value: "javascript", label: "JavaScript" },
+                ]}
+              />
+            )}
+          </>
         ) : (
           <Field
             key="url"

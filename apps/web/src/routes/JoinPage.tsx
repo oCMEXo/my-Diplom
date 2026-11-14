@@ -93,7 +93,11 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
             onChange={(event) => setName(event.target.value)}
             hint={
               <>
-                Имя увидят остальные участники. Регистрация не нужна.{" "}
+                Имя увидят остальные участники. Регистрация не нужна. Присоединяясь, вы принимаете{" "}
+                <Link to="/terms" className="underline hover:text-fg">
+                  условия использования
+                </Link>
+                .{" "}
                 <Link to="/privacy" className="underline hover:text-fg">
                   Какие данные мы храним
                 </Link>

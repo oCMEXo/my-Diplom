@@ -28,6 +28,7 @@ import { branchesRoutes } from "./modules/branches/branches.routes.js";
 import { terminalRoutes } from "./modules/terminal/terminal.routes.js";
 import { exportRoutes } from "./modules/export/export.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
+import { previewRoutes } from "./modules/preview/preview.routes.js";
 import { closeTerminalTickets } from "./lib/terminal-tickets.js";
 import { codeMatches, runMode } from "./lib/run-access.js";
 import { featuresSchema, runAccessSchema } from "@collab/shared";
@@ -62,6 +63,7 @@ export async function buildApp(options: AppOptions = {}) {
   const limits = options.rateLimit ?? { perMinute: env.RATE_LIMIT_PER_MINUTE, authPerMinute: env.RATE_LIMIT_AUTH_PER_MINUTE };
   const runEnabled = options.runEnabled ?? env.RUN_ENABLED;
   const runAccessCode = "runAccessCode" in options ? options.runAccessCode : env.RUN_ACCESS_CODE;
+  const trustProxy = options.trustProxy ?? env.TRUST_PROXY;
   const app = Fastify({
     logger: {
       serializers: {
@@ -72,7 +74,7 @@ export async function buildApp(options: AppOptions = {}) {
         }),
       },
     },
-    trustProxy: options.trustProxy ?? env.TRUST_PROXY,
+    trustProxy,
   });
 
   app.setValidatorCompiler(validatorCompiler);
@@ -163,6 +165,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(branchesRoutes, { prefix: "/projects" });
   await app.register(exportRoutes, { prefix: "/projects" });
   await app.register(realtimeRoutes);
+  await app.register(previewRoutes, { trustProxy });
 
   app.addHook("onClose", closeRunQueue);
   app.addHook("onClose", closeTerminalTickets);

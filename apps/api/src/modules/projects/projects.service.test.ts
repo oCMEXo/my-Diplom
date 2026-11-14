@@ -6,6 +6,7 @@ import { ACCESS_CHANGES_CHANNEL, type AccessChange } from "@collab/shared";
 import { env } from "../../env.js";
 import { closeAccessChanges } from "../../lib/access-changes.js";
 import { hub } from "../../lib/hub.js";
+import { yjsStateToText } from "../../lib/yjs-text.js";
 import {
   createProject,
   deleteProject,
@@ -57,6 +58,21 @@ describe("projects.service", () => {
 
     expect(p.ownerId).toBe(owner.id);
     expect(p.myRole).toBe("owner");
+    expect(await prisma.file.count({ where: { projectId: p.id } })).toBe(0);
+  });
+
+  it("starts a project from an example with a guide and a file that can run", async () => {
+    const owner = await user();
+    const p = await createProject(owner.id, { name: "С примером", template: "python" });
+    createdProjectIds.push(p.id);
+
+    const files = await prisma.file.findMany({ where: { projectId: p.id }, orderBy: { path: "asc" } });
+    expect(files.map((file) => [file.path, file.type, file.language, file.branch])).toEqual([
+      ["README.md", "doc", "markdown", ""],
+      ["main.py", "code", "python", ""],
+    ]);
+    expect(yjsStateToText(files[0]!.yjsState)).toContain("main.py");
+    expect(yjsStateToText(files[1]!.yjsState)).toContain("print([fib(i) for i in range(10)])");
   });
 
   it("lists only projects the user is a member of", async () => {
