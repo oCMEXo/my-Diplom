@@ -8,6 +8,11 @@ erDiagram
   users |o--o{ file_versions : "version author"
   projects ||--o{ messages : "chat"
   users ||--o{ messages : "writes"
+  users ||--o{ email_tokens : "email links"
+  users ||--o{ classes : "teaches"
+  projects ||--o| classes : "task of"
+  classes |o--o{ projects : "student copies"
+  users |o--o{ usage_events : "usage"
 
   users {
     text id PK "UUID"
@@ -15,6 +20,8 @@ erDiagram
     text name
     text password_hash "Argon2id"
     boolean is_guest
+    timestamp email_verified_at "NULL"
+    text github_id UK "NULL"
     timestamp created_at
   }
   refresh_tokens {
@@ -33,6 +40,7 @@ erDiagram
     text github_owner "NULL"
     text github_repo "NULL"
     text github_branch "NULL"
+    text class_id FK "NULL"
     timestamp created_at
   }
   project_members {
@@ -66,5 +74,28 @@ erDiagram
     text project_id FK
     text author_id FK
     text body
+    timestamp created_at
+  }
+  email_tokens {
+    text id PK "UUID"
+    text user_id FK
+    EmailTokenKind kind
+    text token_hash UK "SHA-256"
+    timestamp expires_at
+    timestamp created_at
+  }
+  classes {
+    text id PK "UUID"
+    text name
+    text teacher_id FK
+    text task_project_id FK "UK"
+    text join_code UK
+    timestamp created_at
+  }
+  usage_events {
+    text id PK "UUID"
+    text kind
+    text user_id FK "NULL"
+    text project_id "NULL"
     timestamp created_at
   }

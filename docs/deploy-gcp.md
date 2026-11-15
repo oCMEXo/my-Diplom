@@ -67,3 +67,47 @@ To stop the machine and save credit (the address stays; the disk and IP are stil
 ```bash
 gcloud compute instances stop collab --zone=europe-north1-a
 ```
+
+## Settings for running it as a service
+
+Add these to `/opt/collab/.env` on the VM (then `node infra/gcp/deploy.mjs` copies them into place):
+
+| Setting | What it does |
+|---|---|
+| `SMTP_URL`, `MAIL_FROM` | Email for confirming addresses and resetting passwords, for example `smtp://user:password@smtp.example.com:587` |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | "Continue with GitHub". The OAuth app's callback is `https://<site>/api/auth/github/callback` |
+| `MAX_PROJECTS_PER_USER`, `MAX_FILES_PER_PROJECT`, `RUNS_PER_MINUTE` | Limits per person (defaults 100, 2000 and 20) |
+
+## Stronger sandbox (gVisor)
+
+```bash
+gcloud compute ssh collab --zone=europe-north1-a --command "sudo bash /opt/collab/src/infra/gcp/enable-gvisor.sh"
+```
+
+The script installs gVisor, checks that a container starts with it, sets `SANDBOX_RUNTIME=runsc` and
+restarts the runner. Every program and terminal then runs on gVisor's kernel in user space instead of the
+host kernel.
+
+## Backups
+
+The `backup` service dumps the database once a day into the `backups` volume and keeps 7 days. To make one
+now, or to restore one:
+
+```bash
+cd /opt/collab/src
+sudo docker compose -f infra/gcp/docker-compose.yml run --rm -e BACKUP_ONCE=1 backup
+sudo docker compose -f infra/gcp/docker-compose.yml exec backup ls -l /backups
+sudo docker compose -f infra/gcp/docker-compose.yml exec backup pg_restore --clean --if-exists --no-owner -d collab /backups/collab-2026-11-15.dump
+```
+
+The dumps are on the VM's disk, so they protect against mistakes and bad migrations, not against losing
+the disk. For that, add a snapshot schedule for the disk in Google Cloud.
+
+## Watching the site
+
+- `https://<site>/api/health/ready` answers 200 only when the database and Redis work. Point a free uptime
+  monitor at it.
+- Errors from browsers are written to the API log as `client error`:
+  `sudo docker compose -f infra/gcp/docker-compose.yml logs api | grep "client error"`.
+- Usage numbers for the last 7 days:
+  `sudo docker compose -f infra/gcp/docker-compose.yml exec api pnpm --filter @collab/api stats`.
