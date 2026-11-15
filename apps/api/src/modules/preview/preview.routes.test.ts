@@ -13,7 +13,7 @@ describe("GET /preview/*", () => {
   beforeAll(async () => {
     app = await buildApp({ trustProxy: true });
     const owner = await prisma.user.create({
-      data: { email: `${randomUUID()}@test.local`, name: "Аня <b>", passwordHash: "not-a-real-hash" },
+      data: { email: `${randomUUID()}@test.local`, name: "Anna <b>", passwordHash: "not-a-real-hash" },
     });
     ownerId = owner.id;
   });
@@ -28,7 +28,7 @@ describe("GET /preview/*", () => {
     app.inject({ method: "GET", url: `/preview${path}`, headers: { host: "collab.example", "x-forwarded-proto": "https", ...headers } });
 
   it("says who invites and to which project, with the names made safe", async () => {
-    const project = await createProject(ownerId, { name: 'Курсовая "<script>alert(1)</script>"' });
+    const project = await createProject(ownerId, { name: 'Coursework "<script>alert(1)</script>"' });
     projectIds.push(project.id);
 
     const response = await preview(`/join/${project.inviteCode}`);
@@ -36,30 +36,30 @@ describe("GET /preview/*", () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toContain("text/html");
     expect(response.body).toContain(
-      '<meta property="og:title" content="Аня &lt;b&gt; приглашает вас в проект «Курсовая &quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;»">',
+      '<meta property="og:title" content="Anna &lt;b&gt; invites you to the project “Coursework &quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;”">',
     );
     expect(response.body).not.toContain("<script>");
     expect(response.body).toContain(`<meta property="og:url" content="https://collab.example/join/${project.inviteCode}">`);
     expect(response.body).toContain('<meta property="og:image" content="https://collab.example/og.png">');
-    expect(response.body).toContain("редактируйте вместе");
+    expect(response.body).toContain("edit together");
   });
 
   it("tells a person with a read-only link that the project can be viewed", async () => {
-    const project = await createProject(ownerId, { name: "Только чтение" });
+    const project = await createProject(ownerId, { name: "Read only" });
     projectIds.push(project.id);
     await updateInviteRole(ownerId, project.id, "viewer");
 
     const response = await preview(`/join/${project.inviteCode}`);
 
-    expect(response.body).toContain("чтобы посмотреть проект");
-    expect(response.body).not.toContain("редактируйте вместе");
+    expect(response.body).toContain("to view the project");
+    expect(response.body).not.toContain("edit together");
   });
 
   it("describes the site for an unknown invitation and for any other page", async () => {
     for (const path of ["/join/no-such-code", "/", "/projects/123", "/join/a/b"]) {
       const response = await preview(path);
       expect(response.statusCode).toBe(200);
-      expect(response.body).toContain('<meta property="og:title" content="Collab — совместная работа над проектом">');
+      expect(response.body).toContain('<meta property="og:title" content="Collab: work on a project together">');
       expect(response.body).toContain('<meta property="og:url" content="https://collab.example/">');
     }
   });

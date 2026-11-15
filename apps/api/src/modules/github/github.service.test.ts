@@ -188,7 +188,7 @@ describe("pushToGithub", () => {
     expect(stored.sourceSha).toBe(gitBlobSha("one changed"));
     await expect(pushToGithub(owner.id, project.id, input, github.fetchImpl)).rejects.toMatchObject({
       statusCode: 409,
-      message: expect.stringContaining("Нет изменений"),
+      message: expect.stringContaining("Nothing to push"),
     });
   });
 
@@ -263,7 +263,7 @@ describe("pushToGithub", () => {
     await prisma.file.create({ data: { projectId: project.id, path: "empty.txt", type: "code" } });
 
     await expect(pushToGithub(owner.id, project.id, input, github.fetchImpl)).rejects.toMatchObject({
-      message: expect.stringContaining("Нет изменений"),
+      message: expect.stringContaining("Nothing to push"),
     });
   });
 
@@ -274,7 +274,7 @@ describe("pushToGithub", () => {
 
     await expect(
       pushToGithub(owner.id, project.id, { ...input, token: "wrong_token_value" }, fakeGithub({ "a.txt": "one" }).fetchImpl),
-    ).rejects.toMatchObject({ statusCode: 400, message: expect.stringContaining("токен") });
+    ).rejects.toMatchObject({ statusCode: 400, message: expect.stringContaining("token") });
 
     await expect(
       pushToGithub(owner.id, project.id, input, fakeGithub({ "a.txt": "one" }, { canPush: false }).fetchImpl),

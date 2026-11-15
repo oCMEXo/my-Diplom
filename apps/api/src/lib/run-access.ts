@@ -15,7 +15,7 @@ export function codeMatches(expected: string, given: unknown): boolean {
   return typeof given === "string" && timingSafeEqual(digest(expected), digest(given.trim()));
 }
 
-export const WRONG_CODE_MESSAGE = "Запуск кода на этом сайте защищён кодом доступа. Введите верный код.";
+export const WRONG_CODE_MESSAGE = "Running code on this site needs an access code. Enter the right code.";
 
 /** A preHandler for routes that run code: with an access code set, the request must carry it. */
 export function requireRunCode(accessCode: string | undefined) {

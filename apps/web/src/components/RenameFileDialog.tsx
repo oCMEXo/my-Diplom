@@ -39,21 +39,21 @@ export function RenameFileDialog({
   }
 
   return (
-    <Modal title="Переименовать файл" description="Чтобы переместить файл в папку, укажите её в имени: src/app.js." onClose={onClose}>
+    <Modal title="Rename the file" description="To move the file into a folder, put the folder in the name: src/app.js." onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         {rename.error && (
-          <ErrorNote>{rename.error instanceof ApiError ? rename.error.message : "Не удалось переименовать файл"}</ErrorNote>
+          <ErrorNote>{rename.error instanceof ApiError ? rename.error.message : "Could not rename the file"}</ErrorNote>
         )}
         <Field
-          label="Новое имя"
+          label="New name"
           value={path}
           onChange={(event) => setPath(event.target.value)}
           maxLength={500}
           hint={
             clash ? (
-              <span className="text-bad">Файл с таким именем уже есть</span>
+              <span className="text-bad">A file with this name already exists</span>
             ) : invalid ? (
-              <span className="text-bad">Имя не должно начинаться или заканчиваться на «/» и содержать «..»</span>
+              <span className="text-bad">The name must not start or end with “/” or contain “..”</span>
             ) : file.type === "code" ? (
               <LanguageHint path={path} />
             ) : undefined
@@ -61,14 +61,14 @@ export function RenameFileDialog({
         />
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={rename.isPending}>
-            Отмена
+            Cancel
           </Button>
           <Button
             type="submit"
             variant="primary"
             disabled={!trimmed || trimmed === file.path || clash || invalid || rename.isPending}
           >
-            {rename.isPending ? "Сохраняем…" : "Переименовать"}
+            {rename.isPending ? "Saving…" : "Rename"}
           </Button>
         </div>
       </form>

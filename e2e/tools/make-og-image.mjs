@@ -10,9 +10,8 @@ const font = (subset) =>
 const icon = readFileSync(path.join(web, "public/icon.svg"), "utf8");
 
 const html = `<!doctype html>
-<html lang="ru">
+<html lang="en">
 <style>
-  @font-face { font-family: Inter; font-weight: 100 900; src: url(data:font/woff2;base64,${font("cyrillic")}) format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
   @font-face { font-family: Inter; font-weight: 100 900; src: url(data:font/woff2;base64,${font("latin")}) format("woff2"); }
   body { margin: 0; width: 1200px; height: 630px; overflow: hidden; position: relative; background: #1e1f22; color: #fff; font-family: Inter, Arial, sans-serif; }
   .glow { position: absolute; border-radius: 50%; }
@@ -30,8 +29,8 @@ const html = `<!doctype html>
   <div class="glow a"></div><div class="glow b"></div>
   <main>
     <div class="brand">${icon}Collab</div>
-    <h1>Общее пространство, где проект делается <span>вместе</span></h1>
-    <ul><li>Вход без регистрации</li><li>Код, документы, доски</li><li>Чат и курсоры коллег</li></ul>
+    <h1>A shared place where a project is made <span>together</span></h1>
+    <ul><li>Join without an account</li><li>Code, documents, boards</li><li>Chat and live cursors</li></ul>
   </main>
 </body>
 </html>`;

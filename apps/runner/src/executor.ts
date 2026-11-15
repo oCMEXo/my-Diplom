@@ -103,7 +103,7 @@ export function runInSandbox(
     }
 
     child.on("error", (error) => {
-      onOutput("stderr", `Не удалось запустить docker: ${error.message}\n`);
+      onOutput("stderr", `Could not start docker: ${error.message}\n`);
       finish(null, true);
     });
     child.on("close", (code) => finish(code, false));

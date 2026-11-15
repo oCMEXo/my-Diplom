@@ -85,13 +85,13 @@ export async function buildApp(options: AppOptions = {}) {
       return reply.code(error.statusCode).send({ message: error.message });
     }
     if (error.validation) {
-      return reply.code(400).send({ message: "Проверьте введённые данные: что-то заполнено неверно." });
+      return reply.code(400).send({ message: "Please check the form: some fields are not valid." });
     }
     if (error.statusCode && error.statusCode < 500) {
       return reply.code(error.statusCode).send({ message: error.message });
     }
     request.log.error(error);
-    return reply.code(500).send({ message: "Ошибка на сервере. Попробуйте ещё раз." });
+    return reply.code(500).send({ message: "Server error. Please try again." });
   });
 
   await app.register(cors, { origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true });
@@ -108,7 +108,7 @@ export async function buildApp(options: AppOptions = {}) {
       timeWindow: "1 minute",
       errorResponseBuilder: (_request, context) => ({
         statusCode: 429,
-        message: `Слишком много запросов. Подождите ${Math.ceil(context.ttl / 1000)} с и попробуйте снова.`,
+        message: `Too many requests. Wait ${Math.ceil(context.ttl / 1000)} s and try again.`,
       }),
     });
   }
@@ -137,8 +137,8 @@ export async function buildApp(options: AppOptions = {}) {
   );
   // Lets the app check the access code before remembering it. Limited like sign-in, so it cannot be guessed.
   app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema } }, async (request, reply) => {
-    if (!runEnabled) throw new AppError("Запуск кода на этом сервере выключен", 403);
-    if (runAccessCode && !codeMatches(runAccessCode, request.body.code)) throw new AppError("Неверный код доступа", 403);
+    if (!runEnabled) throw new AppError("Running code is turned off on this server", 403);
+    if (runAccessCode && !codeMatches(runAccessCode, request.body.code)) throw new AppError("Wrong access code", 403);
     return reply.code(204).send();
   });
 
@@ -156,7 +156,7 @@ export async function buildApp(options: AppOptions = {}) {
     // This server does not run visitors' programs; say so instead of queueing a job nobody will take.
     for (const url of ["/projects/:projectId/files/:fileId/run", "/projects/:projectId/terminal"]) {
       app.post(url, { preHandler: [app.authenticate] }, async () => {
-        throw new AppError("Запуск кода на этом сервере выключен", 403);
+        throw new AppError("Running code is turned off on this server", 403);
       });
     }
   }

@@ -47,7 +47,7 @@ async function issueTokens(user: { id: string; email: string }) {
 export async function registerUser(input: RegisterInput) {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
-    throw new AppError("Этот email уже зарегистрирован", 409);
+    throw new AppError("This email is already registered", 409);
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -67,7 +67,7 @@ export async function loginUser(input: LoginInput) {
   decoyHash ??= hashPassword(randomUUID());
   const valid = await verifyPassword(user?.passwordHash ?? (await decoyHash), input.password);
   if (!user || !valid) {
-    throw new AppError("Неверный email или пароль", 401);
+    throw new AppError("Wrong email or password", 401);
   }
 
   const tokens = await issueTokens(user);
@@ -80,7 +80,7 @@ export async function loginAsGuest(input: GuestLoginInput) {
     data: {
       email: `guest-${randomUUID()}@guest.local`,
       // Without a number every nameless guest would look the same on the cursors and in the chat.
-      name: input.name?.trim() || `Гость ${randomInt(1000, 10000)}`,
+      name: input.name?.trim() || `Guest ${randomInt(1000, 10000)}`,
       passwordHash,
       isGuest: true,
     },
@@ -103,12 +103,12 @@ export async function refreshSession(refreshToken: string) {
   });
 
   if (!stored || stored.expiresAt < new Date()) {
-    throw new AppError("Сессия истекла. Войдите снова.", 401);
+    throw new AppError("Your session has expired. Please sign in again.", 401);
   }
 
   // Two tabs can present the same token at once: only one of them gets a new one.
   const { count } = await prisma.refreshToken.deleteMany({ where: { id: stored.id } });
-  if (count === 0) throw new AppError("Сессия истекла. Войдите снова.", 401);
+  if (count === 0) throw new AppError("Your session has expired. Please sign in again.", 401);
 
   const tokens = await issueTokens(stored.user);
   return { user: toAuthUser(stored.user), tokens };
@@ -117,10 +117,10 @@ export async function refreshSession(refreshToken: string) {
 /** A guest keeps the account, and with it the projects and the chat history, by adding a login. */
 export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  if (!user.isGuest) throw new AppError("Это уже постоянный аккаунт", 400);
+  if (!user.isGuest) throw new AppError("This is already a full account", 400);
 
   const taken = await prisma.user.findUnique({ where: { email: input.email } });
-  if (taken) throw new AppError("Этот email уже зарегистрирован", 409);
+  if (taken) throw new AppError("This email is already registered", 409);
 
   const updated = await prisma.user.update({
     where: { id: userId },
@@ -136,7 +136,7 @@ export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
 export async function deleteAccount(userId: string, input: DeleteAccountInput) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   if (!user.isGuest && !(input.password && (await verifyPassword(user.passwordHash, input.password)))) {
-    throw new AppError("Неверный пароль", 403);
+    throw new AppError("Wrong password", 403);
   }
 
   const memberships = await prisma.projectMember.findMany({

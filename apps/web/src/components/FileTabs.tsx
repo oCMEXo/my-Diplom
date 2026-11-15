@@ -32,7 +32,7 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
   }
 
   return (
-    <div role="tablist" aria-label="Открытые файлы" className="flex shrink-0 overflow-x-auto border-b border-line bg-surface">
+    <div role="tablist" aria-label="Open files" className="flex shrink-0 overflow-x-auto border-b border-line bg-surface">
       {open.map((file) => {
         const kind = FILE_KINDS[file.type];
         const active = file.id === activeId;
@@ -58,8 +58,8 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
             </Link>
             <button
               onClick={() => closeTab(file.id)}
-              aria-label={`Закрыть вкладку ${file.path}`}
-              title="Закрыть вкладку"
+              aria-label={`Close tab ${file.path}`}
+              title="Close tab"
               className="touch-visible mr-1.5 rounded p-0.5 text-faint opacity-0 transition hover:bg-raised hover:text-fg focus-visible:opacity-100 group-hover/tab:opacity-100"
             >
               <X size={16} />

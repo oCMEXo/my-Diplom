@@ -52,7 +52,7 @@ export class GithubApi {
         signal: AbortSignal.timeout(30_000),
       });
     } catch {
-      throw new AppError("Не удалось связаться с GitHub. Попробуйте ещё раз.", 502);
+      throw new AppError("Could not reach GitHub. Please try again.", 502);
     }
 
     if (response.ok) return (await response.json()) as T;
@@ -64,21 +64,21 @@ export class GithubApi {
 
     switch (response.status) {
       case 401:
-        throw new AppError("GitHub не принял токен: он недействителен или просрочен.", 400);
+        throw new AppError("GitHub did not accept the token: it is not valid or has expired.", 400);
       case 403:
         throw new AppError(
           detail?.toLowerCase().includes("rate limit")
-            ? "GitHub временно ограничил запросы. Попробуйте позже."
-            : "У токена нет прав на запись в этот репозиторий (нужен доступ Contents: write).",
+            ? "GitHub is limiting requests for now. Please try later."
+            : "The token cannot write to this repository (it needs Contents: write).",
           403,
         );
       case 404:
-        throw new AppError("Репозиторий или ветка не найдены, либо у токена нет к ним доступа.", 404);
+        throw new AppError("Repository or branch not found, or the token has no access to it.", 404);
       case 409:
       case 422:
-        throw new AppError(`GitHub отклонил изменение${detail ? `: ${detail}` : "."}`, 409);
+        throw new AppError(`GitHub rejected the change${detail ? `: ${detail}` : "."}`, 409);
       default:
-        throw new AppError("GitHub вернул ошибку. Попробуйте ещё раз.", 502);
+        throw new AppError("GitHub returned an error. Please try again.", 502);
     }
   }
 }

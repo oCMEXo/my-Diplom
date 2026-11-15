@@ -68,7 +68,7 @@ export async function importFromGithub(
 
   const repo = parseGithubUrl(url);
   if (!repo) {
-    throw new AppError("Не похоже на ссылку на репозиторий GitHub. Пример: https://github.com/owner/repo", 400);
+    throw new AppError("This does not look like a GitHub repository link. Example: https://github.com/owner/repo", 400);
   }
 
   const project = await prisma.project.findUniqueOrThrow({ where: { id: projectId } });

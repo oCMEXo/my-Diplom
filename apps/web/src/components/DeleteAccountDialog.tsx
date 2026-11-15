@@ -20,22 +20,22 @@ export function DeleteAccountDialog({ onClose }: { onClose: () => void }) {
     try {
       await deleteAccount(isGuest ? {} : { password });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось удалить аккаунт");
+      setError(err instanceof ApiError ? err.message : "Could not delete the account");
       setDeleting(false);
     }
   }
 
   return (
     <Modal
-      title="Удалить аккаунт?"
-      description="Это нельзя отменить. Удалятся ваш аккаунт, ваши сообщения в чатах и проекты, которыми вы владеете, вместе с их файлами. Из чужих проектов вы просто выйдете."
+      title="Delete your account?"
+      description="This cannot be undone. Your account, your chat messages and the projects you own, with their files, will be deleted. You will simply leave other people's projects."
       onClose={onClose}
     >
       <form onSubmit={submit} className="space-y-4">
         {error && <ErrorNote>{error}</ErrorNote>}
         {!isGuest && (
           <Field
-            label="Пароль, чтобы подтвердить"
+            label="Password to confirm"
             type="password"
             required
             autoComplete="current-password"
@@ -45,10 +45,10 @@ export function DeleteAccountDialog({ onClose }: { onClose: () => void }) {
         )}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={deleting}>
-            Отмена
+            Cancel
           </Button>
           <Button type="submit" variant="danger" disabled={deleting}>
-            {deleting ? "Удаляем…" : "Удалить навсегда"}
+            {deleting ? "Deleting…" : "Delete forever"}
           </Button>
         </div>
       </form>

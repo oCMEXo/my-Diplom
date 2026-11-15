@@ -10,7 +10,7 @@ describe("terminal tickets", () => {
   const userIds: string[] = [];
   const projectIds: string[] = [];
 
-  async function user(name = "Терминальщик") {
+  async function user(name = "Terminal user") {
     const created = await prisma.user.create({
       data: { email: `${randomUUID()}@test.local`, name, passwordHash: "x" },
     });
@@ -24,8 +24,8 @@ describe("terminal tickets", () => {
   });
 
   it("hands the runner the text files of the active branch through an unguessable one-time ticket", async () => {
-    const owner = await user("Аня");
-    const project = await createProject(owner.id, { name: "Терминал" });
+    const owner = await user("Anna");
+    const project = await createProject(owner.id, { name: "Terminal" });
     projectIds.push(project.id);
     await prisma.project.update({ where: { id: project.id }, data: { githubOwner: "o", githubRepo: "r", githubBranch: "dev" } });
     const file = (path: string, content: string, extra: object = {}) =>
@@ -49,7 +49,7 @@ describe("terminal tickets", () => {
     expect(first.ticket).toMatch(/^[A-Za-z0-9_-]{32}$/);
     expect(second.ticket).not.toBe(first.ticket);
     expect(stored[0]!.ticket).toBe(first.ticket);
-    expect(stored[0]!.data).toMatchObject({ userId: owner.id, userName: "Аня", projectId: project.id });
+    expect(stored[0]!.data).toMatchObject({ userId: owner.id, userName: "Anna", projectId: project.id });
     expect(stored[0]!.data.files).toEqual([
       { path: "main.js", content: "require('./lib/log')" },
       { path: "lib/log.js", content: "module.exports = 1" },
@@ -60,7 +60,7 @@ describe("terminal tickets", () => {
     const owner = await user();
     const viewer = await user();
     const stranger = await user();
-    const project = await createProject(owner.id, { name: "Только смотреть" });
+    const project = await createProject(owner.id, { name: "View only" });
     projectIds.push(project.id);
     await inviteMember(owner.id, project.id, { email: viewer.email, role: "viewer" });
     const store = async () => undefined;

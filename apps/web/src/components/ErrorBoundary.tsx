@@ -13,8 +13,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
     if (!this.state.failed) return this.props.children;
     return (
       <ErrorScreen
-        title="Что-то пошло не так"
-        message="Страница не смогла отобразиться. Ваши правки сохранены: обновите страницу, чтобы продолжить."
+        title="Something went wrong"
+        message="The page could not be shown. Your edits are saved: reload the page to continue."
         onRetry={() => window.location.reload()}
       />
     );

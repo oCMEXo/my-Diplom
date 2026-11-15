@@ -126,7 +126,7 @@ function runToEnd(command: string, args: string[], env: NodeJS.ProcessEnv, label
     const log = createWriteStream(path.join(logDir, `${label}.log`));
     child.stdout.pipe(log, { end: false });
     child.stderr.pipe(log);
-    child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`${label} завершился с кодом ${code}; подробности в ${path.join(logDir, `${label}.log`)}`))));
+    child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`${label} exited with code ${code}; details in ${path.join(logDir, `${label}.log`)}`))));
   });
 }
 
@@ -136,7 +136,7 @@ function startService(name: string, args: string[], env: NodeJS.ProcessEnv) {
   child.stdout?.pipe(log, { end: false });
   child.stderr?.pipe(log);
   child.on("exit", (code) => {
-    if (!stopping) fail(`${name} неожиданно остановился (код ${code}). Подробности: ${path.join(logDir, `${name}.log`)}`);
+    if (!stopping) fail(`${name} stopped unexpectedly (code ${code}). Details: ${path.join(logDir, `${name}.log`)}`);
   });
   children.push({ name, child });
 }
@@ -151,13 +151,13 @@ async function waitFor(url: string, label: string, seconds = 60) {
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  fail(`${label} не запустился за ${seconds} секунд. Смотрите логи в ${logDir}`);
+  fail(`${label} did not start in ${seconds} seconds. See the logs in ${logDir}`);
 }
 
 async function ensureDatabase() {
   if (!(await portOpen(DB_PORT))) {
     fail(
-      `База данных не отвечает на порту ${DB_PORT}. Запустите Docker Desktop и контейнеры разработки:\n` +
+      `The database does not answer on port ${DB_PORT}. Start Docker Desktop and the development containers:\n` +
         `  docker compose -f infra/docker-compose.dev.yml up -d`,
     );
   }
@@ -166,7 +166,7 @@ async function ensureDatabase() {
   try {
     if (psql(`SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'`) !== "1") psql(`CREATE DATABASE ${DB_NAME}`);
   } catch (error) {
-    fail(`Не удалось создать базу ${DB_NAME} в контейнере ${DB_CONTAINER}: ${(error as Error).message}`);
+    fail(`Could not create the database ${DB_NAME} in the container ${DB_CONTAINER}: ${(error as Error).message}`);
   }
 }
 
@@ -175,7 +175,7 @@ function cloudflaredAsset() {
   if (process.platform === "linux") {
     return { file: "cloudflared", asset: process.arch === "arm64" ? "cloudflared-linux-arm64" : "cloudflared-linux-amd64" };
   }
-  fail("Автоматическая загрузка туннеля поддерживается на Windows и Linux. Запустите с --no-tunnel.");
+  fail("The tunnel can be downloaded automatically only on Windows and Linux. Run with --no-tunnel.");
 }
 
 async function ensureCloudflared() {
@@ -184,15 +184,15 @@ async function ensureCloudflared() {
   if (existsSync(target)) return target;
 
   mkdirSync(binDir, { recursive: true });
-  say("• Скачиваем cloudflared (бесплатный туннель Cloudflare, один раз)…");
+  say("• Downloading cloudflared (the free Cloudflare tunnel, only once)…");
   const response = await fetch(`https://github.com/cloudflare/cloudflared/releases/latest/download/${asset}`);
-  if (!response.ok || !response.body) fail(`Не удалось скачать cloudflared (HTTP ${response.status}).`);
+  if (!response.ok || !response.body) fail(`Could not download cloudflared (HTTP ${response.status}).`);
   await pipeline(Readable.fromWeb(response.body as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(target));
   if (process.platform !== "win32") chmodSync(target, 0o755);
   try {
     execFileSync(target, ["--version"], { stdio: "ignore" });
   } catch {
-    fail("Скачанный cloudflared не запускается. Удалите папку infra/local-host/bin и попробуйте снова.");
+    fail("The downloaded cloudflared does not start. Delete the folder infra/local-host/bin and try again.");
   }
   return target;
 }
@@ -214,38 +214,38 @@ function openTunnel(binary: string) {
     child.stdout?.on("data", onData);
     child.stderr?.on("data", onData);
     child.on("exit", (code) => {
-      if (!found) reject(new Error(`cloudflared завершился с кодом ${code}; см. ${path.join(logDir, "cloudflared.log")}`));
-      else if (!stopping) fail("Туннель остановился. Запустите команду заново, чтобы получить новый адрес.");
+      if (!found) reject(new Error(`cloudflared exited with code ${code}; see ${path.join(logDir, "cloudflared.log")}`));
+      else if (!stopping) fail("The tunnel stopped. Run the command again to get a new address.");
     });
-    setTimeout(() => !found && reject(new Error("Туннель не выдал адрес за 60 секунд.")), 60_000).unref();
+    setTimeout(() => !found && reject(new Error("The tunnel gave no address in 60 seconds.")), 60_000).unref();
   });
 }
 
 async function main() {
   mkdirSync(logDir, { recursive: true });
-  say("\nТестовый хостинг на этом компьютере\n");
+  say("\nTest hosting on this computer\n");
 
-  if (await portOpen(PORT)) fail(`Порт ${PORT} уже занят (возможно, хостинг уже запущен). Укажите другой: --port=8800`);
+  if (await portOpen(PORT)) fail(`Port ${PORT} is already in use (maybe the hosting is already running). Choose another one: --port=8800`);
 
-  say("• Проверяем базу данных…");
+  say("• Checking the database…");
   await ensureDatabase();
   const { access, refresh, runCode } = secrets();
 
   let runReason: string | null = null;
-  if (has("--no-run")) runReason = "выключен флагом --no-run";
-  else if (!(await portOpen(REDIS_PORT))) runReason = `Redis не отвечает на порту ${REDIS_PORT}`;
-  else if (!dockerWorks()) runReason = "Docker не отвечает";
+  if (has("--no-run")) runReason = "turned off with --no-run";
+  else if (!(await portOpen(REDIS_PORT))) runReason = `Redis does not answer on port ${REDIS_PORT}`;
+  else if (!dockerWorks()) runReason = "Docker does not answer";
   const runOn = runReason === null;
-  if (!runOn) say(`• Запуск кода и терминал выключены: ${runReason}.`);
+  if (!runOn) say(`• Running code and the terminal are off: ${runReason}.`);
   const common = { DATABASE_URL, JWT_ACCESS_SECRET: access, NODE_ENV: "production" };
 
-  say("• Применяем миграции…");
+  say("• Applying migrations…");
   await runToEnd("pnpm", ["--filter", "@collab/db", "migrate:deploy"], { DATABASE_URL }, "migrate").catch((error) => fail(error.message));
 
   if (has("--skip-build") && existsSync(path.join(webDir, "index.html"))) {
-    say("• Используем прошлую сборку сайта (--skip-build).");
+    say("• Using the previous build of the site (--skip-build).");
   } else {
-    say("• Собираем сайт (это занимает около минуты)…");
+    say("• Building the site (this takes about a minute)…");
     await runToEnd(
       "pnpm",
       ["--filter", "@collab/web", "exec", "vite", "build", "--outDir", `"${webDir}"`, "--emptyOutDir"],
@@ -254,7 +254,7 @@ async function main() {
     ).catch((error) => fail(error.message));
   }
 
-  say("• Запускаем API и сервер совместной работы…");
+  say("• Starting the API and the collaboration server…");
   startService("api", ["--filter", "@collab/api", "exec", "tsx", "src/server.ts"], {
     ...common,
     JWT_REFRESH_SECRET: refresh,
@@ -277,7 +277,7 @@ async function main() {
     REDIS_URL,
   });
   if (runOn) {
-    say("• Запускаем песочницу для кода и терминала…");
+    say("• Starting the sandbox for code and the terminal…");
     startService("runner", ["--filter", "@collab/runner", "exec", "tsx", "src/server.ts"], {
       REDIS_URL,
       TERMINAL_PORT: String(TERMINAL_PORT),
@@ -285,9 +285,9 @@ async function main() {
     });
   }
   await waitFor(`http://127.0.0.1:${API_PORT}/health`, "API");
-  await waitFor(`http://127.0.0.1:${COLLAB_PORT}/`, "Сервер совместной работы").catch(() => undefined);
+  await waitFor(`http://127.0.0.1:${COLLAB_PORT}/`, "Collaboration server").catch(() => undefined);
 
-  say("• Сжимаем файлы сайта…");
+  say("• Compressing the site files…");
   await compressWebRoot(webDir);
 
   const server = createHostServer({
@@ -299,27 +299,27 @@ async function main() {
   await new Promise<void>((resolve) => server.listen(PORT, "127.0.0.1", resolve));
 
   const local = `http://127.0.0.1:${PORT}`;
-  say(`✓ Сайт работает локально: ${local}`);
+  say(`✓ The site runs locally: ${local}`);
 
   let publicUrl: string | null = null;
   if (!has("--no-tunnel")) {
     const binary = await ensureCloudflared();
-    say("• Открываем публичный туннель…");
+    say("• Opening a public tunnel…");
     publicUrl = await openTunnel(binary).catch((error) => fail(error.message));
     writeFileSync(path.join(stateDir, "public-url.txt"), publicUrl);
   }
 
   say("\n" + "─".repeat(64));
-  say(publicUrl ? `  Публичный адрес:  ${publicUrl}` : `  Адрес:  ${local}`);
+  say(publicUrl ? `  Public address:  ${publicUrl}` : `  Address:  ${local}`);
   if (runOn) {
-    say(`  Код доступа к запуску кода и терминалу:  ${runCode}`);
-    say("  Без него посетители могут редактировать, но не запускать программы.");
-    say("  Код хранится в infra/local-host/.state/secrets.json; удалите строку runCode, чтобы сменить его.");
+    say(`  Access code for running code and the terminal:  ${runCode}`);
+    say("  Without it, visitors can edit but cannot run programs.");
+    say("  The code is kept in infra/local-host/.state/secrets.json. Delete the runCode line to change it.");
   } else {
-    say("  Запуск кода и терминал на этом сайте выключены.");
+    say("  Running code and the terminal are off on this site.");
   }
-  say("  Данные хранятся в базе collab_host, отдельно от вашей разработки.");
-  say("  Остановить: Ctrl+C. Пока компьютер спит или окно закрыто, сайт недоступен.");
+  say("  The data is kept in the collab_host database, apart from your development data.");
+  say("  Stop: Ctrl+C. While the computer sleeps or this window is closed, the site is not available.");
   say("─".repeat(64) + "\n");
 }
 

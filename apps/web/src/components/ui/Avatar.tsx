@@ -36,7 +36,7 @@ export function Avatar({
       </span>
       {online !== undefined && (
         <span
-          title={online ? "в сети" : "не в сети"}
+          title={online ? "online" : "offline"}
           className={cn(
             "absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-surface",
             online ? "bg-ok" : "bg-faint",

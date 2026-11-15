@@ -71,7 +71,7 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
   const mode = useRunMode();
   const host = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState(0);
-  const [phase, setPhase] = useState<Phase>({ name: "connecting", message: "Готовим терминал…" });
+  const [phase, setPhase] = useState<Phase>({ name: "connecting", message: "Starting the terminal…" });
   const [height, setHeight] = useState(savedHeight);
   /** Sends keys to the shell from outside the terminal, for the Ctrl+C button. */
   const sendKeys = useRef<((data: string) => void) | null>(null);
@@ -107,19 +107,19 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
     sendKeys.current = (data) => send({ type: "input", data });
     termRef.current = term;
 
-    setPhase({ name: "connecting", message: "Готовим терминал…" });
+    setPhase({ name: "connecting", message: "Starting the terminal…" });
     (async () => {
       let ticket: string;
       try {
         ({ ticket } = await api.post<TerminalTicket>(`/projects/${projectId}/terminal`));
       } catch (error) {
         if (disposed) return;
-        if (mode === "code" && error instanceof ApiError && error.status === 403 && /код/i.test(error.message)) {
+        if (mode === "code" && error instanceof ApiError && error.status === 403 && /access code/i.test(error.message)) {
           runCode.clear();
           setPhase({ name: "locked" });
           return;
         }
-        setPhase({ name: "ended", message: error instanceof ApiError ? error.message : "Не удалось открыть терминал" });
+        setPhase({ name: "ended", message: error instanceof ApiError ? error.message : "Could not open the terminal" });
         return;
       }
       if (disposed) return;
@@ -142,7 +142,7 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
         }
       };
       socket.onclose = () => {
-        if (!disposed && !ended) setPhase({ name: "ended", message: "Связь с терминалом прервалась." });
+        if (!disposed && !ended) setPhase({ name: "ended", message: "The connection to the terminal was lost." });
       };
     })();
 
@@ -192,17 +192,17 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
   }
 
   return (
-    <section aria-label="Терминал" className="relative flex shrink-0 flex-col border-t border-line bg-[#1e1f22]" style={{ height }}>
+    <section aria-label="Terminal" className="relative flex shrink-0 flex-col border-t border-line bg-[#1e1f22]" style={{ height }}>
       <div
         onPointerDown={startResize}
         className="absolute inset-x-0 -top-1 z-10 h-2 cursor-row-resize"
-        title="Потяните, чтобы изменить высоту"
+        title="Drag to change the height"
       />
       <header className="flex h-10 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-sm text-[#b5bac1]">
         <SquareTerminal size={16} className="text-[#34d399]" />
-        <span className="font-medium text-[#dbdee1]">Терминал</span>
+        <span className="font-medium text-[#dbdee1]">Terminal</span>
         <span className="hidden truncate sm:inline">
-          песочница · {TERMINAL_WORKDIR} · без интернета · до {TERMINAL_MAX_MINUTES} минут · правки здесь не попадают в проект
+          sandbox · {TERMINAL_WORKDIR} · no internet · up to {TERMINAL_MAX_MINUTES} minutes · edits here do not go into the project
         </span>
         <span className="flex-1" />
         {phase.name === "ready" && (
@@ -213,18 +213,18 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
               sendKeys.current?.("\u0003");
               termRef.current?.focus();
             }}
-            aria-label="Прервать программу (Ctrl+C)"
-            title="Прервать программу (Ctrl+C)"
+            aria-label="Stop the program (Ctrl+C)"
+            title="Stop the program (Ctrl+C)"
             className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[#b5bac1] transition hover:bg-white/10 hover:text-[#dbdee1]"
           >
             <OctagonX size={16} className="text-[#fc878b]" />
             <span className="font-mono text-xs">Ctrl+C</span>
           </button>
         )}
-        <HeaderButton label="Новый сеанс с текущими файлами" onClick={() => setSession((value) => value + 1)}>
+        <HeaderButton label="New session with the current files" onClick={() => setSession((value) => value + 1)}>
           <RotateCcw size={16} />
         </HeaderButton>
-        <HeaderButton label="Закрыть терминал" onClick={onClose}>
+        <HeaderButton label="Close the terminal" onClick={onClose}>
           <X size={18} />
         </HeaderButton>
       </header>
@@ -243,13 +243,13 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
                 <p className="text-base text-[#dbdee1]">{phase.message}</p>
                 <Button size="sm" variant="primary" onClick={() => setSession((value) => value + 1)}>
                   <RotateCcw size={16} />
-                  Открыть заново
+                  Open again
                 </Button>
               </div>
             )}
             {phase.name === "locked" && (
               <div className="w-full max-w-sm rounded-lg bg-surface p-5 text-fg shadow-pop">
-                <p className="mb-3 text-base text-muted">Терминал на этом сайте открывается только по коду доступа владельца.</p>
+                <p className="mb-3 text-base text-muted">On this site the terminal opens only with the owner's access code.</p>
                 <RunCodeForm onUnlocked={() => setSession((value) => value + 1)} />
               </div>
             )}

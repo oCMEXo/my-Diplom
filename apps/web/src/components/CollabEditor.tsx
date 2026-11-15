@@ -110,7 +110,7 @@ export function CollabEditor({
     mounted.onKeyDown(() => onTypedRef.current?.());
     mounted.addAction({
       id: "collab.share-line",
-      label: "Сослаться на эту строку в чате",
+      label: "Mention this line in the chat",
       contextMenuGroupId: "9_cutcopypaste",
       keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyL],
       run: () => onShareLineRef.current?.(mounted.getPosition()?.lineNumber ?? 1),
@@ -181,11 +181,11 @@ export function CollabEditor({
       language={monacoLanguage(language)}
       onMount={handleMount}
       theme={MONACO_THEME[theme]}
-      loading={<span className="text-base text-muted">Загружаем редактор…</span>}
+      loading={<span className="text-base text-muted">Loading the editor…</span>}
       options={{
         readOnly,
-        readOnlyMessage: { value: "Только чтение: менять файлы могут редакторы и владелец проекта." },
-        ariaLabel: "Редактор файла",
+        readOnlyMessage: { value: "Read only: editors and the project owner can change files." },
+        ariaLabel: "File editor",
         minimap: { enabled: false },
         fontSize: 15,
         fontFamily: '"JetBrains Mono Variable", ui-monospace, monospace',

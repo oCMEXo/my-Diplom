@@ -93,14 +93,14 @@ export async function inviteMember(
 
   const user = await prisma.user.findUnique({ where: { email: input.email } });
   if (!user) {
-    throw new AppError("Пользователь с таким email не найден: ему нужно сначала зарегистрироваться", 404);
+    throw new AppError("No user with this email. They need to sign up first", 404);
   }
 
   const existing = await prisma.projectMember.findUnique({
     where: { projectId_userId: { projectId, userId: user.id } },
   });
   if (existing) {
-    throw new AppError("Этот человек уже в проекте", 409);
+    throw new AppError("This person is already in the project", 409);
   }
 
   await prisma.projectMember.create({
@@ -122,10 +122,10 @@ export async function updateMemberRole(
     where: { projectId_userId: { projectId, userId: targetUserId } },
   });
   if (!target) {
-    throw new AppError("Участник не найден", 404);
+    throw new AppError("Member not found", 404);
   }
   if (target.role === "owner") {
-    throw new AppError("Роль владельца изменить нельзя", 400);
+    throw new AppError("The owner's role cannot be changed", 400);
   }
 
   if (target.role === role) return;
@@ -149,7 +149,7 @@ export async function removeMember(
 
   if (requesterId !== targetUserId) {
     if (requesterRole !== "owner") {
-      throw new AppError("Убрать других участников может только владелец", 403);
+      throw new AppError("Only the owner can remove other members", 403);
     }
   }
 
@@ -157,10 +157,10 @@ export async function removeMember(
     where: { projectId_userId: { projectId, userId: targetUserId } },
   });
   if (!target) {
-    throw new AppError("Участник не найден", 404);
+    throw new AppError("Member not found", 404);
   }
   if (target.role === "owner") {
-    throw new AppError("Владельца нельзя убрать из проекта: его можно только удалить вместе с проектом", 400);
+    throw new AppError("The owner cannot be removed from the project. The project can only be deleted", 400);
   }
 
   await prisma.projectMember.delete({
@@ -212,7 +212,7 @@ export async function previewInvite(inviteCode: string) {
     include: { owner: { select: { name: true } } },
   });
   if (!project) {
-    throw new AppError("Ссылка-приглашение недействительна или устарела", 404);
+    throw new AppError("The invite link is not valid or has expired", 404);
   }
   return {
     projectName: project.name,
@@ -224,7 +224,7 @@ export async function previewInvite(inviteCode: string) {
 export async function joinViaInvite(userId: string, inviteCode: string) {
   const project = await prisma.project.findUnique({ where: { inviteCode } });
   if (!project) {
-    throw new AppError("Ссылка-приглашение недействительна или устарела", 404);
+    throw new AppError("The invite link is not valid or has expired", 404);
   }
 
   const existing = await prisma.projectMember.findUnique({

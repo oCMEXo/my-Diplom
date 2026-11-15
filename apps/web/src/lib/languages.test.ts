@@ -15,7 +15,7 @@ describe("describeLanguage", () => {
   });
 
   it("names an extension it does not know, and does not call a name without one unknown", () => {
-    expect(describeLanguage("notes.xyz")).toMatchObject({ name: "Текст", support: "text", unknown: true, extension: "xyz" });
+    expect(describeLanguage("notes.xyz")).toMatchObject({ name: "Text", support: "text", unknown: true, extension: "xyz" });
     expect(describeLanguage("readme.txt")).toMatchObject({ support: "text", unknown: false });
     expect(describeLanguage(".env")).toMatchObject({ support: "text", unknown: false, extension: null });
     expect(describeLanguage("LICENSE")).toMatchObject({ support: "text", unknown: false });

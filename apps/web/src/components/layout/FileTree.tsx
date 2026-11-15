@@ -91,16 +91,16 @@ export function FileTree({
             <span className="touch-visible absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center opacity-0 transition focus-within:opacity-100 group-hover/file:opacity-100">
               <button
                 onClick={() => onRenameFile(node.file)}
-                aria-label={`Переименовать ${node.file.path}`}
-                title="Переименовать"
+                aria-label={`Rename ${node.file.path}`}
+                title="Rename"
                 className="rounded p-1 text-faint transition hover:bg-raised hover:text-fg"
               >
                 <Pencil size={16} />
               </button>
               <button
                 onClick={() => onDeleteFile(node.file)}
-                aria-label={`Удалить ${node.file.path}`}
-                title="Удалить файл"
+                aria-label={`Delete ${node.file.path}`}
+                title="Delete the file"
                 className="rounded p-1 text-faint transition hover:bg-bad/15 hover:text-bad"
               >
                 <Trash2 size={16} />
@@ -113,7 +113,7 @@ export function FileTree({
   }
 
   if (files.length === 0) {
-    return <p className="px-3 py-2 text-base text-faint">{canEdit ? "Файлов пока нет." : "В проекте пока нет файлов."}</p>;
+    return <p className="px-3 py-2 text-base text-faint">{canEdit ? "No files yet." : "The project has no files yet."}</p>;
   }
   return <ul className="space-y-0.5">{renderNodes(tree, 0)}</ul>;
 }

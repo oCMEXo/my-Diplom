@@ -3,52 +3,53 @@ import { LegalSection, LegalShell } from "../components/layout/LegalShell";
 export function TermsPage() {
   return (
     <LegalShell
-      title="Условия использования"
-      intro="Collab — учебный проект, дипломная работа. Создавая аккаунт или входя по ссылке как гость, вы принимаете эти условия."
+      title="Terms of use"
+      intro="Collab is a student diploma project. By creating an account or joining by a link as a guest, you accept these terms."
     >
-      <LegalSection title="Что это за сервис">
+      <LegalSection title="What this service is">
         <p>
-          Общее пространство для работы над проектом: код, документы, доски и чат. Сервис бесплатный и предоставляется
-          «как есть»: он может быть недоступен, а данные могут быть потеряны. Важное скачивайте архивом из меню проекта.
+          A shared place to work on a project: code, documents, boards and chat. The service is free and is provided
+          “as is”: it may be unavailable, and data may be lost. Download anything important as an archive from the
+          project menu.
         </p>
       </LegalSection>
 
-      <LegalSection title="Аккаунт и вход по ссылке">
+      <LegalSection title="Accounts and joining by link">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Гостю достаточно имени. Имя видят остальные участники проекта.</li>
-          <li>Не передавайте другим свой пароль. Ссылку-приглашение давайте только тем, кого зовёте в проект.</li>
-          <li>Аккаунт можно удалить в меню профиля в любой момент.</li>
+          <li>A guest only needs a name. Other members of the project see this name.</li>
+          <li>Do not share your password. Give the invite link only to people you invite to the project.</li>
+          <li>You can delete your account in the profile menu at any time.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="Ваше содержимое">
+      <LegalSection title="Your content">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Файлы и сообщения остаются вашими. За то, что вы размещаете, отвечаете вы.</li>
-          <li>Всё, что есть в проекте, видят все его участники.</li>
-          <li>Не размещайте пароли, ключи доступа, чужие личные данные и то, на что у вас нет прав.</li>
+          <li>Files and messages stay yours. You are responsible for what you post.</li>
+          <li>Everything in a project is visible to all its members.</li>
+          <li>Do not post passwords, access keys, other people's personal data, or anything you have no rights to.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="Запуск кода">
-        <p>Запускать можно учебный код и код своего проекта. Программа работает в закрытой песочнице без сети, не дольше 10 секунд.</p>
-        <p>Нельзя:</p>
+      <LegalSection title="Running code">
+        <p>You can run study code and the code of your project. A program runs in a closed sandbox without network, for at most 10 seconds.</p>
+        <p>You must not:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li>пытаться выйти из песочницы или получить доступ к серверу;</li>
-          <li>атаковать другие системы и рассылать спам;</li>
-          <li>майнить криптовалюту;</li>
-          <li>запускать программы, которые мешают работать остальным.</li>
+          <li>try to escape the sandbox or get access to the server;</li>
+          <li>attack other systems or send spam;</li>
+          <li>mine cryptocurrency;</li>
+          <li>run programs that stop others from working.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="Что может сделать владелец сайта">
+      <LegalSection title="What the site owner can do">
         <p>
-          Если условия нарушены, владелец сайта может остановить программу, удалить содержимое, закрыть доступ к аккаунту
-          или выключить запуск кода для всех.
+          If the terms are broken, the site owner can stop a program, delete content, block access to an account, or
+          turn off running code for everyone.
         </p>
       </LegalSection>
 
-      <LegalSection title="Вопросы">
-        <p>Обращайтесь к владельцу этого сайта: обычно это тот, кто дал вам ссылку.</p>
+      <LegalSection title="Questions">
+        <p>Contact the owner of this site: usually the person who gave you the link.</p>
       </LegalSection>
     </LegalShell>
   );

@@ -8,11 +8,11 @@ import { Segmented } from "./ui/Segmented";
 import { FILE_KINDS } from "./layout/ProjectNav";
 import { LanguageHint } from "./Languages";
 
-const EXAMPLE: Record<FileType, string> = { code: "main.py", doc: "README.md", board: "идеи.board" };
+const EXAMPLE: Record<FileType, string> = { code: "main.py", doc: "README.md", board: "ideas.board" };
 const HINT: Record<FileType, string> = {
   code: "",
-  doc: "Markdown с живым предпросмотром — удобно для заметок и заданий.",
-  board: "Полотно для схем и набросков — рисуют все сразу.",
+  doc: "Markdown with a live preview. Good for notes and tasks.",
+  board: "A canvas for diagrams and sketches. Everyone draws at once.",
 };
 
 export function CreateFileDialog({
@@ -43,17 +43,17 @@ export function CreateFileDialog({
       await onCreate(trimmed, type);
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось создать файл");
+      setError(err instanceof ApiError ? err.message : "Could not create the file");
       setCreating(false);
     }
   }
 
   return (
-    <Modal title="Новый файл" onClose={onClose}>
+    <Modal title="New file" onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         {error && <ErrorNote>{error}</ErrorNote>}
         <Segmented
-          label="Тип файла"
+          label="File type"
           value={type}
           onChange={setType}
           options={(Object.keys(FILE_KINDS) as FileType[]).map((value) => {
@@ -62,15 +62,15 @@ export function CreateFileDialog({
           })}
         />
         <Field
-          label="Имя файла"
+          label="File name"
           data-autofocus
           placeholder={EXAMPLE[type]}
           maxLength={500}
           value={path}
           onChange={(event) => setPath(event.target.value)}
           hint={
-            duplicate ? <span className="text-bad">Файл с таким именем уже есть</span> : invalid ? (
-              <span className="text-bad">Имя не должно начинаться или заканчиваться на «/» и содержать «..»</span>
+            duplicate ? <span className="text-bad">A file with this name already exists</span> : invalid ? (
+              <span className="text-bad">The name must not start or end with “/” or contain “..”</span>
             ) : type === "code" ? (
               <LanguageHint path={trimmed} />
             ) : (
@@ -80,10 +80,10 @@ export function CreateFileDialog({
         />
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={onClose} disabled={creating}>
-            Отмена
+            Cancel
           </Button>
           <Button type="submit" variant="primary" disabled={!trimmed || duplicate || invalid || creating}>
-            {creating ? "Создаём…" : "Создать"}
+            {creating ? "Creating…" : "Create"}
           </Button>
         </div>
       </form>

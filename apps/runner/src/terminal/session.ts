@@ -111,7 +111,7 @@ export async function openTerminalSession(docker: Docker, options: TerminalSessi
   let shell: Duplex | null = null;
   let timer: NodeJS.Timeout | undefined;
 
-  const close = (message = "Сеанс завершён.") => {
+  const close = (message = "The session has ended.") => {
     if (closed) return;
     closed = true;
     clearTimeout(timer);
@@ -140,9 +140,9 @@ export async function openTerminalSession(docker: Docker, options: TerminalSessi
       const text = decoder.decode(chunk, { stream: true });
       if (text) options.onOutput(text);
     });
-    shell.on("end", () => close("Командная строка закрыта (exit)."));
-    shell.on("error", () => close("Связь с песочницей прервалась."));
-    timer = setTimeout(() => close(`Сеанс длится не дольше ${Math.round(options.maxMs / 60_000)} минут.`), options.maxMs);
+    shell.on("end", () => close("The shell was closed (exit)."));
+    shell.on("error", () => close("The connection to the sandbox was lost."));
+    timer = setTimeout(() => close(`A session lasts at most ${Math.round(options.maxMs / 60_000)} minutes.`), options.maxMs);
     timer.unref();
 
     return {

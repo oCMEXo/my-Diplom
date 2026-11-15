@@ -3,56 +3,57 @@ import { LegalSection, LegalShell } from "../components/layout/LegalShell";
 export function PrivacyPage() {
   return (
     <LegalShell
-      title="Данные и приватность"
-      intro="Collab — учебный проект, дипломная работа. Здесь коротко сказано, какие данные хранит сервис, зачем и как их удалить."
+      title="Data and privacy"
+      intro="Collab is a student diploma project. This page says in short what data the service keeps, why, and how to delete it."
     >
-      <LegalSection title="Что мы храним">
+      <LegalSection title="What we keep">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Для аккаунта: имя, почта и хеш пароля (сам пароль не хранится).</li>
-          <li>Для гостя: только введённое имя. Почта не нужна.</li>
-          <li>То, что вы создаёте: проекты, файлы, их версии, сообщения в чате.</li>
-          <li>Токен GitHub, если вы его вводите, используется только для одного запроса и не сохраняется.</li>
+          <li>For an account: name, email and a password hash (the password itself is not stored).</li>
+          <li>For a guest: only the name you enter. No email is needed.</li>
+          <li>What you create: projects, files, their versions and chat messages.</li>
+          <li>A GitHub token, if you enter one, is used for one request only and is not stored.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="Зачем и на каком основании">
+      <LegalSection title="Why, and on what basis">
         <p>
-          Данные нужны, чтобы сервис работал: входить в аккаунт, показывать участникам имена и курсоры, хранить
-          проекты. Это исполнение договора с пользователем (GDPR, ст. 6(1)(b)). Защита от злоупотреблений, например
-          ограничение числа попыток входа по IP-адресу, — законный интерес (ст. 6(1)(f)).
+          The data is needed for the service to work: to sign you in, to show members their names and cursors, and to
+          keep projects. This is the performance of a contract with the user (GDPR, Art. 6(1)(b)). Protection against
+          abuse, for example limiting sign-in attempts per IP address, is a legitimate interest (Art. 6(1)(f)).
         </p>
-        <p>Аналитики, рекламы и передачи данных третьим лицам нет.</p>
+        <p>There is no analytics, no advertising and no sharing of data with third parties.</p>
       </LegalSection>
 
-      <LegalSection title="Кто видит ваши данные">
+      <LegalSection title="Who sees your data">
         <p>
-          Участники проекта видят ваше имя, правки и сообщения в этом проекте. Почту других участников сервис не
-          показывает.
+          Members of a project see your name, edits and messages in that project. The service does not show the email
+          of other members.
         </p>
       </LegalSection>
 
-      <LegalSection title="Сколько хранится">
+      <LegalSection title="How long it is kept">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Аккаунт и проекты — пока вы их не удалите.</li>
-          <li>Удалённые файлы — 30 дней в корзине, затем навсегда.</li>
-          <li>Гостевой аккаунт, которого нет ни в одном проекте, — 30 дней после конца сессии, затем удаляется вместе с сообщениями.</li>
-          <li>Сессия входа — до 30 дней, если вы ею не пользуетесь.</li>
+          <li>Account and projects: until you delete them.</li>
+          <li>Deleted files: 30 days in the trash, then deleted forever.</li>
+          <li>A guest account that is in no project: 30 days after the session ends, then it is deleted with its messages.</li>
+          <li>Sign-in session: up to 30 days if you do not use it.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="Что хранится в вашем браузере">
+      <LegalSection title="What is kept in your browser">
         <p>
-          Сессия входа, настройки, отметка о прочитанном чате и копии открытых файлов, чтобы работать без сети. Cookie
-          для слежки не используются.
+          The sign-in session, settings, which chat messages you have read, and copies of open files so you can work
+          offline. No tracking cookies are used.
         </p>
       </LegalSection>
 
-      <LegalSection title="Ваши права">
+      <LegalSection title="Your rights">
         <p>
-          Вы можете исправить имя и скачать файлы проекта архивом. Удалить аккаунт можно в меню профиля: вместе с ним
-          удаляются ваши сообщения и проекты, которыми вы владеете. Копии файлов в этом браузере тоже стираются.
+          You can change your name and download the project files as an archive. You can delete your account in the
+          profile menu: your messages and the projects you own are deleted with it. Copies of files in this browser are
+          erased too.
         </p>
-        <p>С вопросами обращайтесь к владельцу этого сайта: обычно это тот, кто дал вам ссылку.</p>
+        <p>For questions, contact the owner of this site: usually the person who gave you the link.</p>
       </LegalSection>
     </LegalShell>
   );

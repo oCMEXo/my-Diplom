@@ -97,7 +97,7 @@ export function Modal({
             <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
             {description && <p className="mt-1 text-base text-muted">{description}</p>}
           </div>
-          <IconButton label="Закрыть" onClick={onClose} data-close>
+          <IconButton label="Close" onClick={onClose} data-close>
             <X size={20} />
           </IconButton>
         </div>

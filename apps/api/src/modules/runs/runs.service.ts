@@ -45,7 +45,7 @@ const ENQUEUE_TIMEOUT_MS = 5000;
 
 function failAfter(ms: number) {
   return new Promise<never>((_resolve, reject) => {
-    setTimeout(() => reject(new AppError("Запуск кода сейчас недоступен. Попробуйте чуть позже.", 503)), ms).unref();
+    setTimeout(() => reject(new AppError("Running code is not available right now. Please try a bit later.", 503)), ms).unref();
   });
 }
 
@@ -72,15 +72,15 @@ export async function requestRun(
 
   const file = await prisma.file.findUnique({ where: { id: fileId } });
   if (!file || file.projectId !== projectId || file.deletedAt) {
-    throw new AppError("Файл не найден", 404);
+    throw new AppError("File not found", 404);
   }
   if (file.type !== "code") {
-    throw new AppError("Запускать можно только файлы с кодом", 400);
+    throw new AppError("Only code files can run", 400);
   }
 
   const language = toRunnableLanguage(file.language ?? inferLanguage(file.path));
   if (!language) {
-    throw new AppError("Запускать можно только файлы JavaScript и Python", 400);
+    throw new AppError("Only JavaScript and Python files can run", 400);
   }
 
   const user = await prisma.user.findUniqueOrThrow({

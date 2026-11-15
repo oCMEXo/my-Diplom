@@ -94,7 +94,7 @@ export async function createFile(userId: string, projectId: string, input: Creat
     return toFileDto(file);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      throw new AppError("Файл с таким именем уже есть", 409);
+      throw new AppError("A file with this name already exists", 409);
     }
     throw err;
   }
@@ -103,7 +103,7 @@ export async function createFile(userId: string, projectId: string, input: Creat
 async function findOwnedFile(projectId: string, fileId: string) {
   const file = await prisma.file.findUnique({ where: { id: fileId } });
   if (!file || file.projectId !== projectId || file.deletedAt) {
-    throw new AppError("Файл не найден", 404);
+    throw new AppError("File not found", 404);
   }
   return file;
 }
@@ -111,7 +111,7 @@ async function findOwnedFile(projectId: string, fileId: string) {
 async function findTrashedFile(projectId: string, fileId: string) {
   const file = await prisma.file.findUnique({ where: { id: fileId } });
   if (!file || file.projectId !== projectId || !file.deletedAt) {
-    throw new AppError("Файла нет в корзине", 404);
+    throw new AppError("The file is not in the trash", 404);
   }
   return file;
 }
@@ -148,7 +148,7 @@ export async function updateFile(
     return toFileDto(file);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      throw new AppError("Файл с таким именем уже есть", 409);
+      throw new AppError("A file with this name already exists", 409);
     }
     throw err;
   }
@@ -177,7 +177,7 @@ export async function restoreFile(userId: string, projectId: string, fileId: str
     return toFileDto(restored);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      throw new AppError("Файл с таким именем уже есть: переименуйте его или удалите, чтобы восстановить этот", 409);
+      throw new AppError("A file with this name already exists. Rename or delete it to restore this one", 409);
     }
     throw err;
   }

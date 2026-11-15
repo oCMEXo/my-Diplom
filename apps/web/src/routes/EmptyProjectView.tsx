@@ -9,9 +9,9 @@ import { pickStartFile } from "../lib/last-file";
 import type { ProjectOutletContext } from "./ProjectPage";
 
 const DESCRIPTION: Record<FileType, string> = {
-  code: "Редактор с подсветкой, курсорами коллег и запуском кода",
-  doc: "Заметки и задания в Markdown с живым предпросмотром",
-  board: "Полотно для схем, макетов и мозгового штурма",
+  code: "An editor with highlighting, teammates' cursors and a Run button",
+  doc: "Notes and tasks in Markdown with a live preview",
+  board: "A canvas for diagrams, mock-ups and brainstorming",
 };
 
 export function EmptyProjectView() {
@@ -27,14 +27,14 @@ export function EmptyProjectView() {
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6">
         <div className="w-full max-w-2xl animate-pop text-center">
           <h2 className="text-2xl font-semibold tracking-tight">
-            {files.length === 0 ? "Здесь пока пусто" : "Выберите файл"}
+            {files.length === 0 ? "Nothing here yet" : "Choose a file"}
           </h2>
           <p className="mx-auto mt-2 max-w-md text-base text-muted">
             {canEdit
               ? files.length === 0
-                ? "Создайте первый файл и позовите коллег — все правки видны сразу у каждого."
-                : "Или создайте новый — код, документ или доску. Все правки видны сразу у каждого."
-              : "Откройте любой файл из списка, чтобы посмотреть, над чем работает команда."}
+                ? "Create the first file and invite your teammates. Everyone sees every edit at once."
+                : "Or create a new one: code, a document or a board. Everyone sees every edit at once."
+              : "Open any file in the list to see what the team is working on."}
           </p>
 
           {canEdit && (
@@ -64,13 +64,13 @@ export function EmptyProjectView() {
             {canEdit && (
               <Button variant="primary" onClick={importRepo}>
                 <GitBranch size={18} />
-                Импортировать из GitHub
+                Import from GitHub
               </Button>
             )}
             {shell.openInvite && (
               <Button onClick={shell.openInvite}>
                 <UserPlus size={18} />
-                Пригласить участников
+                Invite people
               </Button>
             )}
           </div>

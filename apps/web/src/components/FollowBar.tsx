@@ -47,10 +47,10 @@ export function FollowBar({ projectId }: { projectId: string }) {
     <div role="status" className="flex h-11 shrink-0 items-center gap-2 border-b border-line bg-accent/15 px-3 text-base sm:px-4">
       <Eye size={18} className="shrink-0 text-accent-ink" />
       <span className="min-w-0 truncate">
-        Вы следите за: <b className="font-semibold">{person.name}</b>
+        You are following: <b className="font-semibold">{person.name}</b>
       </span>
       <Button size="sm" variant="ghost" onClick={() => follow(null)} className="ml-auto shrink-0">
-        Перестать (Esc)
+        Stop (Esc)
       </Button>
     </div>
   );

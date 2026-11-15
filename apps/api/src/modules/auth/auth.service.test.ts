@@ -17,7 +17,7 @@ import {
 describe("loginUser", () => {
   it("takes about as long for an unknown address as for a wrong password", { timeout: 30_000 }, async () => {
     const email = `${randomUUID()}@example.com`;
-    const { user } = await registerUser({ email, name: "Аня", password: "password123" });
+    const { user } = await registerUser({ email, name: "Anna", password: "password123" });
     const fastest = async (attempt: () => Promise<unknown>) => {
       let best = Infinity;
       for (let run = 0; run < 3; run += 1) {
@@ -44,11 +44,11 @@ describe("loginAsGuest", () => {
   });
 
   it("creates a usable guest account without email/password", async () => {
-    const result = await loginAsGuest({ name: "Казимир" });
+    const result = await loginAsGuest({ name: "Casimir" });
     createdUserIds.push(result.user.id);
 
     expect(result.user.isGuest).toBe(true);
-    expect(result.user.name).toBe("Казимир");
+    expect(result.user.name).toBe("Casimir");
 
     const payload = verifyAccessToken(result.tokens.accessToken);
     expect(payload.sub).toBe(result.user.id);
@@ -84,7 +84,7 @@ describe("purgeStaleGuests", () => {
 
   /** A guest whose account is `days` old; the session ended unless `liveSession` is set. */
   async function guestFrom(days: number, { liveSession = false } = {}) {
-    const { user } = await loginAsGuest({ name: "Гость" });
+    const { user } = await loginAsGuest({ name: "Guest" });
     userIds.push(user.id);
     await prisma.user.update({ where: { id: user.id }, data: { createdAt: new Date(Date.now() - days * DAY_MS) } });
     if (!liveSession) {
@@ -96,14 +96,14 @@ describe("purgeStaleGuests", () => {
   const exists = async (id: string) => (await prisma.user.findUnique({ where: { id } })) !== null;
 
   it("deletes an old guest who is in no project, with the messages", async () => {
-    const owner = await registerUser({ email: `${randomUUID()}@example.com`, name: "Аня", password: "password123" });
+    const owner = await registerUser({ email: `${randomUUID()}@example.com`, name: "Anna", password: "password123" });
     userIds.push(owner.user.id);
-    const project = await createProject(owner.user.id, { name: "Проект" });
+    const project = await createProject(owner.user.id, { name: "Project" });
     projectIds.push(project.id);
     const guest = await guestFrom(45);
     // The guest wrote in the chat and was then removed from the project.
     await prisma.projectMember.create({ data: { projectId: project.id, userId: guest.id, role: "editor" } });
-    const message = await createMessage(guest.id, project.id, { body: "привет" });
+    const message = await createMessage(guest.id, project.id, { body: "hello" });
     await prisma.projectMember.delete({ where: { projectId_userId: { projectId: project.id, userId: guest.id } } });
 
     expect(await purgeStaleGuests()).toBeGreaterThanOrEqual(1);
@@ -114,9 +114,9 @@ describe("purgeStaleGuests", () => {
   });
 
   it("keeps a guest who is new, is in a project or still has a session", async () => {
-    const owner = await registerUser({ email: `${randomUUID()}@example.com`, name: "Аня", password: "password123" });
+    const owner = await registerUser({ email: `${randomUUID()}@example.com`, name: "Anna", password: "password123" });
     userIds.push(owner.user.id);
-    const project = await createProject(owner.user.id, { name: "Проект" });
+    const project = await createProject(owner.user.id, { name: "Project" });
     projectIds.push(project.id);
     const fresh = await guestFrom(5);
     const member = await guestFrom(45);
@@ -131,7 +131,7 @@ describe("purgeStaleGuests", () => {
   });
 
   it("never deletes a registered account", async () => {
-    const old = await registerUser({ email: `${randomUUID()}@example.com`, name: "Старый", password: "password123" });
+    const old = await registerUser({ email: `${randomUUID()}@example.com`, name: "Old", password: "password123" });
     userIds.push(old.user.id);
     await prisma.user.update({ where: { id: old.user.id }, data: { createdAt: new Date(Date.now() - 400 * DAY_MS) } });
     await prisma.refreshToken.deleteMany({ where: { userId: old.user.id } });
@@ -153,9 +153,9 @@ describe("keeping and closing an account", () => {
   });
 
   it("turns a guest into a registered user who keeps the same account and projects", async () => {
-    const guest = await loginAsGuest({ name: "Гость" });
+    const guest = await loginAsGuest({ name: "Guest" });
     userIds.push(guest.user.id);
-    const project = await createProject(guest.user.id, { name: "Работа гостя" });
+    const project = await createProject(guest.user.id, { name: "Guest work" });
     projectIds.push(project.id);
     const address = email();
 
@@ -168,8 +168,8 @@ describe("keeping and closing an account", () => {
   });
 
   it("refuses an address that is taken, and an account that is not a guest", async () => {
-    const existing = await registerUser({ email: email(), password: "password123", name: "Есть" });
-    const guest = await loginAsGuest({ name: "Гость" });
+    const existing = await registerUser({ email: email(), password: "password123", name: "Existing" });
+    const guest = await loginAsGuest({ name: "Guest" });
     userIds.push(existing.user.id, guest.user.id);
 
     await expect(upgradeGuest(guest.user.id, { email: existing.user.email, password: "password123" })).rejects.toMatchObject({
@@ -181,15 +181,15 @@ describe("keeping and closing an account", () => {
   });
 
   it("deletes the account, its messages and its projects, but not other people's projects", async () => {
-    const leaving = await registerUser({ email: email(), password: "password123", name: "Ухожу" });
-    const staying = await registerUser({ email: email(), password: "password123", name: "Остаюсь" });
+    const leaving = await registerUser({ email: email(), password: "password123", name: "Leaving" });
+    const staying = await registerUser({ email: email(), password: "password123", name: "Staying" });
     userIds.push(leaving.user.id, staying.user.id);
-    const own = await createProject(leaving.user.id, { name: "Мой" });
-    const shared = await createProject(staying.user.id, { name: "Чужой" });
+    const own = await createProject(leaving.user.id, { name: "Mine" });
+    const shared = await createProject(staying.user.id, { name: "Theirs" });
     projectIds.push(own.id, shared.id);
     await inviteMember(staying.user.id, shared.id, { email: leaving.user.email, role: "editor" });
-    await createMessage(leaving.user.id, shared.id, { body: "моё сообщение" });
-    await createMessage(staying.user.id, shared.id, { body: "чужое сообщение" });
+    await createMessage(leaving.user.id, shared.id, { body: "my message" });
+    await createMessage(staying.user.id, shared.id, { body: "their message" });
 
     await deleteAccount(leaving.user.id, { password: "password123" });
 
@@ -198,13 +198,13 @@ describe("keeping and closing an account", () => {
     const left = await getProject(staying.user.id, shared.id);
     expect(left.members.map((member) => member.userId)).toEqual([staying.user.id]);
     const messages = await prisma.message.findMany({ where: { projectId: shared.id } });
-    expect(messages.map((message) => message.body)).toEqual(["чужое сообщение"]);
+    expect(messages.map((message) => message.body)).toEqual(["their message"]);
     await expect(loginUser({ email: leaving.user.email, password: "password123" })).rejects.toMatchObject({ statusCode: 401 });
   });
 
   it("asks a registered user for the password, but not a guest who has none", async () => {
-    const user = await registerUser({ email: email(), password: "password123", name: "Пароль" });
-    const guest = await loginAsGuest({ name: "Гость" });
+    const user = await registerUser({ email: email(), password: "password123", name: "Password" });
+    const guest = await loginAsGuest({ name: "Guest" });
     userIds.push(user.user.id, guest.user.id);
 
     await expect(deleteAccount(user.user.id, { password: "wrong-password" })).rejects.toMatchObject({ statusCode: 403 });
@@ -216,7 +216,7 @@ describe("keeping and closing an account", () => {
   });
 
   it("gives a new token only to the first of two tabs presenting the same one", async () => {
-    const user = await registerUser({ email: email(), password: "password123", name: "Вкладки" });
+    const user = await registerUser({ email: email(), password: "password123", name: "Tabs" });
     userIds.push(user.user.id);
 
     const results = await Promise.allSettled([

@@ -31,10 +31,10 @@ function Failure({ message }: { message: string }) {
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-bad/15 text-bad">
           <TriangleAlert size={24} />
         </span>
-        <p className="text-xl font-semibold">Не получилось присоединиться</p>
+        <p className="text-xl font-semibold">Could not join</p>
         <p className="mb-5 mt-1.5 text-base text-muted">{message}</p>
         <Link to="/">
-          <Button>К моим проектам</Button>
+          <Button>To my projects</Button>
         </Link>
       </div>
     </Shell>
@@ -56,7 +56,7 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
     try {
       await continueAsGuest(name.trim());
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось войти как гость");
+      setError(err instanceof ApiError ? err.message : "Could not sign in as a guest");
       setLoading(false);
     }
   }
@@ -73,19 +73,19 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
           >
             {initials(preview.projectName)}
           </span>
-          <p className="text-base text-muted">{preview.ownerName} приглашает вас в проект</p>
+          <p className="text-base text-muted">{preview.ownerName} invites you to the project</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{preview.projectName}</h1>
           <p className="mx-auto mt-3 inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1 text-sm text-muted">
             {canEdit ? <Pencil size={14} /> : <Eye size={14} />}
-            {canEdit ? "Вы сможете редактировать файлы" : "Вы сможете смотреть, но не менять"}
+            {canEdit ? "You will be able to edit files" : "You will be able to view, but not change"}
           </p>
         </div>
 
         <form onSubmit={enterAsGuest} className="space-y-3">
           {error && <ErrorNote>{error}</ErrorNote>}
           <Field
-            label="Как вас зовут?"
-            placeholder="Например, Влад"
+            label="What is your name?"
+            placeholder="For example, Vlad"
             required
             maxLength={100}
             autoComplete="given-name"
@@ -93,31 +93,31 @@ function InviteLanding({ code, preview }: { code: string; preview: InvitePreview
             onChange={(event) => setName(event.target.value)}
             hint={
               <>
-                Имя увидят остальные участники. Регистрация не нужна. Присоединяясь, вы принимаете{" "}
+                Other members will see the name. You do not need an account. By joining, you accept the{" "}
                 <Link to="/terms" className="underline hover:text-fg">
-                  условия использования
+                  terms of use
                 </Link>
                 .{" "}
                 <Link to="/privacy" className="underline hover:text-fg">
-                  Какие данные мы храним
+                  What data we keep
                 </Link>
               </>
             }
           />
           <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading || !name.trim()}>
             <Sparkles size={18} />
-            {loading ? "Заходим…" : "Присоединиться как гость"}
+            {loading ? "Joining…" : "Join as guest"}
           </Button>
         </form>
 
         <p className="text-center text-base text-muted">
-          Уже есть аккаунт?{" "}
+          Already have an account?{" "}
           <Link to={`/login?redirect=${redirect}`} className="font-medium text-accent-ink hover:underline">
-            Войти
+            Sign in
           </Link>{" "}
-          или{" "}
+          or{" "}
           <Link to={`/register?redirect=${redirect}`} className="font-medium text-accent-ink hover:underline">
-            создать
+            create one
           </Link>
         </p>
       </div>
@@ -145,7 +145,7 @@ export function JoinPage() {
     api
       .post<Project>(`/join/${code}`)
       .then((project) => navigate(`/projects/${project.id}`, { replace: true }))
-      .catch((err) => setError(err instanceof ApiError ? err.message : "Не удалось присоединиться"));
+      .catch((err) => setError(err instanceof ApiError ? err.message : "Could not join"));
   }, [isAuthenticated, code, navigate]);
 
   if (isAuthenticated) {
@@ -156,7 +156,7 @@ export function JoinPage() {
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent-ink">
             <LinkIcon size={24} />
           </span>
-          <p className="text-xl font-semibold">Присоединяемся к проекту</p>
+          <p className="text-xl font-semibold">Joining the project</p>
           <div className="mt-4 flex justify-center">
             <Spinner />
           </div>
@@ -168,7 +168,7 @@ export function JoinPage() {
   if (preview.isError) {
     return (
       <Failure
-        message={preview.error instanceof ApiError ? preview.error.message : "Не удалось открыть приглашение"}
+        message={preview.error instanceof ApiError ? preview.error.message : "Could not open the invitation"}
       />
     );
   }

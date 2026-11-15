@@ -10,11 +10,11 @@ import { Modal } from "./ui/Modal";
 
 export function describeSkipped(skipped: ImportResult["skipped"]) {
   const parts: string[] = [];
-  if (skipped.existing) parts.push(`уже были в проекте — ${skipped.existing}`);
-  if (skipped.ignored) parts.push(`служебные и зависимости — ${skipped.ignored}`);
-  if (skipped.binary) parts.push(`бинарные — ${skipped.binary}`);
-  if (skipped.tooLarge) parts.push(`слишком большие — ${skipped.tooLarge}`);
-  if (skipped.overLimit) parts.push(`сверх лимита — ${skipped.overLimit}`);
+  if (skipped.existing) parts.push(`already in the project: ${skipped.existing}`);
+  if (skipped.ignored) parts.push(`tool files and dependencies: ${skipped.ignored}`);
+  if (skipped.binary) parts.push(`binary: ${skipped.binary}`);
+  if (skipped.tooLarge) parts.push(`too large: ${skipped.tooLarge}`);
+  if (skipped.overLimit) parts.push(`over the limit: ${skipped.overLimit}`);
   return parts;
 }
 
@@ -41,8 +41,8 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
 
   return (
     <Modal
-      title="Импорт из GitHub"
-      description="Вставьте ссылку на публичный репозиторий — файлы появятся в проекте, и можно сразу звать коллег."
+      title="Import from GitHub"
+      description="Paste a link to a public repository. The files appear in the project, and you can invite people right away."
       onClose={onClose}
     >
       {result ? (
@@ -51,9 +51,9 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
             <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-ok" />
             <div>
               <p className="font-medium">
-                {result.repo.owner}/{result.repo.name}: добавлено файлов — {result.imported}
+                {result.repo.owner}/{result.repo.name}: files added: {result.imported}
               </p>
-              {skipped.length > 0 && <p className="mt-1 text-muted">Пропущено: {skipped.join("; ")}.</p>}
+              {skipped.length > 0 && <p className="mt-1 text-muted">Skipped: {skipped.join("; ")}.</p>}
               {result.skippedPaths.length > 0 && (
                 <p className="mt-1 break-words font-mono text-sm text-faint">{result.skippedPaths.join(", ")}</p>
               )}
@@ -61,7 +61,7 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
           </div>
           <div className="flex justify-end">
             <Button variant="primary" onClick={onClose}>
-              Готово
+              Done
             </Button>
           </div>
         </div>
@@ -69,30 +69,30 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
         <form onSubmit={submit} className="space-y-4">
           {importRepo.error && (
             <ErrorNote>
-              {importRepo.error instanceof ApiError ? importRepo.error.message : "Не удалось импортировать репозиторий"}
+              {importRepo.error instanceof ApiError ? importRepo.error.message : "Could not import the repository"}
             </ErrorNote>
           )}
           {mixesRepos && (
             <p className="rounded-lg border border-warn/30 bg-warn/10 px-3 py-2 text-base text-warn">
-              Этот проект связан с {project.github!.owner}/{project.github!.repo}. Файлы из другого репозитория
-              добавятся к нему и смешаются с текущими. Для другого репозитория лучше создать новый проект.
+              This project is linked to {project.github!.owner}/{project.github!.repo}. Files from another repository
+              will be added and mixed with the current ones. For another repository, better create a new project.
             </p>
           )}
           <Field
-            label="Ссылка на репозиторий"
+            label="Repository link"
             placeholder="https://github.com/owner/repo"
             value={url}
             onChange={(event) => setUrl(event.target.value)}
             disabled={importRepo.isPending}
-            hint={`Подойдёт и ссылка на ветку (…/tree/dev). Берутся текстовые файлы: до ${IMPORT_LIMITS.maxFiles} файлов, каждый до ${IMPORT_LIMITS.maxFileBytes / 1024} КБ; node_modules, сборка и бинарные файлы пропускаются.`}
+            hint={`A link to a branch works too (…/tree/dev). Only text files are copied: up to ${IMPORT_LIMITS.maxFiles} files, each up to ${IMPORT_LIMITS.maxFileBytes / 1024} KB. node_modules, build output and binary files are skipped.`}
           />
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="ghost" onClick={onClose} disabled={importRepo.isPending}>
-              Отмена
+              Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={!url.trim() || importRepo.isPending}>
               <GitBranch size={18} />
-              {importRepo.isPending ? "Загружаем…" : "Импортировать"}
+              {importRepo.isPending ? "Loading…" : "Import"}
             </Button>
           </div>
         </form>

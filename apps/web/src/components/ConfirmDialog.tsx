@@ -9,7 +9,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
-  pendingLabel = "Подождите…",
+  pendingLabel = "Please wait…",
   danger,
   action,
   onClose,
@@ -36,11 +36,11 @@ export function ConfirmDialog({
     <Modal title={title} description={description} onClose={onClose}>
       <div className="space-y-4">
         {run.error && (
-          <ErrorNote>{run.error instanceof ApiError ? run.error.message : "Не удалось выполнить действие"}</ErrorNote>
+          <ErrorNote>{run.error instanceof ApiError ? run.error.message : "Could not do this"}</ErrorNote>
         )}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={run.isPending}>
-            Отмена
+            Cancel
           </Button>
           <Button variant={danger ? "danger" : "primary"} onClick={() => run.mutate()} disabled={run.isPending}>
             {run.isPending ? pendingLabel : confirmLabel}

@@ -86,6 +86,6 @@ describe("extractRepoFiles", () => {
   });
 
   it("rejects something that is not a zip archive", () => {
-    expect(() => extractRepoFiles(strToU8("not a zip"))).toThrow(/архив/);
+    expect(() => extractRepoFiles(strToU8("not a zip"))).toThrow(/archive/);
   });
 });

@@ -7,13 +7,13 @@ interface TemplateFile {
   text: string;
 }
 
-const readme = (mainFile: string) => `# С чего начать
+const readme = (mainFile: string) => `# Getting started
 
-1. Откройте \`${mainFile}\` и нажмите **Запустить**: вывод увидят все участники.
-2. Позовите коллегу: меню проекта → **Пригласить** → скопируйте ссылку. Регистрация ему не нужна.
-3. Правьте файл вместе: курсоры и изменения видны сразу у каждого.
+1. Open \`${mainFile}\` and press **Run**. Everyone in the project sees the output.
+2. Invite a teammate: project menu → **Invite people** → copy the link. They do not need an account.
+3. Edit the file together. Everyone sees cursors and changes at once.
 
-Это документ Markdown: слева текст, справа видно, как он выглядит. Его можно править так же, как код.
+This is a Markdown document: the text is on the left, and the right side shows how it looks. You can edit it like code.
 `;
 
 const TEMPLATES: Record<ProjectTemplate, TemplateFile[]> = {
@@ -22,7 +22,7 @@ const TEMPLATES: Record<ProjectTemplate, TemplateFile[]> = {
     {
       path: "main.py",
       type: "code",
-      text: `# Пример: числа Фибоначчи. Нажмите «Запустить» вверху справа.
+      text: `# Example: Fibonacci numbers. Press Run at the top right.
 def fib(n):
     a, b = 0, 1
     for _ in range(n):
@@ -39,7 +39,7 @@ print([fib(i) for i in range(10)])
     {
       path: "main.js",
       type: "code",
-      text: `// Пример: числа Фибоначчи. Нажмите «Запустить» вверху справа.
+      text: `// Example: Fibonacci numbers. Press Run at the top right.
 function fib(n) {
   let [a, b] = [0, 1];
   for (let i = 0; i < n; i += 1) [a, b] = [b, a + b];

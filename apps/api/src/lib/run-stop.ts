@@ -11,7 +11,7 @@ export async function publishRunStop(stop: RunStop) {
   try {
     await publisher.publish(RUN_STOP_CHANNEL, JSON.stringify(stop));
   } catch {
-    throw new AppError("Не удалось остановить программу. Через 10 секунд она остановится сама.", 503);
+    throw new AppError("Could not stop the program. It will stop by itself after 10 seconds.", 503);
   }
 }
 

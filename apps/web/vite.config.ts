@@ -11,8 +11,8 @@ export default defineConfig({
       manifest: {
         name: "Collab",
         short_name: "Collab",
-        description: "Совместное редактирование кода, документов и досок в реальном времени",
-        lang: "ru",
+        description: "Edit code, documents and boards together in real time",
+        lang: "en",
         display: "standalone",
         start_url: "/",
         theme_color: "#0b0d12",

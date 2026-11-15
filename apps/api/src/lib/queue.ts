@@ -29,7 +29,7 @@ export interface RunQueue {
 
 export async function enqueueRun(job: RunJob, queue: RunQueue = getQueue()) {
   if ((await queue.getWaitingCount()) >= MAX_WAITING_RUNS) {
-    throw new AppError("Сейчас запускается слишком много программ. Попробуйте через минуту.", 429);
+    throw new AppError("Too many programs are running right now. Please try again in a minute.", 429);
   }
   await queue.add("run", job, { jobId: job.runId });
 }

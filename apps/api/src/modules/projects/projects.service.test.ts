@@ -63,7 +63,7 @@ describe("projects.service", () => {
 
   it("starts a project from an example with a guide and a file that can run", async () => {
     const owner = await user();
-    const p = await createProject(owner.id, { name: "С примером", template: "python" });
+    const p = await createProject(owner.id, { name: "With an example", template: "python" });
     createdProjectIds.push(p.id);
 
     const files = await prisma.file.findMany({ where: { projectId: p.id }, orderBy: { path: "asc" } });

@@ -77,7 +77,7 @@ export function SearchPanel({
         })
         .catch((error) => {
           if (id !== lookupId.current) return;
-          setLookup({ state: "error", message: error instanceof ApiError ? error.message : "Не удалось выполнить поиск" });
+          setLookup({ state: "error", message: error instanceof ApiError ? error.message : "Could not search" });
         });
     }, SEARCH_DELAY_MS);
     return () => clearTimeout(timer);
@@ -99,9 +99,9 @@ export function SearchPanel({
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-line pl-4 pr-2">
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <TextSearch size={18} className="text-accent-ink" />
-          Поиск по проекту
+          Search the project
         </h2>
-        <IconButton label="Закрыть поиск" onClick={onClose}>
+        <IconButton label="Close search" onClick={onClose}>
           <X size={18} />
         </IconButton>
       </div>
@@ -112,8 +112,8 @@ export function SearchPanel({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => event.key === "Escape" && onClose()}
-          placeholder="Текст в файлах"
-          aria-label="Текст для поиска"
+          placeholder="Text in files"
+          aria-label="Text to find"
           maxLength={SEARCH_LIMITS.maxQuery}
           className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-base placeholder:text-faint focus:border-accent focus:outline-none"
         />
@@ -121,8 +121,8 @@ export function SearchPanel({
           {lookup.state === "loading" && <Spinner size={14} />}
           {result && total > 0 && (
             <span>
-              Совпадений — {total}, файлов — {result.files.length}
-              {result.truncated && ". Показаны не все: уточните запрос"}
+              Matches: {total}, files: {result.files.length}
+              {result.truncated && ". Not all are shown: make the search more exact"}
             </span>
           )}
         </p>
@@ -131,13 +131,13 @@ export function SearchPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
         {lookup.state === "idle" && (
           <p className="px-2 py-6 text-center text-base text-faint">
-            Введите хотя бы {SEARCH_LIMITS.minQuery} символа — найдём их во всех файлах текущей ветки.
+            Type at least {SEARCH_LIMITS.minQuery} characters to search all files of the current branch.
           </p>
         )}
-        {lookup.state === "loading" && !result && <p className="px-2 py-6 text-center text-base text-faint">Ищем…</p>}
+        {lookup.state === "loading" && !result && <p className="px-2 py-6 text-center text-base text-faint">Searching…</p>}
         {lookup.state === "error" && <p className="px-2 py-6 text-center text-base text-bad">{lookup.message}</p>}
         {result && total === 0 && lookup.state === "ready" && (
-          <p className="px-2 py-6 text-center text-base text-faint">Ничего не найдено</p>
+          <p className="px-2 py-6 text-center text-base text-faint">Nothing found</p>
         )}
 
         {result?.files.map((file) => {
@@ -165,7 +165,7 @@ export function SearchPanel({
                     <li key={`${match.line}:${match.column}`}>
                       <button
                         onClick={() => onOpen(file.fileId, match)}
-                        title={`Строка ${match.line}`}
+                        title={`Line ${match.line}`}
                         className="flex w-full items-baseline gap-2 rounded-md py-0.5 pl-7 pr-1.5 text-left text-muted transition hover:bg-raised hover:text-fg"
                       >
                         <span className="w-7 shrink-0 text-right text-xs tabular-nums text-faint">{match.line}</span>

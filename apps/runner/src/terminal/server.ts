@@ -26,7 +26,7 @@ const clamp = (value: number, min: number, max: number, fallback: number) =>
 export function createTerminalServer(options: TerminalServerOptions) {
   const server = http.createServer((_request, response) => {
     response.writeHead(426, { "Content-Type": "text/plain; charset=utf-8" });
-    response.end("Терминал работает через WebSocket.");
+    response.end("The terminal works over WebSocket.");
   });
   const wss = new WebSocketServer({ server, maxPayload: 64 * 1024 });
   const perUser = new Map<string, number>();
@@ -59,11 +59,11 @@ export function createTerminalServer(options: TerminalServerOptions) {
     const ticket = url.searchParams.get("ticket") ?? "";
     const data = ticket ? await options.takeTicket(ticket).catch(() => null) : null;
     if (gone) return;
-    if (!data) return end("Ссылка на терминал устарела. Откройте терминал заново.");
+    if (!data) return end("The terminal link has expired. Open the terminal again.");
     if ((perUser.get(data.userId) ?? 0) >= options.maxPerUser) {
-      return end(`Открыто слишком много терминалов (не больше ${options.maxPerUser}). Закройте лишние вкладки.`);
+      return end(`Too many terminals are open (at most ${options.maxPerUser}). Close the ones you do not need.`);
     }
-    if (total >= options.maxTotal) return end("Сервер сейчас занят другими терминалами. Попробуйте через минуту.");
+    if (total >= options.maxTotal) return end("The server is busy with other terminals. Please try again in a minute.");
 
     perUser.set(data.userId, (perUser.get(data.userId) ?? 0) + 1);
     total += 1;
@@ -98,7 +98,7 @@ export function createTerminalServer(options: TerminalServerOptions) {
         session?.resize(message.data.cols, message.data.rows);
       }
     });
-    send({ type: "status", message: "Запускаем песочницу…" });
+    send({ type: "status", message: "Starting the sandbox…" });
     const gate = createOutputGate({
       buffered: () => socket.bufferedAmount,
       pause: () => session?.pause(),
@@ -125,7 +125,7 @@ export function createTerminalServer(options: TerminalServerOptions) {
     } catch (error) {
       console.error("terminal failed to start:", error instanceof Error ? error.message : error);
       release();
-      end("Не удалось запустить песочницу. Проверьте, что Docker работает, и попробуйте ещё раз.");
+      end("Could not start the sandbox. Check that Docker is running and try again.");
     }
   });
 
@@ -151,7 +151,7 @@ export function createTerminalServer(options: TerminalServerOptions) {
   const closeFor = (projectId: string, userId?: string) => {
     for (const entry of open) {
       if (entry.projectId !== projectId || (userId && entry.userId !== userId)) continue;
-      const message: TerminalServerMessage = { type: "exit", message: "Ваш доступ к проекту изменился, терминал закрыт." };
+      const message: TerminalServerMessage = { type: "exit", message: "Your access to the project changed, so the terminal was closed." };
       if (entry.socket.readyState === entry.socket.OPEN) entry.socket.send(JSON.stringify(message));
       entry.socket.close(1000);
     }

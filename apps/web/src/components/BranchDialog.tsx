@@ -53,23 +53,23 @@ export function BranchDialog({
 
   return (
     <Modal
-      title="Ветки репозитория"
+      title="Repository branches"
       description={
         data
-          ? `${data.repo.owner}/${data.repo.name}. Каждая ветка хранит свои файлы и правки: можно переключаться туда и обратно.`
+          ? `${data.repo.owner}/${data.repo.name}. Each branch keeps its own files and edits, and you can switch back and forth.`
           : branches.isError
-            ? "Список веток сейчас недоступен."
-            : "Загружаем список веток…"
+            ? "The branch list is not available right now."
+            : "Loading branches…"
       }
       onClose={onClose}
       width="max-w-lg"
     >
       <div className="space-y-3">
         {branches.isError && (
-          <ErrorNote>{branches.error instanceof ApiError ? branches.error.message : "Не удалось получить ветки"}</ErrorNote>
+          <ErrorNote>{branches.error instanceof ApiError ? branches.error.message : "Could not load the branches"}</ErrorNote>
         )}
         {switchTo.error && (
-          <ErrorNote>{switchTo.error instanceof ApiError ? switchTo.error.message : "Не удалось открыть ветку"}</ErrorNote>
+          <ErrorNote>{switchTo.error instanceof ApiError ? switchTo.error.message : "Could not open the branch"}</ErrorNote>
         )}
         {branches.isLoading && (
           <div className="flex justify-center py-6">
@@ -86,8 +86,8 @@ export function BranchDialog({
                   autoFocus
                   value={filter}
                   onChange={(event) => setFilter(event.target.value)}
-                  placeholder="Найти ветку"
-                  aria-label="Найти ветку"
+                  placeholder="Find a branch"
+                  aria-label="Find a branch"
                   className="h-10 w-full bg-transparent text-base placeholder:text-faint focus:outline-none"
                 />
               </label>
@@ -110,9 +110,9 @@ export function BranchDialog({
                     >
                       <GitBranch size={18} className="shrink-0" />
                       <span className="min-w-0 flex-1 truncate font-mono text-sm">{name}</span>
-                      {name === data.defaultBranch && <span className="text-xs text-faint">основная</span>}
+                      {name === data.defaultBranch && <span className="text-xs text-faint">default</span>}
                       {data.loaded.includes(name) && !active && (
-                        <span className="rounded bg-raised px-1.5 py-0.5 text-xs text-muted">открывалась</span>
+                        <span className="rounded bg-raised px-1.5 py-0.5 text-xs text-muted">opened before</span>
                       )}
                       {pending && <LoaderCircle size={18} className="animate-spin text-accent-ink" />}
                       {active && <Check size={18} className="text-accent-ink" />}
@@ -120,12 +120,12 @@ export function BranchDialog({
                   </li>
                 );
               })}
-              {visible.length === 0 && <li className="px-3 py-4 text-center text-base text-faint">Ничего не найдено</li>}
+              {visible.length === 0 && <li className="px-3 py-4 text-center text-base text-faint">Nothing found</li>}
             </ul>
             <p className="text-sm text-faint">
               {canEdit
-                ? "Ветка переключится у всех участников проекта. Ветку, которая ещё не открывалась, загрузим с GitHub."
-                : "Переключать ветки могут редакторы и владелец проекта."}
+                ? "The branch changes for everyone in the project. A branch that was never opened is loaded from GitHub."
+                : "Editors and the project owner can switch branches."}
             </p>
           </>
         )}

@@ -4,7 +4,7 @@ export type TreeNode =
   | { kind: "dir"; name: string; path: string; children: TreeNode[] }
   | { kind: "file"; name: string; file: FileRecord };
 
-const collator = new Intl.Collator("ru", { numeric: true, sensitivity: "base" });
+const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 
 /** Folders first, then files, each in natural order (file2 before file10). */
 function sortNodes(nodes: TreeNode[]) {

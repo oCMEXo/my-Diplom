@@ -24,9 +24,9 @@ export interface ShellActions {
 export function SyncPill({ status }: { status: SyncStatus }) {
   const config = {
     // All is well: a quiet icon. A problem: a word in colour, the full sentence in the tooltip.
-    connected: { label: "Синхронизировано", short: "", tone: "inline-flex text-faint", icon: Cloud },
-    connecting: { label: "Подключение…", short: "Подключение…", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: Cloud },
-    offline: { label: "Офлайн — правки сохранятся локально", short: "Офлайн", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: CloudOff },
+    connected: { label: "Synced", short: "", tone: "inline-flex text-faint", icon: Cloud },
+    connecting: { label: "Connecting…", short: "Connecting…", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: Cloud },
+    offline: { label: "Offline: edits are saved on this device", short: "Offline", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: CloudOff },
   }[status];
   return (
     <span
@@ -57,11 +57,11 @@ function OnlineAvatars() {
   const rest = online.length - shown.length;
 
   return (
-    <span className="hidden items-center -space-x-2 bar-md:flex" title={`Сейчас здесь: ${online.map((person) => person.name).join(", ")}`}>
+    <span className="hidden items-center -space-x-2 bar-md:flex" title={`Here now: ${online.map((person) => person.name).join(", ")}`}>
       {shown.map((person) => {
         if (person.id === user?.id) return <Avatar key={person.id} id={person.id} name={person.name} size="sm" ring />;
         const active = following === person.id;
-        const label = active ? `Перестать следить: ${person.name}` : `Следить за: ${person.name}`;
+        const label = active ? `Stop following ${person.name}` : `Follow ${person.name}`;
         return (
           <button
             key={person.id}
@@ -103,7 +103,7 @@ export function ProjectHeader({
 }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-main px-3 [container-type:inline-size] sm:px-4">
-      <IconButton label="Меню проекта" onClick={shell.openNav} className="lg:hidden">
+      <IconButton label="Project menu" onClick={shell.openNav} className="lg:hidden">
         <Menu size={20} />
       </IconButton>
       {/* The name must stay readable however many buttons the page puts on the right. */}
@@ -118,7 +118,7 @@ export function ProjectHeader({
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         {actions}
         {shell.terminal && (
-          <IconButton label="Терминал" title="Терминал (Ctrl+`)" onClick={shell.terminal.toggle} active={shell.terminal.open} aria-pressed={shell.terminal.open}>
+          <IconButton label="Terminal" title="Terminal (Ctrl+`)" onClick={shell.terminal.toggle} active={shell.terminal.open} aria-pressed={shell.terminal.open}>
             <SquareTerminal size={20} />
           </IconButton>
         )}
@@ -127,10 +127,10 @@ export function ProjectHeader({
           <IconButton
             label={
               shell.unread
-                ? `Новых сообщений в чате: ${shell.unread}`
+                ? `New chat messages: ${shell.unread}`
                 : shell.panelOpen
-                  ? "Скрыть чат и участников"
-                  : "Показать чат и участников"
+                  ? "Hide chat and members"
+                  : "Show chat and members"
             }
             onClick={shell.togglePanel}
             active={shell.panelOpen}

@@ -39,58 +39,58 @@ async function controlSyncConnection(page: Page) {
 }
 
 test("a new file and a new member appear for everyone without a reload", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Живые списки");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Live lists");
   const first = await createFile(request, owner, project.id, "main.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const ownerPage = await openAs(browser, owner, `/projects/${project.id}/files/${first.id}`);
   const guestPage = await openAs(browser, visitor, `/projects/${project.id}/files/${first.id}`);
-  await expect(ownerPage.getByText("Синхронизировано")).toBeVisible();
-  await expect(guestPage.getByText("Синхронизировано")).toBeVisible();
+  await expect(ownerPage.getByText("Synced")).toBeVisible();
+  await expect(guestPage.getByText("Synced")).toBeVisible();
 
-  const tree = (page: Page) => page.getByRole("link", { name: "заметка.py" });
-  await guestPage.getByRole("button", { name: "Создать файл" }).click();
-  await guestPage.getByLabel("Имя файла").fill("заметка.py");
-  await guestPage.getByRole("button", { name: "Создать", exact: true }).click();
+  const tree = (page: Page) => page.getByRole("link", { name: "note.py" });
+  await guestPage.getByRole("button", { name: "Create a file" }).click();
+  await guestPage.getByLabel("File name").fill("note.py");
+  await guestPage.getByRole("button", { name: "Create", exact: true }).click();
   await expect(tree(ownerPage)).toBeVisible();
 
   // The dialog hands the keyboard over to the new file.
   await expect(guestPage.locator(".monaco-editor textarea").first()).toBeFocused();
 
-  await ownerPage.getByRole("button", { name: "Удалить заметка.py" }).click({ force: true });
-  await ownerPage.getByRole("dialog").getByRole("button", { name: /Удалить|В корзину/ }).click();
+  await ownerPage.getByRole("button", { name: "Delete note.py" }).click({ force: true });
+  await ownerPage.getByRole("dialog").getByRole("button", { name: /Delete|Move to trash/ }).click();
   await expect(tree(guestPage).first()).toBeHidden();
 
-  await ownerPage.getByRole("tab", { name: /Участники/ }).click();
-  const newcomer = await guest(request, "Новичок");
+  await ownerPage.getByRole("tab", { name: /Members/ }).click();
+  const newcomer = await guest(request, "Newcomer");
   await join(request, newcomer, project.inviteCode);
-  await expect(ownerPage.getByLabel("Роль: Новичок")).toBeVisible();
+  await expect(ownerPage.getByLabel("Role: Newcomer")).toBeVisible();
 });
 
 test("a viewer is offered no invitation and a failed file creation stays in the dialog", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Роли");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Roles");
   const file = await createFile(request, owner, project.id, "main.py");
   await setInviteRole(request, owner, project.id, "viewer");
-  const viewer = await guest(request, "Зритель");
+  const viewer = await guest(request, "Watcher");
   await join(request, viewer, project.inviteCode);
 
   const viewerPage = await openAs(browser, viewer, `/projects/${project.id}/files/${file.id}`);
-  await expect(viewerPage.getByText("только чтение")).toBeVisible();
-  await expect(viewerPage.getByRole("button", { name: /Пригласить/ })).toHaveCount(0);
+  await expect(viewerPage.getByText("read only")).toBeVisible();
+  await expect(viewerPage.getByRole("button", { name: /Invite/ })).toHaveCount(0);
 
   const ownerPage = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
   await ownerPage.route("**/files", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
-    await route.fulfill({ status: 400, json: { message: "Проверьте введённые данные: что-то заполнено неверно." } });
+    await route.fulfill({ status: 400, json: { message: "Please check the form: some fields are not valid." } });
   });
-  await ownerPage.getByRole("button", { name: "Создать файл" }).click();
+  await ownerPage.getByRole("button", { name: "Create a file" }).click();
   const dialog = ownerPage.getByRole("dialog");
-  await dialog.getByLabel("Имя файла").fill("плохое.py");
-  await dialog.getByRole("button", { name: "Создать", exact: true }).click();
-  await expect(dialog.getByRole("alert")).toContainText("Проверьте введённые данные");
+  await dialog.getByLabel("File name").fill("bad.py");
+  await dialog.getByRole("button", { name: "Create", exact: true }).click();
+  await expect(dialog.getByRole("alert")).toContainText("Please check the form");
 
   // Tab goes round inside the dialog, never to the page underneath.
   for (let press = 0; press < 12; press += 1) {
@@ -100,25 +100,25 @@ test("a viewer is offered no invitation and a failed file creation stays in the 
 });
 
 test("a guest can keep the account, and is warned before leaving without it", async ({ browser, request }) => {
-  const visitor = await guest(request, "Влад");
-  const project = await createProject(request, visitor, "Гостевой проект");
+  const visitor = await guest(request, "Vlad");
+  const project = await createProject(request, visitor, "Guest project");
   const page = await openAs(browser, visitor, "/");
 
-  await page.getByRole("button", { name: "Меню профиля" }).click();
-  await page.getByRole("menuitem", { name: "Выйти" }).click();
-  const warning = page.getByRole("dialog", { name: "Выйти из гостевого аккаунта?" });
+  await page.getByRole("button", { name: "Profile menu" }).click();
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
+  const warning = page.getByRole("dialog", { name: "Sign out of the guest account?" });
   await expect(warning).toBeVisible();
-  await warning.getByRole("button", { name: "Сохранить аккаунт" }).click();
+  await warning.getByRole("button", { name: "Save your account" }).click();
 
   const email = `${crypto.randomUUID()}@e2e.local`;
-  const dialog = page.getByRole("dialog", { name: "Сохранить аккаунт" });
+  const dialog = page.getByRole("dialog", { name: "Save your account" });
   await dialog.getByLabel("Email").fill(email);
-  await dialog.getByLabel("Пароль").fill("password123");
-  await dialog.getByRole("button", { name: "Сохранить" }).click();
+  await dialog.getByLabel("Password").fill("password123");
+  await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toBeHidden();
 
-  await page.getByRole("button", { name: "Меню профиля" }).click();
-  await expect(page.getByRole("menu").getByText("Аккаунт", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Profile menu" }).click();
+  await expect(page.getByRole("menu").getByText("Account", { exact: true })).toBeVisible();
 
   const login = await request.post(`${API}/auth/login`, { data: { email, password: "password123" } });
   expect(login.ok()).toBe(true);
@@ -128,74 +128,74 @@ test("a guest can keep the account, and is warned before leaving without it", as
 });
 
 test("an account can be deleted, and the privacy page and the terms are open to everyone", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Будет удалён");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "To be deleted");
   const page = await openAs(browser, owner, "/");
 
-  await page.getByRole("button", { name: "Меню профиля" }).click();
-  await page.getByRole("menuitem", { name: "Удалить аккаунт" }).click();
+  await page.getByRole("button", { name: "Profile menu" }).click();
+  await page.getByRole("menuitem", { name: "Delete account" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Пароль, чтобы подтвердить").fill("wrong-password");
-  await dialog.getByRole("button", { name: "Удалить навсегда" }).click();
+  await dialog.getByLabel("Password to confirm").fill("wrong-password");
+  await dialog.getByRole("button", { name: "Delete forever" }).click();
   await expect(dialog.getByRole("alert")).toBeVisible();
   const stillThere = await request.get(`${API}/projects/${project.id}`, {
     headers: { Authorization: `Bearer ${owner.tokens.accessToken}` },
   });
   expect(stillThere.ok()).toBe(true);
 
-  await dialog.getByLabel("Пароль, чтобы подтвердить").fill("password123");
-  await dialog.getByRole("button", { name: "Удалить навсегда" }).click();
+  await dialog.getByLabel("Password to confirm").fill("password123");
+  await dialog.getByRole("button", { name: "Delete forever" }).click();
   await expect(page).toHaveURL(/\/login/);
 
   const login = await request.post(`${API}/auth/login`, { data: { email: owner.user.email, password: "password123" } });
   expect(login.status()).toBe(401);
 
-  await page.getByRole("link", { name: /данные и приватность/i }).first().click();
-  await expect(page.getByRole("heading", { name: "Данные и приватность" })).toBeVisible();
-  await expect(page.getByText("Гостевой аккаунт, которого нет ни в одном проекте")).toBeVisible();
+  await page.getByRole("link", { name: /data and privacy/i }).first().click();
+  await expect(page.getByRole("heading", { name: "Data and privacy" })).toBeVisible();
+  await expect(page.getByText("A guest account that is in no project")).toBeVisible();
 
-  await page.getByRole("link", { name: "Условия использования" }).click();
-  await expect(page.getByRole("heading", { name: "Условия использования" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Запуск кода" })).toBeVisible();
+  await page.getByRole("link", { name: "Terms of use" }).click();
+  await expect(page.getByRole("heading", { name: "Terms of use" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Running code" })).toBeVisible();
 });
 
 test("a new project can start from an example with a guide and code that is ready to run", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
+  const owner = await register(request, "Anna");
   const page = await openAs(browser, owner, "/");
 
-  await page.getByRole("button", { name: "Новый проект" }).first().click();
-  await page.getByRole("radio", { name: "С примером" }).click();
-  await expect(page.getByLabel("Название")).toBeFocused();
-  await page.getByLabel("Название").fill("Первый проект");
+  await page.getByRole("button", { name: "New project" }).first().click();
+  await page.getByRole("radio", { name: "With an example" }).click();
+  await expect(page.getByLabel("Name")).toBeFocused();
+  await page.getByLabel("Name").fill("First project");
   await page.getByRole("radio", { name: "JavaScript" }).click();
-  await page.getByRole("button", { name: "Создать", exact: true }).click();
+  await page.getByRole("button", { name: "Create", exact: true }).click();
 
   // The project opens on the guide, which says what to do first.
-  await expect(page.getByRole("heading", { name: "С чего начать" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Getting started" })).toBeVisible();
   await page.getByRole("link", { name: "main.js" }).click();
   await expect.poll(() => editorText(page)).toContain("function fib(n)");
-  await expect(page.getByRole("button", { name: "Запустить" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Run", exact: true })).toBeVisible();
 });
 
 test("following a participant goes to their file and keeps their cursor in view", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Следование");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Following");
   const first = await createFile(request, owner, project.id, "a.py");
   const second = await createFile(request, owner, project.id, "b.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const ownerPage = await openAs(browser, owner, `/projects/${project.id}/files/${first.id}`);
   const guestPage = await openAs(browser, visitor, `/projects/${project.id}/files/${first.id}`);
-  await expect(guestPage.getByText("Синхронизировано")).toBeVisible();
+  await expect(guestPage.getByText("Synced")).toBeVisible();
 
-  await guestPage.getByRole("button", { name: "Следить за: Аня" }).click();
-  const bar = guestPage.getByRole("status").filter({ hasText: "Вы следите за" });
-  await expect(bar).toContainText("Аня");
+  await guestPage.getByRole("button", { name: "Follow Anna" }).click();
+  const bar = guestPage.getByRole("status").filter({ hasText: "You are following" });
+  await expect(bar).toContainText("Anna");
 
   await ownerPage.getByRole("link", { name: "b.py" }).first().click();
   await expect(guestPage).toHaveURL(new RegExp(`/files/${second.id}`));
-  await expect(ownerPage.getByText("Синхронизировано")).toBeVisible();
+  await expect(ownerPage.getByText("Synced")).toBeVisible();
 
   // A long file: the end is far below the first screen until the cursor of the person followed goes there.
   await typeInEditor(ownerPage, Array.from({ length: 50 }, (_, line) => `# ${line + 1}`).join("\n"));
@@ -209,23 +209,23 @@ test("following a participant goes to their file and keeps their cursor in view"
 });
 
 test("a line can be shared in the chat and the link opens it for the others", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Ссылки");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Links");
   const file = await createFile(request, owner, project.id, "src/main.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const path = `/projects/${project.id}/files/${file.id}`;
   const ownerPage = await openAs(browser, owner, path);
   const guestPage = await openAs(browser, visitor, `/projects/${project.id}`);
-  await expect(ownerPage.getByText("Синхронизировано")).toBeVisible();
-  await typeInEditor(ownerPage, "один\nдва\nтри");
+  await expect(ownerPage.getByText("Synced")).toBeVisible();
+  await typeInEditor(ownerPage, "one\ntwo\nthree");
 
-  await ownerPage.getByRole("button", { name: "Сослаться на эту строку в чате" }).click();
-  const composer = ownerPage.getByLabel("Сообщение");
+  await ownerPage.getByRole("button", { name: "Mention this line in the chat" }).click();
+  const composer = ownerPage.getByLabel("Message");
   await expect(composer).toHaveValue("src/main.py:3 ");
   await expect(composer).toBeFocused();
-  await composer.pressSequentially("вот здесь");
+  await composer.pressSequentially("right here");
   await composer.press("Enter");
 
   const link = guestPage.getByRole("link", { name: "src/main.py:3" });
@@ -235,106 +235,106 @@ test("a line can be shared in the chat and the link opens it for the others", as
 });
 
 test("messages missed while the chat was hidden are counted until it is opened", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Непрочитанное");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Unread");
   const file = await createFile(request, owner, project.id, "main.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const page = await openAs(browser, visitor, `/projects/${project.id}/files/${file.id}`);
-  await expect(page.getByText("Синхронизировано")).toBeVisible();
-  await page.getByRole("tab", { name: /Участники/ }).click();
+  await expect(page.getByText("Synced")).toBeVisible();
+  await page.getByRole("tab", { name: /Members/ }).click();
 
   const send = (body: string) =>
     request.post(`${API}/projects/${project.id}/messages`, {
       headers: { Authorization: `Bearer ${owner.tokens.accessToken}` },
       data: { body },
     });
-  await send("первое");
-  await send("второе");
-  await expect(page.getByRole("tab", { name: "Чат 2" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Новых сообщений в чате: 2" })).toBeVisible();
+  await send("first");
+  await send("second");
+  await expect(page.getByRole("tab", { name: "Chat 2" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "New chat messages: 2" })).toBeVisible();
 
-  await page.getByRole("tab", { name: /Чат/ }).click();
-  await expect(page.getByRole("button", { name: /Новых сообщений/ })).toHaveCount(0);
-  await expect(page.getByText("второе")).toBeVisible();
+  await page.getByRole("tab", { name: /Chat/ }).click();
+  await expect(page.getByRole("button", { name: /New chat messages/ })).toHaveCount(0);
+  await expect(page.getByText("second")).toBeVisible();
 
   // With the panel closed the header button keeps counting, across a reload too.
-  await page.getByRole("button", { name: "Скрыть чат и участников" }).click();
-  await send("третье");
-  await expect(page.getByRole("button", { name: "Новых сообщений в чате: 1" })).toBeVisible();
-  await page.getByRole("button", { name: "Новых сообщений в чате: 1" }).click();
-  await expect(page.getByText("третье")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Новых сообщений/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "Hide chat and members" }).click();
+  await send("third");
+  await expect(page.getByRole("button", { name: "New chat messages: 1" })).toBeVisible();
+  await page.getByRole("button", { name: "New chat messages: 1" }).click();
+  await expect(page.getByText("third")).toBeVisible();
+  await expect(page.getByRole("button", { name: /New chat messages/ })).toHaveCount(0);
 });
 
 test("the project's text files can be downloaded as one archive", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Архив");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Archive");
   const file = await createFile(request, owner, project.id, "src/main.py");
-  await createFile(request, owner, project.id, "схема", "board");
+  await createFile(request, owner, project.id, "diagram", "board");
 
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
-  await page.getByRole("button", { name: /действия с проектом/ }).click();
-  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: "Скачать ZIP" }).click()]);
-  expect(download.suggestedFilename()).toBe("Архив.zip");
+  await page.getByRole("button", { name: /project actions/ }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: "Download ZIP" }).click()]);
+  expect(download.suggestedFilename()).toBe("Archive.zip");
 
   const archive = await readFile(await download.path());
   expect(archive.subarray(0, 2).toString()).toBe("PK");
   expect(archive.includes("src/main.py")).toBe(true);
-  expect(archive.includes("схема")).toBe(false);
+  expect(archive.includes("diagram")).toBe(false);
 });
 
 test("edits made without a connection are merged after it returns", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Офлайн");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Offline");
   const file = await createFile(request, owner, project.id, "main.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const path = `/projects/${project.id}/files/${file.id}`;
   const ownerPage = await openAs(browser, owner, path);
   const guestPage = await openAs(browser, visitor, path);
-  await expect(ownerPage.getByText("Синхронизировано")).toBeVisible();
-  await expect(guestPage.getByText("Синхронизировано")).toBeVisible();
-  await typeInEditor(ownerPage, "начало");
-  await expect.poll(() => editorText(guestPage)).toContain("начало");
+  await expect(ownerPage.getByText("Synced")).toBeVisible();
+  await expect(guestPage.getByText("Synced")).toBeVisible();
+  await typeInEditor(ownerPage, "start");
+  await expect.poll(() => editorText(guestPage)).toContain("start");
 
   // Now the same page, but its connection can be cut.
   const connection = await controlSyncConnection(guestPage);
   await guestPage.reload();
-  await expect(guestPage.getByText("Синхронизировано")).toBeVisible();
-  await expect.poll(() => editorText(guestPage)).toContain("начало");
+  await expect(guestPage.getByText("Synced")).toBeVisible();
+  await expect.poll(() => editorText(guestPage)).toContain("start");
 
   await connection.cut();
-  await expect(guestPage.getByText(/Офлайн|Подключение/).first()).toBeVisible();
+  await expect(guestPage.getByText(/Offline|Connecting/).first()).toBeVisible();
   await guestPage.locator(".monaco-editor").first().click();
   await guestPage.keyboard.press("Control+End");
-  await guestPage.keyboard.type(" гость");
+  await guestPage.keyboard.type(" guest");
   await ownerPage.locator(".monaco-editor").first().click();
   await ownerPage.keyboard.press("Control+Home");
-  await ownerPage.keyboard.type("Аня ");
-  await expect.poll(() => editorText(ownerPage)).toContain("Аня начало");
-  expect(await editorText(ownerPage)).not.toContain("гость");
+  await ownerPage.keyboard.type("Anna ");
+  await expect.poll(() => editorText(ownerPage)).toContain("Anna start");
+  expect(await editorText(ownerPage)).not.toContain("guest");
 
   connection.restore();
   // The label of a cursor breaks the rendered line in two for innerText, so spaces are compared loosely.
   const merged = async (page: Page) => (await editorText(page)).replace(/\s+/g, " ");
-  await expect.poll(() => merged(ownerPage), { timeout: 30_000 }).toContain("Аня начало гость");
-  await expect.poll(() => merged(guestPage), { timeout: 30_000 }).toContain("Аня начало гость");
+  await expect.poll(() => merged(ownerPage), { timeout: 30_000 }).toContain("Anna start guest");
+  await expect.poll(() => merged(guestPage), { timeout: 30_000 }).toContain("Anna start guest");
 });
 
 test("reconnecting after the access token ran out gets a new one", async ({ browser, request }) => {
   test.setTimeout(90_000);
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Долгий перерыв");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Long break");
   const file = await createFile(request, owner, project.id, "main.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const path = `/projects/${project.id}/files/${file.id}`;
   const ownerPage = await openAs(browser, owner, path);
-  await expect(ownerPage.getByText("Синхронизировано")).toBeVisible();
+  await expect(ownerPage.getByText("Synced")).toBeVisible();
 
   // Just outside the margin in which the app renews a token before connecting.
   const lifetime = 36;
@@ -346,20 +346,20 @@ test("reconnecting after the access token ran out gets a new one", async ({ brow
   await guestPage.goto("/login");
   await guestPage.evaluate((value) => localStorage.setItem("collab.auth", value), stored);
   await guestPage.goto(path);
-  await expect(guestPage.getByText("Синхронизировано")).toBeVisible();
+  await expect(guestPage.getByText("Synced")).toBeVisible();
 
   await connection.cut();
   await guestPage.locator(".monaco-editor").first().click();
-  await guestPage.keyboard.type("после перерыва");
+  await guestPage.keyboard.type("after the break");
   await guestPage.waitForTimeout(lifetime * 1000 + 1000 - (Date.now() - started));
 
   connection.restore();
-  await expect.poll(() => editorText(ownerPage), { timeout: 30_000 }).toContain("после перерыва");
+  await expect.poll(() => editorText(ownerPage), { timeout: 30_000 }).toContain("after the break");
 });
 
 test("a server hiccup during renewal keeps the session, and signing out reaches other tabs", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  await createProject(request, owner, "Сессия");
+  const owner = await register(request, "Anna");
+  await createProject(request, owner, "Session");
   const expired = withExpiringToken(owner, -60);
 
   const context = await browser.newContext();
@@ -384,26 +384,26 @@ test("a server hiccup during renewal keeps the session, and signing out reaches 
 
   await page.unroute("**/auth/refresh");
   await page.reload();
-  await expect(page.getByRole("link", { name: /Сессия/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Session/ })).toBeVisible();
 
   const second = await context.newPage();
   await second.goto("/");
-  await expect(second.getByRole("link", { name: /Сессия/ })).toBeVisible();
-  await second.getByRole("button", { name: "Меню профиля" }).click();
-  await second.getByRole("menuitem", { name: "Выйти" }).click();
+  await expect(second.getByRole("link", { name: /Session/ })).toBeVisible();
+  await second.getByRole("button", { name: "Profile menu" }).click();
+  await second.getByRole("menuitem", { name: "Sign out" }).click();
   await expect(second).toHaveURL(/\/login/);
   await expect(page).toHaveURL(/\/login/);
 });
 
 test("a shape can be added, moved and deleted on the board with the keyboard alone", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Клавиатура");
-  const file = await createFile(request, owner, project.id, "доска", "board");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Keyboard");
+  const file = await createFile(request, owner, project.id, "sketch", "board");
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
   const board = page.locator("[data-shape-count]");
   await expect(board).toHaveAttribute("data-shape-count", "0");
 
-  await page.getByRole("button", { name: "Прямоугольник" }).focus();
+  await page.getByRole("button", { name: "Rectangle" }).focus();
   await page.keyboard.press("Enter");
   await expect(board).toHaveAttribute("data-shape-count", "1");
   await expect(board).not.toHaveAttribute("data-selected-shape", "");
@@ -417,7 +417,7 @@ test("a shape can be added, moved and deleted on the board with the keyboard alo
   for (const format of ["PNG", "SVG"]) {
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: format, exact: true }).click();
-    expect((await download).suggestedFilename()).toBe(`доска.${format.toLowerCase()}`);
+    expect((await download).suggestedFilename()).toBe(`sketch.${format.toLowerCase()}`);
   }
   await board.focus();
 
@@ -430,35 +430,35 @@ test("a shape can be added, moved and deleted on the board with the keyboard alo
 });
 
 test("the new-file dialog tells what happens to each language, and lists them all", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Языки");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Languages");
   const page = await openAs(browser, owner, `/projects/${project.id}`);
-  await page.getByRole("button", { name: "Создать файл" }).click();
+  await page.getByRole("button", { name: "Create a file" }).click();
 
-  const dialog = page.getByRole("dialog", { name: "Новый файл" });
-  const name = dialog.getByLabel("Имя файла");
+  const dialog = page.getByRole("dialog", { name: "New file" });
+  const name = dialog.getByLabel("File name");
   const hint = dialog.getByRole("status");
   await name.fill("main.py");
-  await expect(hint).toContainText("Python: подсветка и запуск");
+  await expect(hint).toContainText("Python: highlighting and running");
   await name.fill("main.go");
-  await expect(hint).toContainText("Go: подсветка. Запускать можно только JavaScript и Python");
+  await expect(hint).toContainText("Go: highlighting. Only JavaScript and Python can run");
   await name.fill("notes.xyz");
-  await expect(hint).toContainText("Расширение .xyz не распознано");
-  await dialog.getByRole("button", { name: "Какие языки поддерживаются?" }).click();
+  await expect(hint).toContainText("The extension .xyz is unknown");
+  await dialog.getByRole("button", { name: "Which languages are supported?" }).click();
   await expect(dialog.getByText("Solidity")).toBeVisible();
 
   await name.fill("main.go");
-  await dialog.getByRole("button", { name: "Создать", exact: true }).click();
+  await dialog.getByRole("button", { name: "Create", exact: true }).click();
   // The editor names the language it took the file for; Go is highlighted but cannot be run.
-  await expect(page.getByRole("button", { name: "Go: подсветка, запуск недоступен" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Запустить" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Go: highlighting, no running" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Run", exact: true })).toHaveCount(0);
   await page.context().close();
 });
 
 test("a shape can be drawn on the board with a finger", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Палец");
-  const file = await createFile(request, owner, project.id, "доска", "board");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Finger");
+  const file = await createFile(request, owner, project.id, "sketch", "board");
 
   const context = await browser.newContext({ hasTouch: true, viewport: { width: 900, height: 700 } });
   await context.addInitScript((stored) => {
@@ -469,7 +469,7 @@ test("a shape can be drawn on the board with a finger", async ({ browser, reques
   const count = page.locator("[data-shape-count]");
   await expect(count).toHaveAttribute("data-shape-count", "0");
 
-  await page.getByRole("button", { name: "Прямоугольник" }).tap();
+  await page.getByRole("button", { name: "Rectangle" }).tap();
   const box = await page.locator("canvas").first().boundingBox();
   if (!box) throw new Error("the board has no canvas");
   await page.touchscreen.tap(box.x + 200, box.y + 200);
@@ -480,49 +480,49 @@ test("a shape can be drawn on the board with a finger", async ({ browser, reques
 test("a person registers, creates a project and signs in again through the pages", async ({ page }) => {
   const email = `${crypto.randomUUID()}@e2e.local`;
   await page.goto("/register");
-  await page.getByLabel("Имя").fill("Аня");
+  await page.getByLabel("Name").fill("Anna");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Пароль").fill("password123");
-  await page.getByRole("button", { name: "Создать аккаунт" }).click();
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/$/);
 
-  await page.getByRole("button", { name: "Создать проект" }).click();
+  await page.getByRole("button", { name: "Create a project" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByRole("textbox").first().fill("Первый проект");
-  await dialog.getByRole("button", { name: "Создать" }).click();
+  await dialog.getByRole("textbox").first().fill("First project");
+  await dialog.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/\/projects\//);
 
-  await page.getByRole("button", { name: "Меню профиля" }).click();
-  await page.getByRole("menuitem", { name: "Выйти" }).click();
+  await page.getByRole("button", { name: "Profile menu" }).click();
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login/);
 
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Пароль").fill("wrong-password");
-  await page.getByRole("button", { name: "Войти", exact: true }).click();
+  await page.getByLabel("Password").fill("wrong-password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByRole("alert")).toBeVisible();
-  await page.getByLabel("Пароль").fill("password123");
-  await page.getByRole("button", { name: "Войти", exact: true }).click();
-  await expect(page.getByRole("link", { name: /Первый проект/ })).toBeVisible();
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("link", { name: /First project/ })).toBeVisible();
 });
 
 test("the cursor of another person is shown with a name, and a replaced link stops working", async ({ browser, request }) => {
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Курсоры");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Cursors");
   const file = await createFile(request, owner, project.id, "main.py");
-  const visitor = await guest(request, "Влад");
+  const visitor = await guest(request, "Vlad");
   await join(request, visitor, project.inviteCode);
 
   const path = `/projects/${project.id}/files/${file.id}`;
   const ownerPage = await openAs(browser, owner, path);
   const guestPage = await openAs(browser, visitor, path);
-  await expect(guestPage.getByText("Синхронизировано")).toBeVisible();
+  await expect(guestPage.getByText("Synced")).toBeVisible();
   await typeInEditor(ownerPage, "x = 1");
   await expect.poll(() => editorText(guestPage)).toContain("x = 1");
 
   const cursor = guestPage.locator(".yRemoteSelectionHead").first();
   await expect(cursor).toBeAttached();
   // The name is written by a style rule that follows the awareness update.
-  await expect.poll(() => cursor.evaluate((element) => getComputedStyle(element, "::after").content)).toContain("Аня");
+  await expect.poll(() => cursor.evaluate((element) => getComputedStyle(element, "::after").content)).toContain("Anna");
 
   const regenerated = await request.post(`${API}/projects/${project.id}/invite/regenerate`, {
     headers: { Authorization: `Bearer ${owner.tokens.accessToken}` },
@@ -531,19 +531,19 @@ test("the cursor of another person is shown with a name, and a replaced link sto
   const stranger = await browser.newContext();
   const oldLink = await stranger.newPage();
   await oldLink.goto(`/join/${project.inviteCode}`);
-  await expect(oldLink.getByText(/недействительна или устарела/)).toBeVisible();
+  await expect(oldLink.getByText(/not valid or has expired/)).toBeVisible();
   await stranger.close();
 });
 
 test("the keyboard-input hint explains a program that asks for input", async ({ browser, request }) => {
   test.skip(process.env.E2E_RUNNER !== "1", "needs the runner service and Docker");
 
-  const owner = await register(request, "Аня");
-  const project = await createProject(request, owner, "Ввод");
+  const owner = await register(request, "Anna");
+  const project = await createProject(request, owner, "Input");
   const file = await createFile(request, owner, project.id, "main.py");
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
-  await expect(page.getByText("Синхронизировано")).toBeVisible();
+  await expect(page.getByText("Synced")).toBeVisible();
   await typeInEditor(page, "input()");
-  await page.getByRole("button", { name: "Запустить" }).click();
-  await expect(page.getByText(/ждёт ввода с клавиатуры/)).toBeVisible({ timeout: 60_000 });
+  await page.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(page.getByText(/waits for keyboard input/)).toBeVisible({ timeout: 60_000 });
 });

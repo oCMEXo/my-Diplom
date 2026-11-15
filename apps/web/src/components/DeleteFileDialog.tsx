@@ -28,20 +28,20 @@ export function DeleteFileDialog({
 
   return (
     <Modal
-      title="Убрать файл в корзину?"
-      description={`«${file.path}» исчезнет у всех участников проекта, но останется в корзине: его можно восстановить.`}
+      title="Move the file to the trash?"
+      description={`“${file.path}” disappears for everyone in the project, but stays in the trash, so you can restore it.`}
       onClose={onClose}
     >
       <div className="space-y-4">
         {remove.error && (
-          <ErrorNote>{remove.error instanceof ApiError ? remove.error.message : "Не удалось удалить файл"}</ErrorNote>
+          <ErrorNote>{remove.error instanceof ApiError ? remove.error.message : "Could not delete the file"}</ErrorNote>
         )}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={remove.isPending}>
-            Отмена
+            Cancel
           </Button>
           <Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>
-            {remove.isPending ? "Убираем…" : "В корзину"}
+            {remove.isPending ? "Moving…" : "Move to trash"}
           </Button>
         </div>
       </div>

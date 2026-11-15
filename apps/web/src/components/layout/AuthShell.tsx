@@ -5,10 +5,10 @@ import { Wordmark } from "../ui/Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 const FEATURES = [
-  { icon: Users, text: "Заходите по ссылке — даже без регистрации" },
-  { icon: Boxes, text: "Код, документы и доски в одном проекте" },
-  { icon: MessagesSquare, text: "Чат и курсоры коллег рядом с работой" },
-  { icon: PenTool, text: "Правки без сети не теряются" },
+  { icon: Users, text: "Join by a link, even without an account" },
+  { icon: Boxes, text: "Code, documents and boards in one project" },
+  { icon: MessagesSquare, text: "Chat and teammates' cursors next to your work" },
+  { icon: PenTool, text: "Edits made offline are not lost" },
 ];
 
 function MockEditor() {
@@ -25,16 +25,16 @@ function MockEditor() {
       </p>
       <p className="relative whitespace-pre">
         {"    "}
-        <span className="text-[#c4b5fd]">return</span> <span className="text-[#86efac]">f&quot;Привет, {"{name}"}!&quot;</span>
+        <span className="text-[#c4b5fd]">return</span> <span className="text-[#86efac]">f&quot;Hello, {"{name}"}!&quot;</span>
         <span className="absolute -top-1 left-[19.5rem] hidden sm:block">
-          <Cursor color="#34d399" name="Аня" />
+          <Cursor color="#34d399" name="Anna" />
         </span>
       </p>
       <p>&nbsp;</p>
       <p className="relative">
-        <span className="text-[#93c5fd]">print</span>(greet(<span className="text-[#86efac]">&quot;команда&quot;</span>))
+        <span className="text-[#93c5fd]">print</span>(greet(<span className="text-[#86efac]">&quot;team&quot;</span>))
         <span className="absolute -top-0.5 left-[13rem] hidden sm:block">
-          <Cursor color="#f472b6" name="Влад" delay />
+          <Cursor color="#f472b6" name="Vlad" delay />
         </span>
       </p>
     </div>
@@ -65,7 +65,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
         </div>
         <div className="relative z-10 space-y-8">
           <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            Общее пространство, где проект делается <span className="text-[#949cf7]">вместе</span>
+            A shared place where a project is made <span className="text-[#949cf7]">together</span>
           </h2>
           <MockEditor />
           <ul className="grid max-w-md gap-3 text-base text-white/70">
@@ -79,13 +79,13 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
             ))}
           </ul>
         </div>
-        <p className="relative z-10 text-sm text-white/40">Дипломный проект ·{" "}
+        <p className="relative z-10 text-sm text-white/40">Diploma project ·{" "}
           <Link to="/privacy" className="underline hover:text-white/70">
-            данные и приватность
+            data and privacy
           </Link>
           {" · "}
           <Link to="/terms" className="underline hover:text-white/70">
-            условия использования
+            terms of use
           </Link></p>
       </aside>
 
@@ -102,7 +102,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
           {children}
           <p className="mt-6 text-center text-sm text-muted lg:hidden">
             <Link to="/privacy" className="underline hover:text-fg">
-              Данные и приватность
+              Data and privacy
             </Link>
           </p>
         </div>

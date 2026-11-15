@@ -6,9 +6,9 @@ function message(authorId: string, createdAt: string): Message {
   return {
     id: createdAt,
     projectId: "p",
-    body: "текст",
+    body: "text",
     createdAt,
-    author: { id: authorId, name: "Аня", isGuest: false },
+    author: { id: authorId, name: "Anna", isGuest: false },
   };
 }
 

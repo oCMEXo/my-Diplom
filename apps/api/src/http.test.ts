@@ -3,7 +3,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { prisma } from "@collab/db";
 import { buildApp } from "./app.js";
 
-describe("HTTP behaviour a person sees", () => {
+describe("HTTP behaviour a person sees", { timeout: 30_000 }, () => {
   const userIds: string[] = [];
   const projectIds: string[] = [];
 
@@ -36,7 +36,7 @@ describe("HTTP behaviour a person sees", () => {
 
   it("treats an address the same in any letter case", async () => {
     const lower = `${randomUUID()}@test.local`;
-    const body = { name: "Аня", email: `  ${lower.toUpperCase()} `, password: "password123" };
+    const body = { name: "Anna", email: `  ${lower.toUpperCase()} `, password: "password123" };
     await withApp(async (app) => {
       const registered = await app.inject({ method: "POST", url: "/auth/register", payload: body });
       expect(registered.statusCode).toBe(201);
@@ -52,13 +52,13 @@ describe("HTTP behaviour a person sees", () => {
   });
 
   it("shows what an invite link leads to without signing in", async () => {
-    const owner = await registerOwner("Артём");
+    const owner = await registerOwner("Artem");
     const created = await withApp((app) =>
       app.inject({
         method: "POST",
         url: "/projects",
         headers: { authorization: `Bearer ${owner.tokens.accessToken}` },
-        payload: { name: "Курсовая" },
+        payload: { name: "Coursework" },
       }),
     );
     const project = created.json();
@@ -67,33 +67,33 @@ describe("HTTP behaviour a person sees", () => {
     const preview = await withApp((app) => app.inject({ method: "GET", url: `/join/${project.inviteCode}` }));
 
     expect(preview.statusCode).toBe(200);
-    expect(preview.json()).toEqual({ projectName: "Курсовая", ownerName: "Артём", role: "editor" });
+    expect(preview.json()).toEqual({ projectName: "Coursework", ownerName: "Artem", role: "editor" });
   });
 
-  it("answers an unknown invite link in Russian with a 404", async () => {
+  it("answers an unknown invite link with a 404 and a clear message", async () => {
     const response = await withApp((app) => app.inject({ method: "GET", url: "/join/does-not-exist" }));
     expect(response.statusCode).toBe(404);
-    expect(response.json().message).toBe("Ссылка-приглашение недействительна или устарела");
+    expect(response.json().message).toBe("The invite link is not valid or has expired");
   });
 
   it("lets a person change their displayed name", async () => {
-    const owner = await registerOwner("Гость");
+    const owner = await registerOwner("Guest");
     const response = await withApp((app) =>
       app.inject({
         method: "PATCH",
         url: "/auth/me",
         headers: { authorization: `Bearer ${owner.tokens.accessToken}` },
-        payload: { name: "  Влад  " },
+        payload: { name: "  Vlad  " },
       }),
     );
     expect(response.statusCode).toBe(200);
-    expect(response.json().name).toBe("Влад");
+    expect(response.json().name).toBe("Vlad");
     const stored = await prisma.user.findUniqueOrThrow({ where: { id: owner.user.id } });
-    expect(stored.name).toBe("Влад");
+    expect(stored.name).toBe("Vlad");
   });
 
   it("refuses an empty name", async () => {
-    const owner = await registerOwner("Аня");
+    const owner = await registerOwner("Anna");
     const response = await withApp((app) =>
       app.inject({
         method: "PATCH",
@@ -105,21 +105,21 @@ describe("HTTP behaviour a person sees", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it("explains a wrong password and bad input in Russian", async () => {
-    const owner = await registerOwner("Аня");
+  it("explains a wrong password and bad input", async () => {
+    const owner = await registerOwner("Anna");
     const email = (await prisma.user.findUniqueOrThrow({ where: { id: owner.user.id } })).email;
 
     const wrong = await withApp((app) =>
       app.inject({ method: "POST", url: "/auth/login", payload: { email, password: "not-the-password" } }),
     );
     expect(wrong.statusCode).toBe(401);
-    expect(wrong.json().message).toBe("Неверный email или пароль");
+    expect(wrong.json().message).toBe("Wrong email or password");
 
     const invalid = await withApp((app) =>
       app.inject({ method: "POST", url: "/auth/login", payload: { email: "not-an-email", password: "x" } }),
     );
     expect(invalid.statusCode).toBe(400);
-    expect(invalid.json().message).toMatch(/Проверьте введённые данные/);
+    expect(invalid.json().message).toMatch(/Please check the form/);
   });
 
   it("limits how often one address can try to sign in, and tells them to wait", async () => {
@@ -137,7 +137,7 @@ describe("HTTP behaviour a person sees", () => {
       expect((await attempt("203.0.113.7")).statusCode).toBe(401);
       const blocked = await attempt("203.0.113.7");
       expect(blocked.statusCode).toBe(429);
-      expect(blocked.json().message).toMatch(/Слишком много запросов/);
+      expect(blocked.json().message).toMatch(/Too many requests/);
 
       // Another visitor behind the same proxy is counted separately.
       expect((await attempt("203.0.113.8")).statusCode).toBe(401);
@@ -163,7 +163,7 @@ describe("HTTP behaviour a person sees", () => {
   });
 
   it("refuses to run code when the server has running switched off", async () => {
-    const owner = await registerOwner("Аня");
+    const owner = await registerOwner("Anna");
     const response = await withApp(async () => {
       const app = await buildApp({ runEnabled: false });
       try {
@@ -178,7 +178,7 @@ describe("HTTP behaviour a person sees", () => {
       }
     });
     expect(response.statusCode).toBe(403);
-    expect(response.json().message).toBe("Запуск кода на этом сервере выключен");
+    expect(response.json().message).toBe("Running code is turned off on this server");
   });
 
   it("tells the app whether code runs here, and for whom", async () => {
@@ -198,7 +198,7 @@ describe("HTTP behaviour a person sees", () => {
   });
 
   it("runs code and opens terminals only for people who give the access code", async () => {
-    const owner = await registerOwner("Аня");
+    const owner = await registerOwner("Anna");
     const app = await buildApp({ runEnabled: true, runAccessCode: "secret-code-1" });
     const auth = { authorization: `Bearer ${owner.tokens.accessToken}` };
     try {
@@ -213,7 +213,7 @@ describe("HTTP behaviour a person sees", () => {
       ] as const) {
         const without = await app.inject({ method: "POST", url, headers: auth, payload });
         expect(without.statusCode).toBe(403);
-        expect(without.json().message).toMatch(/кодом доступа/);
+        expect(without.json().message).toMatch(/access code/);
         const wrong = await app.inject({ method: "POST", url, headers: { ...auth, "x-run-code": "nope" }, payload });
         expect(wrong.statusCode).toBe(403);
         // With the code the request gets through to the project check (this project does not exist).
