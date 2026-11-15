@@ -1,22 +1,21 @@
-# ADR-001: один Yjs-документ на файл
+# ADR-001: one Yjs document per file
 
-## Решение
+## Decision
 
-Для каждого файла — свой `Y.Doc` с одним `Y.Text`. Дерево файлов и настройки
-проекта хранятся в PostgreSQL и идут через REST.
+Each file has its own `Y.Doc` with one `Y.Text`. The file tree and the project settings are stored in
+PostgreSQL and go through REST.
 
-| Вариант | Плюсы | Минусы |
+| Option | Pros | Cons |
 |---|---|---|
-| **Документ на файл (выбран)** | Грузим только открытые файлы; маленькие снимки; простые права доступа | Переименование и удаление файлов офлайн не синхронизируются |
-| Один документ на проект | Весь проект, включая дерево, работает офлайн | Документ растёт без предела; на старте грузится всё |
-| Документ на файл + документ дерева | Лучшее из двух | Конфликты перемещений в дереве — отдельная сложная задача |
+| **Document per file (chosen)** | Only open files are loaded; small snapshots; simple access rights | Renaming and deleting files offline is not synced |
+| One document per project | The whole project, tree included, works offline | The document grows without limit; everything loads at start |
+| Document per file + a tree document | The best of both | Conflicting moves in the tree are a separate hard problem |
 
-## Последствия
+## Consequences
 
-Офлайн доступны файлы, которые уже открывались на этом устройстве. Документ
-дерева можно добавить позже, если останется время.
+Offline, you can use the files that were already opened on this device. A tree document can be added
+later if there is time.
 
-Доска дизайна — тоже один `Y.Doc` на файл: `Y.Map` фигур по id (тип,
-координаты, размеры, цвет, текст) и `Y.Array` с порядком слоёв. Если два
-человека двигают одну фигуру, побеждает последнее изменение каждого свойства
-(LWW-регистр). Документ Markdown устроен как файл кода.
+The design board is also one `Y.Doc` per file: a `Y.Map` of shapes by id (type, position, size, colour,
+text) and a `Y.Array` with the layer order. If two people move the same shape, the last change of each
+property wins (an LWW register). A Markdown document works like a code file.

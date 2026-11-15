@@ -1,60 +1,55 @@
-# ADR-003: запуск кода в Docker через очередь
+# ADR-003: running code in Docker through a queue
 
-## Решение
+## Decision
 
-API ставит задачу в очередь BullMQ, отдельный сервис `runner` забирает её и
-запускает код в одноразовом контейнере. Вывод идёт обратно всем участникам
-проекта по WebSocket.
+The API puts a job into a BullMQ queue, and a separate `runner` service takes it and runs the code in a
+one-off container. The output goes back to everyone in the project over WebSocket.
 
-Ограничения контейнера: без сети (`--network none`), файловая система только
-для чтения, непривилегированный пользователь, лимиты памяти, CPU и числа
-процессов, таймаут. Конкретные значения подберём на этапе запуска кода.
+Container limits: no network (`--network none`), a read-only file system, an unprivileged user, limits on
+memory, CPU and the number of processes, and a timeout. The exact values are chosen when running code is
+built.
 
-| Вариант | Плюсы | Минусы |
+| Option | Pros | Cons |
 |---|---|---|
-| **Docker на сервере + очередь (выбран)** | Любой язык добавляется образом; очередь сглаживает нагрузку | Нужна машина с Docker; риски безопасности закрываем лимитами |
-| В браузере (Web Worker, Pyodide) | Ноль нагрузки на сервер, работает офлайн | Pyodide тяжёлый; вывод не общий для всех |
-| Внешний сервис (Judge0) | Быстро подключить | Чужая часть системы, меньше своей работы для диплома |
+| **Docker on the server + a queue (chosen)** | Any language is added as an image; the queue smooths the load | Needs a machine with Docker; security risks are covered by limits |
+| In the browser (Web Worker, Pyodide) | No server load, works offline | Pyodide is heavy; the output is not shared |
+| External service (Judge0) | Quick to connect | Someone else's part of the system, less own work for the diploma |
 
-Номер строки ошибки берём из stack trace Node.js и Python и подсвечиваем в
-Monaco.
+The line number of an error is taken from the Node.js or Python stack trace and highlighted in Monaco.
 
-## Принятые значения и детали реализации
+## Chosen values and implementation details
 
-Конкретные ограничения (подобраны на этапе реализации, проверены тестами на
-реальном Docker, см. `apps/runner/src/executor.test.ts`):
+The exact limits (chosen during implementation and checked by tests on real Docker, see
+`apps/runner/src/executor.test.ts`):
 
-| Параметр | Значение |
+| Setting | Value |
 |---|---|
-| Сеть | `--network none` |
-| Файловая система | `--read-only`, `/tmp` — tmpfs 16 МБ |
-| Пользователь | `65534:65534` (nobody), `--cap-drop ALL`, `no-new-privileges` |
-| Память | 128 МБ (swap отключён) |
-| CPU / процессы | 0.5 CPU, не более 64 процессов |
-| Время | 10 секунд, затем `docker kill` |
-| Вывод | не более 64 КБ, остальное отбрасывается с пометкой «вывод обрезан» |
+| Network | `--network none` |
+| File system | `--read-only`, `/tmp` is a 16 MB tmpfs |
+| User | `65534:65534` (nobody), `--cap-drop ALL`, `no-new-privileges` |
+| Memory | 128 MB (no swap) |
+| CPU / processes | 0.5 CPU, at most 64 processes |
+| Time | 10 seconds, then `docker kill` |
+| Output | at most 64 KB; the rest is dropped with an "output cut" note |
 
-Проект передаётся в контейнер как **tar-архив через stdin**: контейнер
-распаковывает его в собственную tmpfs (`/tmp/p`, 16 МБ в памяти) и запускает
-выбранный файл (`node ./путь` / `python ./путь`) оттуда. Поэтому программа видит
-соседние файлы проекта (`require('./logger')`, `import helper`), а на файловую
-систему хоста ничего не пишется. Путь файла передаётся переменной окружения, а не
-подставляется в команду, так что имя файла не может внедрить shell-код.
-Первоначальный вариант («код через stdin», `node -`) не давал программе видеть
-другие файлы и падал на любом `require` соседнего модуля.
+The project goes into the container as a **tar archive on stdin**: the container unpacks it into its own
+tmpfs (`/tmp/p`, 16 MB in memory) and runs the chosen file (`node ./path` / `python ./path`) from there.
+So the program sees the other project files (`require('./logger')`, `import helper`), and nothing is
+written to the host's file system. The file path is passed in an environment variable instead of being
+put into the command, so a file name cannot inject shell code. The first version ("code on stdin",
+`node -`) did not let the program see other files and failed on any `require` of a neighbour module.
 
-Место ошибки runner достаёт из трассировки по пути запускаемого файла
-(`/tmp/p/<файл>:N` для Node, `File "/tmp/p/<файл>", line N` для Python); кадры из
-других файлов проекта пропускаются. Для Python берётся последний подходящий кадр
-(самый глубокий), для Node — первый. Сторонние пакеты (`npm install`, `pip`) в
-песочнице недоступны: сети нет, а `node_modules` не передаётся.
+The runner finds the error location in the trace by the path of the file being run (`/tmp/p/<file>:N`
+for Node, `File "/tmp/p/<file>", line N` for Python); frames from other project files are skipped. For
+Python the last matching frame (the deepest) is taken, for Node the first one. Third-party packages
+(`npm install`, `pip`) are not available in the sandbox: there is no network, and `node_modules` is not
+sent.
 
-Запуск работает от состояния редактора: клиент отправляет текущий текст
-файла вместе с запросом (роль `editor` и выше), а не читает его из
-сохранённого снимка — снимок отстаёт на время debounce Hocuspocus.
+A run uses the editor state: the client sends the current text of the file with the request (role
+`editor` and above) instead of reading it from the saved snapshot, which lags behind by the Hocuspocus
+debounce time.
 
-Вывод стримится: runner публикует события `run.started`, `run.output`,
-`run.finished` в Redis (канал `run-events`), api пересылает их участникам
-проекта через `/ws` (см. [протокол](../websocket-protocol.md)).
-Запуск остаётся скромной функцией продукта: небольшая кнопка в шапке
-редактора и сворачиваемая панель «Вывод», общая для всех участников проекта.
+The output is streamed: the runner publishes the events `run.started`, `run.output` and `run.finished`
+to Redis (channel `run-events`), and the API forwards them to the project members over `/ws` (see the
+[protocol](../websocket-protocol.md)). Running code stays a small feature of the product: a small button
+in the editor header and a collapsible "Output" panel that all project members share.

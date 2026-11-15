@@ -1,27 +1,28 @@
-# ADR-005: синхронизация на CRDT, а не на OT
+# ADR-005: sync on a CRDT, not on OT
 
-## Решение
+## Decision
 
-Общие документы хранятся как CRDT (библиотека Yjs). OT не используем.
+Shared documents are stored as a CRDT (the Yjs library). OT is not used.
 
-Что требуют от решения: правка без связи и слияние без потерь (US-09, NFR-A2 в BA), задержка правки
-не больше 100 мс при 50 редакторах (NFR-P1), доска в том же проекте (US-12).
+What the solution must do: editing offline and merging without losses (US-09, NFR-A2 in the BA), an edit
+delay of at most 100 ms with 50 editors (NFR-P1), and a board in the same project (US-12).
 
-| Критерий | OT (ShareDB) | CRDT (Yjs, выбран) |
+| Criterion | OT (ShareDB) | CRDT (Yjs, chosen) |
 |---|---|---|
-| Правка без связи | Ограниченно: сервер должен преобразовать длинный список правок | Встроено: копии сливаются без центрального сервера |
-| Не только текст (доска) | Нужен отдельный тип OT | Общие типы той же библиотеки (карты, массивы) |
-| Задержка правки, p95, 50 пользователей (одна машина, loopback, глава 4) | около 9 мс, в одном прогоне до 12,3 мс | около 10 мс, в одном прогоне до 11,1 мс |
-| Риск | Сложная логика преобразований | Документ растёт вместе с историей правок (риск R4 в BA) |
+| Editing offline | Limited: the server has to transform a long list of edits | Built in: copies merge without a central server |
+| Not only text (board) | Needs a separate OT type | Shared types of the same library (maps, arrays) |
+| Edit delay, p95, 50 users (one machine, loopback, chapter 4) | about 9 ms, up to 12.3 ms in one run | about 10 ms, up to 11.1 ms in one run |
+| Risk | Complex transformation logic | The document grows with the edit history (risk R4 in the BA) |
 
-## Почему
+## Why
 
-По задержке варианты в эксперименте равны, и оба намного ниже порога в 100 мс. Сеть в замере не
-участвует, поэтому это сравнение систем, а не обещание для реальной сети. Выбор решает правка без
-связи: для CRDT она встроена, а для OT становится отдельной сложной задачей.
+On delay the two options are equal in the experiment, and both are far below the 100 ms threshold. The
+network is not part of the measurement, so this compares the systems; it is not a promise for a real
+network. Offline editing decides it: for a CRDT it is built in, for OT it becomes a separate hard task.
 
-Минус принят осознанно: документ растёт. Это риск R4, его размер измеряется в главе 4.
+The downside is accepted on purpose: the document grows. This is risk R4, and its size is measured in
+chapter 4.
 
-Решение зависит от US-09. В BA записано правило: если опрос покажет, что обрывы связи редки, US-09
-становится Should. Тогда преимущество CRDT станет меньше, но замена уже сделанной синхронизации всё
-равно не окупится.
+The decision depends on US-09. The BA has a rule: if the survey shows that connection breaks are rare,
+US-09 becomes a Should. Then the advantage of the CRDT gets smaller, but replacing the sync that is
+already built would still not pay off.

@@ -1,17 +1,16 @@
 # @collab/runner
 
-BullMQ-воркер (ADR-003): забирает задачи запуска кода из очереди и исполняет
-их в одноразовом Docker-контейнере (`node:22-alpine` / `python:3.12-alpine`)
-без сети, с read-only файловой системой, непривилегированным пользователем и
-лимитами CPU/памяти/процессов/времени. Вывод публикуется в Redis, api
-рассылает его участникам проекта по WebSocket.
+A BullMQ worker (ADR-003): it takes code run jobs from the queue and runs them in a one-off Docker
+container (`node:22-alpine` / `python:3.12-alpine`) without network, with a read-only file system, an
+unprivileged user and limits on CPU, memory, processes and time. The output is published to Redis, and
+the API sends it to the project members over WebSocket. It also serves the terminal.
 
-Подробности и значения лимитов — в
+Details and the limit values are in
 [ADR-003](../../docs/adr/003-code-execution-docker-queue.md).
 
-## Локальная разработка
+## Local development
 
-Нужны Docker и Redis (`infra/docker-compose.dev.yml`).
+You need Docker and Redis (`infra/docker-compose.dev.yml`).
 
 ```bash
 docker pull node:22-alpine && docker pull python:3.12-alpine
@@ -19,5 +18,5 @@ cp .env.example .env
 pnpm --filter @collab/runner dev
 ```
 
-Интеграционные тесты песочницы (`executor.test.ts`) запускают настоящие
-контейнеры и автоматически пропускаются, если Docker или образы недоступны.
+The sandbox integration tests (`executor.test.ts`) start real containers and are skipped automatically
+if Docker or the images are not available.

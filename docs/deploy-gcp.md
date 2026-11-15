@@ -1,33 +1,34 @@
-# Развёртывание в Google Cloud
+# Deployment on Google Cloud
 
-Весь сайт на одной виртуальной машине Compute Engine: PostgreSQL, Redis, api, collab, runner и
-Caddy в Docker Compose (`infra/gcp/docker-compose.yml`). Caddy отдаёт собранный сайт и на том же
-адресе проксирует `/api`, `/collab` и `/terminal`, как локальный тестовый хостинг, и сам получает
-HTTPS-сертификат. Своего домена не нужно: адрес вида `https://35-228-1-2.sslip.io` строится из IP.
+The whole site runs on one Compute Engine virtual machine: PostgreSQL, Redis, api, collab, runner and
+Caddy in Docker Compose (`infra/gcp/docker-compose.yml`). Caddy serves the built site and, on the same
+address, proxies `/api`, `/collab` and `/terminal`, like the local test hosting, and gets the HTTPS
+certificate by itself. No own domain is needed: an address like `https://35-228-1-2.sslip.io` is built
+from the IP.
 
-Запуск кода и терминал на публичном сайте требуют кода доступа владельца (`RUN_ACCESS_CODE`).
+Running code and the terminal on the public site need the owner's access code (`RUN_ACCESS_CODE`).
 
-Роботов мессенджеров Caddy отправляет на страницу предпросмотра в API (`/preview/*`), чтобы у
-ссылки-приглашения в чате были заголовок «Имя приглашает вас в проект…» и картинка.
+Caddy sends messenger bots to the preview page in the API (`/preview/*`), so an invite link in a chat
+shows the title "Name invites you to the project…" and a picture.
 
-Развёрнуто 5 ноября 2026 года: **https://35-228-155-63.sslip.io**, проект
+Deployed on 5 November 2026: **https://35-228-155-63.sslip.io**, project
 `project-d64af781-2588-4bb2-a48`.
 
-## Что создаётся
+## What gets created
 
-| Ресурс | Параметры |
+| Resource | Settings |
 |---|---|
-| VM `collab` | e2-medium (2 vCPU, 4 ГБ), Debian 12, диск 30 ГБ pd-balanced, зона `europe-north1-a` (Финляндия, ЕС) |
-| Статический IP `collab-ip` | чтобы адрес сайта не менялся после перезапуска |
-| Правило файрвола `collab-web` | входящие TCP 80, 443 и UDP 443 для машин с тегом `collab-web` |
+| VM `collab` | e2-medium (2 vCPU, 4 GB), Debian 12, 30 GB pd-balanced disk, zone `europe-north1-a` (Finland, EU) |
+| Static IP `collab-ip` | so the site address does not change after a restart |
+| Firewall rule `collab-web` | incoming TCP 80, 443 and UDP 443 for machines tagged `collab-web` |
 
-## Один раз: проект и машина
+## Once: project and machine
 
 ```bash
 gcloud auth login
-gcloud projects create <id-проекта> --name="Collab diploma"
-gcloud billing projects link <id-проекта> --billing-account=<id-платёжного-аккаунта>
-gcloud config set project <id-проекта>
+gcloud projects create <project-id> --name="Collab diploma"
+gcloud billing projects link <project-id> --billing-account=<billing-account-id>
+gcloud config set project <project-id>
 gcloud services enable compute.googleapis.com
 gcloud compute addresses create collab-ip --region=europe-north1
 gcloud compute firewall-rules create collab-web --allow=tcp:80,tcp:443,udp:443 --target-tags=collab-web
@@ -36,32 +37,32 @@ gcloud compute instances create collab --zone=europe-north1-a --machine-type=e2-
   --address=collab-ip --tags=collab-web --metadata-from-file=startup-script=infra/gcp/vm-setup.sh
 ```
 
-`infra/gcp/vm-setup.sh` ставит Docker, добавляет 2 ГБ подкачки и загружает образы песочниц.
+`infra/gcp/vm-setup.sh` installs Docker, adds 2 GB of swap and pulls the sandbox images.
 
-## Каждое обновление
+## Every update
 
 ```bash
 node infra/gcp/deploy.mjs
 ```
 
-На Windows запускайте из PowerShell или cmd: в Git Bash `gcloud compute ssh` не находит ключ
-(скрипт это обходит, но ручные команды `gcloud compute ssh` из Git Bash падают с «Не удаётся
-найти указанный путь»).
+On Windows, run it from PowerShell or cmd: in Git Bash `gcloud compute ssh` cannot find its key (the
+script works around it, but manual `gcloud compute ssh` commands from Git Bash fail with "The system
+cannot find the path specified").
 
-Скрипт собирает сайт на этом компьютере, упаковывает закоммиченный код (`git archive HEAD`),
-копирует оба архива на машину и запускает там `infra/gcp/remote-deploy.sh`: сборка образов,
-миграции, перезапуск. При первом запуске на машине создаётся `/opt/collab/.env` со случайными
-паролем базы, ключами JWT и кодом доступа. Код доступа скрипт сохраняет в
-`infra/gcp/.state/run-access-code.txt` (вне git).
+The script builds the site on this computer, packs the committed code (`git archive HEAD`), copies both
+archives to the machine and runs `infra/gcp/remote-deploy.sh` there: building the images, migrations,
+restart. On the first run the machine gets `/opt/collab/.env` with a random database password, JWT keys
+and an access code. The script saves the access code in `infra/gcp/.state/run-access-code.txt` (outside
+git).
 
-## Обслуживание
+## Maintenance
 
 ```bash
 gcloud compute ssh collab --zone=europe-north1-a
 cd /opt/collab/src && sudo docker compose -f infra/gcp/docker-compose.yml logs -f api
 ```
 
-Остановить машину, чтобы не тратить кредит (адрес сохранится, диск и IP оплачиваются дальше):
+To stop the machine and save credit (the address stays; the disk and IP are still billed):
 
 ```bash
 gcloud compute instances stop collab --zone=europe-north1-a
