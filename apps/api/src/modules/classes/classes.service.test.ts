@@ -49,7 +49,7 @@ describe("classes", () => {
     expect(await listClasses(teacher.id)).toEqual([expect.objectContaining({ id: classroom.id })]);
   });
 
-  it("gives every student an own copy of the task, with the teacher as an editor", async () => {
+  it("gives every student their own copy of the task, with the teacher as an editor", async () => {
     const { teacher, classroom } = await classWithTask();
     const anna = await user("Anna", true);
     expect(await previewClass(classroom.joinCode)).toEqual({ className: "Loops", teacherName: "Teacher" });

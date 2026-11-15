@@ -115,7 +115,7 @@ model Project {
   @@map("projects")
 }
 
-// A class: students open its link and each gets an own copy of the teacher's task project, with the
+// A class: students open its link and each gets their own copy of the teacher's task project, with the
 // teacher added as an editor. Deleting the class keeps the students' copies.
 model Classroom {
   id            String   @id @default(uuid())

@@ -77,7 +77,7 @@ export function ClassPage() {
             </p>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">{data.name}</h1>
             <p className="mt-2 text-base text-muted">
-              Every student who opens the link gets an own copy of the task, and you are an editor in it.
+              Every student who opens the link gets their own copy of the task, and you are an editor in it.
             </p>
           </div>
           <Link to={`/projects/${data.taskProjectId}`}>

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createFile, createProject, editorText, openAs, register, typeInEditor } from "./helpers.js";
 
-test("a teacher starts a class, a guest student gets an own copy, and the teacher sees them", async ({ browser, request }) => {
+test("a teacher starts a class, a guest student gets their own copy, and the teacher sees them", async ({ browser, request }) => {
   const teacher = await register(request, "Teacher");
   const task = await createProject(request, teacher, "Loops");
   const file = await createFile(request, teacher, task.id, "main.py");
@@ -68,4 +68,12 @@ test("a C program compiles and runs for everyone", async ({ browser, request }) 
   await page.keyboard.insertText('#include <stdio.h>\nint main(void) { printf("%d\\n", 6 * 7); return 0; }\n');
   await page.getByRole("button", { name: "Run", exact: true }).click();
   await expect(page.locator("pre")).toContainText("42", { timeout: 60_000 });
+});
+
+test("a visitor sees the landing page and can try the app as a guest in one click", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Code together in the browser/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "How a class works" })).toBeVisible();
+  await page.getByRole("button", { name: "Try it now as a guest" }).click();
+  await expect(page.getByRole("heading", { name: /^Hi, Guest \d{4}$/ })).toBeVisible();
 });

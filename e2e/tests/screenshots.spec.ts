@@ -128,6 +128,24 @@ test("interface screenshots", async ({ browser, request }) => {
   await importPage.waitForTimeout(300);
   await shot(importPage, "09-import-github");
 
+  const visitor2 = await browser.newContext(ctx);
+  const landing = await visitor2.newPage();
+  await landing.goto("/");
+  await expect(landing.getByRole("heading", { name: /Code together in the browser/ })).toBeVisible();
+  await landing.waitForTimeout(500);
+  await shot(landing, "11-landing");
+  await visitor2.close();
+
+  const bearer = (who: typeof owner) => ({ Authorization: `Bearer ${who.tokens.accessToken}` });
+  const classroom = await (await request.post(`${API}/projects/${project.id}/class`, { headers: bearer(owner), data: {} })).json();
+  for (const name of ["Vlad", "Maria", "Oleg"]) {
+    const student = await guest(request, name);
+    await request.post(`${API}/class-links/${classroom.joinCode}/join`, { headers: bearer(student) });
+  }
+  const classPage = await open(owner, `/classes/${classroom.id}`);
+  await expect(classPage.getByText("Students · 3")).toBeVisible();
+  await shot(classPage, "12-class");
+
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await mobile.addInitScript((stored) => {
     window.localStorage.setItem("collab.auth", stored);
