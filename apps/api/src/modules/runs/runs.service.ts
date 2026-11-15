@@ -8,6 +8,7 @@ import { enqueueRun } from "../../lib/queue.js";
 import { publishRunStop } from "../../lib/run-stop.js";
 import { yjsStateToText } from "../../lib/yjs-text.js";
 import { takeRunSlot } from "../../lib/limits.js";
+import { recordUsage } from "../../lib/usage.js";
 
 /** The project's other text files for a run or a terminal: shallow files first when limits apply, no node_modules. */
 export async function projectTextFiles(projectId: string, branch: string, exceptId?: string) {
@@ -97,6 +98,7 @@ export async function requestRun(
     startedBy: { id: user.id, name: user.name },
   };
   await Promise.race([enqueue(job), failAfter(enqueueTimeoutMs)]);
+  recordUsage("run_started", { userId, projectId });
 
   return { runId };
 }

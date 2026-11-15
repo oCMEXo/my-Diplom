@@ -5,6 +5,7 @@ import { presenceFileMessageSchema } from "@collab/shared";
 import { requireProjectRole } from "../../lib/authorization.js";
 import { verifyAccessToken } from "../../lib/jwt.js";
 import { hub } from "../../lib/hub.js";
+import { notePresence, recordActive } from "../../lib/usage.js";
 
 const querySchema = z.object({
   token: z.string().min(1),
@@ -45,7 +46,14 @@ export const realtimeRoutes: FastifyPluginAsync = async (app) => {
     });
     if (socket.readyState !== socket.OPEN) return;
 
-    const unsubscribe = hub.subscribe(parsed.data.projectId, socket, user);
+    const projectId = parsed.data.projectId;
+    const subscription = hub.subscribe(projectId, socket, user);
+    recordActive(userId);
+    notePresence(projectId, hub.presence(projectId).length);
+    const unsubscribe = () => {
+      subscription();
+      notePresence(projectId, hub.presence(projectId).length);
+    };
     socket.on("message", (raw: Buffer) => {
       try {
         const message = presenceFileMessageSchema.safeParse(JSON.parse(raw.toString()));
