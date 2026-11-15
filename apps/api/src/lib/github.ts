@@ -49,7 +49,7 @@ export function zipUrl({ owner, repo, ref }: RepoRef) {
 
 function tooBig() {
   return new AppError(
-    `Репозиторий слишком большой (архив больше ${Math.round(IMPORT_LIMITS.maxZipBytes / 1024 / 1024)} МБ).`,
+    `The repository is too large (the archive is over ${Math.round(IMPORT_LIMITS.maxZipBytes / 1024 / 1024)} MB).`,
     413,
   );
 }
@@ -67,26 +67,26 @@ export async function downloadRepoZip(
     try {
       response = await fetchImpl(url, { redirect: "manual", signal: AbortSignal.timeout(30_000) });
     } catch {
-      throw new AppError("Не удалось связаться с GitHub. Попробуйте ещё раз.", 502);
+      throw new AppError("Could not reach GitHub. Please try again.", 502);
     }
     if (response.status < 300 || response.status >= 400) break;
 
     const location = response.headers.get("location");
     const next = location ? new URL(location, url) : null;
     if (!next || next.protocol !== "https:" || !ALLOWED_HOSTS.has(next.hostname)) {
-      throw new AppError("GitHub вернул неожиданный адрес для загрузки.", 502);
+      throw new AppError("GitHub returned an unexpected download address.", 502);
     }
     url = next.toString();
   }
 
   if (!response || (response.status >= 300 && response.status < 400)) {
-    throw new AppError("Слишком много перенаправлений при загрузке с GitHub.", 502);
+    throw new AppError("Too many redirects while downloading from GitHub.", 502);
   }
   if (response.status === 404) {
-    throw new AppError("Репозиторий или ветка не найдены. Приватные репозитории пока не поддерживаются.", 404);
+    throw new AppError("Repository or branch not found. Private repositories are not supported yet.", 404);
   }
   if (!response.ok || !response.body) {
-    throw new AppError("GitHub не отдал архив репозитория.", 502);
+    throw new AppError("GitHub did not return the repository archive.", 502);
   }
 
   const declared = Number(response.headers.get("content-length"));

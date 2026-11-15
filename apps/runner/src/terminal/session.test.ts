@@ -5,7 +5,7 @@ import { openTerminalSession, promptName, terminalContainerConfig, type Terminal
 
 describe("terminal container settings", () => {
   it("keeps the sandbox closed: no network, read-only system, limits, nobody user", () => {
-    const config = terminalContainerConfig("t", "Аня", 30 * 60_000);
+    const config = terminalContainerConfig("t", "Anna", 30 * 60_000);
     expect(config.User).toBe("65534:65534");
     expect(config.Cmd).toEqual(["sleep", "1800"]);
     expect(config.HostConfig).toMatchObject({
@@ -20,8 +20,8 @@ describe("terminal container settings", () => {
   });
 
   it("makes a prompt-friendly name", () => {
-    expect(promptName("Аня")).toBe("Аня");
-    expect(promptName("Иван Петров")).toBe("Иван_Петров");
+    expect(promptName("Anna")).toBe("Anna");
+    expect(promptName("Zoë Müller")).toBe("Zoë_Müller");
     expect(promptName("$(rm -rf /)")).toBe("rm_-rf");
     expect(promptName("   ")).toBe("user");
   });
@@ -39,7 +39,7 @@ describe("terminal session in a real container", () => {
     let exit: string | null = null;
     const session: TerminalSession = await openTerminalSession(docker, {
       files,
-      userName: "Аня",
+      userName: "Anna",
       cols: 100,
       rows: 30,
       maxMs: 60_000,
@@ -58,16 +58,16 @@ describe("terminal session in a real container", () => {
 
   it("runs the project's own files with node and python in a bash with a real terminal", async () => {
     const term = await open([
-      { path: "main.js", content: "console.log(require('./lib/greet')('мир'))" },
-      { path: "lib/greet.js", content: "module.exports = (who) => `привет, ${who}`" },
+      { path: "main.js", content: "console.log(require('./lib/greet')('world'))" },
+      { path: "lib/greet.js", content: "module.exports = (who) => `hello, ${who}`" },
       { path: "app.py", content: "print(sum(range(10)))" },
     ]);
-    await term.waitFor(() => term.output().includes("Аня@collab"));
+    await term.waitFor(() => term.output().includes("Anna@collab"));
     term.session.write("node main.js && python app.py && stty size && pwd\r");
-    await term.waitFor(() => /привет, мир[\s\S]*45[\s\S]*30 100[\s\S]*\/project/.test(term.output()));
+    await term.waitFor(() => /hello, world[\s\S]*45[\s\S]*30 100[\s\S]*\/project/.test(term.output()));
     term.session.write("exit\r");
     await term.waitFor(() => term.exit() !== null);
-    expect(term.exit()).toBe("Командная строка закрыта (exit).");
+    expect(term.exit()).toBe("The shell was closed (exit).");
   }, 60_000);
 
   it("has no network and cannot write outside its own folders", async () => {

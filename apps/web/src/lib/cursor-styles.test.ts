@@ -13,8 +13,8 @@ describe("remoteCursorCss", () => {
   it("styles every remote participant but not yourself", () => {
     const css = remoteCursorCss(
       awarenessWith({
-        1: { user: { name: "Я", color: "#112233" } },
-        2: { user: { name: "Аня", color: "#445566" } },
+        1: { user: { name: "Me", color: "#112233" } },
+        2: { user: { name: "Anna", color: "#445566" } },
       }),
     );
     expect(css).toContain(".yRemoteSelection-2");

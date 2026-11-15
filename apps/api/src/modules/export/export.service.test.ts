@@ -25,14 +25,14 @@ describe("project export", () => {
 
   it("packs the text files of the active branch, with folders, and nothing else", async () => {
     const owner = await user();
-    const project = await createProject(owner.id, { name: "Архив" });
+    const project = await createProject(owner.id, { name: "Archive" });
     projectIds.push(project.id);
     await prisma.project.update({ where: { id: project.id }, data: { githubOwner: "o", githubRepo: "r", githubBranch: "dev" } });
     const file = (path: string, content: string, extra: object = {}) =>
       prisma.file.create({
         data: { projectId: project.id, path, type: "code", branch: "dev", yjsState: Buffer.from(textToYjsState(content)), ...extra },
       });
-    await file("main.js", "console.log('привет')");
+    await file("main.js", "console.log('hello')");
     await file("src/lib/util.js", "export {}");
     await file("old.js", "deleted", { deletedAt: new Date(), path: ".trash/x/old.js" });
     await file("other.js", "another branch", { branch: "main" });
@@ -41,16 +41,16 @@ describe("project export", () => {
     const { name, zip } = await exportProject(owner.id, project.id);
     const entries = unzipSync(new Uint8Array(zip));
 
-    expect(name).toBe("Архив");
+    expect(name).toBe("Archive");
     expect(Object.keys(entries).sort()).toEqual(["main.js", "src/lib/util.js"]);
-    expect(strFromU8(entries["main.js"]!)).toBe("console.log('привет')");
+    expect(strFromU8(entries["main.js"]!)).toBe("console.log('hello')");
   });
 
   it("is open to viewers and closed to strangers", async () => {
     const owner = await user();
     const viewer = await user();
     const stranger = await user();
-    const project = await createProject(owner.id, { name: "Доступ" });
+    const project = await createProject(owner.id, { name: "Access" });
     projectIds.push(project.id);
     await inviteMember(owner.id, project.id, { email: viewer.email, role: "viewer" });
 

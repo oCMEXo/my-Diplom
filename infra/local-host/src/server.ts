@@ -72,7 +72,7 @@ export function createHostServer(options: HostOptions) {
       if (!response.headersSent) {
         response.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
       }
-      response.end(JSON.stringify({ message: "Сервер сейчас недоступен. Попробуйте через минуту." }));
+      response.end(JSON.stringify({ message: "The server is not available right now. Please try again in a minute." }));
     } else {
       response.destroy();
     }

@@ -23,7 +23,7 @@ export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; 
       runCode.set(code.trim());
       onUnlocked();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось проверить код");
+      setError(err instanceof ApiError ? err.message : "Could not check the code");
       setChecking(false);
     }
   }
@@ -32,23 +32,23 @@ export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; 
     <form onSubmit={submit} className="space-y-4">
       {error && <ErrorNote>{error}</ErrorNote>}
       <Field
-        label="Код доступа"
+        label="Access code"
         autoFocus
         autoComplete="off"
         spellCheck={false}
         value={code}
         onChange={(event) => setCode(event.target.value)}
-        hint="Код знает владелец сайта: он показан в окне, где запущен хостинг."
+        hint="The site owner knows the code: it is shown in the window where the hosting runs."
       />
       <div className="flex justify-end gap-2">
         {onCancel && (
           <Button variant="ghost" onClick={onCancel} disabled={checking}>
-            Отмена
+            Cancel
           </Button>
         )}
         <Button type="submit" variant="primary" disabled={!code.trim() || checking}>
           <KeyRound size={16} />
-          {checking ? "Проверяем…" : "Открыть доступ"}
+          {checking ? "Checking…" : "Unlock"}
         </Button>
       </div>
     </form>
@@ -70,7 +70,7 @@ export function useRunAccess() {
 
   /** Call with a failed request's error; true when it was the code that was refused (and we asked again). */
   const refused = (error: unknown, retry: () => void) => {
-    if (mode !== "code" || !(error instanceof ApiError) || error.status !== 403 || !/код/i.test(error.message)) return false;
+    if (mode !== "code" || !(error instanceof ApiError) || error.status !== 403 || !/access code/i.test(error.message)) return false;
     runCode.clear();
     setPending(() => retry);
     return true;
@@ -78,8 +78,8 @@ export function useRunAccess() {
 
   const dialog: ReactNode = pending ? (
     <Modal
-      title="Запуск кода по коду доступа"
-      description="Этот сайт открыт всем, поэтому запускать программы и открывать терминал можно только с кодом владельца."
+      title="Running code needs an access code"
+      description="This site is open to everyone, so running programs and opening the terminal need the owner's code."
       onClose={() => setPending(null)}
     >
       <RunCodeForm

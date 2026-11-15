@@ -24,11 +24,11 @@ import { useCollabDoc, type CollabStatus } from "../lib/useCollabDoc";
 type Tool = "select" | ShapeType;
 
 const TOOLS: { id: Tool; label: string; icon: LucideIcon }[] = [
-  { id: "select", label: "Выбор", icon: MousePointer2 },
-  { id: "rect", label: "Прямоугольник", icon: Square },
-  { id: "ellipse", label: "Овал", icon: Circle },
-  { id: "text", label: "Текст", icon: Type },
-  { id: "arrow", label: "Стрелка", icon: MoveUpRight },
+  { id: "select", label: "Select", icon: MousePointer2 },
+  { id: "rect", label: "Rectangle", icon: Square },
+  { id: "ellipse", label: "Ellipse", icon: Circle },
+  { id: "text", label: "Text", icon: Type },
+  { id: "arrow", label: "Arrow", icon: MoveUpRight },
 ];
 
 const SAFE_COLOR = /^#[0-9a-f]{6}$/i;
@@ -403,7 +403,7 @@ export function BoardEditor({
             x={shape.x}
             y={shape.y}
             width={shape.w}
-            text={shape.id === editingId ? "" : shape.text || "Текст"}
+            text={shape.id === editingId ? "" : shape.text || "Text"}
             fontSize={TEXT_SIZE}
             fill="#0f172a"
             onDblClick={() => {
@@ -464,8 +464,8 @@ export function BoardEditor({
       onKeyDown={handleKeyDown}
       aria-label={
         canEdit
-          ? "Доска. Кнопка инструмента, нажатая клавишей Enter, добавляет фигуру в центр. Квадратные скобки выбирают фигуру, стрелки двигают её (Shift — точнее), Enter правит подпись, Delete удаляет, Ctrl+Z отменяет."
-          : "Доска, только просмотр. Квадратные скобки выбирают фигуру."
+          ? "Board. Press Enter on a tool button to add a shape in the centre. Square brackets select a shape, arrows move it (with Shift in small steps), Enter edits its label, Delete removes it, Ctrl+Z undoes."
+          : "Board, view only. Square brackets select a shape."
       }
       data-shape-count={shapes.length}
       data-selected-shape={selected ? `${Math.round(selected.x)},${Math.round(selected.y)}` : ""}
@@ -483,7 +483,7 @@ export function BoardEditor({
                   onClick={(event) => (event.detail === 0 && item.id !== "select" ? placeShape(item.id) : setTool(item.id))}
                   aria-label={item.label}
                   aria-pressed={tool === item.id}
-                  title={item.id === "select" ? item.label : `${item.label} (с клавиатуры: Enter добавляет в центр доски)`}
+                  title={item.id === "select" ? item.label : `${item.label} (keyboard: Enter adds it in the centre)`}
                   className={toolButton(tool === item.id)}
                 >
                   <item.icon size={20} />
@@ -494,7 +494,7 @@ export function BoardEditor({
                 {PALETTE.map((swatch) => (
                   <button
                     key={swatch}
-                    aria-label={`Цвет ${PALETTE.indexOf(swatch) + 1} из ${PALETTE.length}`}
+                    aria-label={`Colour ${PALETTE.indexOf(swatch) + 1} of ${PALETTE.length}`}
                     onClick={() => chooseColor(swatch)}
                     style={{ backgroundColor: swatch }}
                     className={cn(
@@ -507,16 +507,16 @@ export function BoardEditor({
               <span className="mx-1.5 h-6 w-px bg-line" />
               <button
                 onClick={() => undoManager.current?.undo()}
-                aria-label="Отменить"
-                title="Отменить"
+                aria-label="Undo"
+                title="Undo"
                 className={toolButton(false)}
               >
                 <Undo2 size={20} />
               </button>
               <button
                 onClick={() => undoManager.current?.redo()}
-                aria-label="Повторить"
-                title="Повторить"
+                aria-label="Redo"
+                title="Redo"
                 className={toolButton(false)}
               >
                 <Redo2 size={20} />
@@ -524,8 +524,8 @@ export function BoardEditor({
               <button
                 onClick={deleteSelected}
                 disabled={!selectedId}
-                aria-label="Удалить"
-                title="Удалить выбранное"
+                aria-label="Delete"
+                title="Delete selected"
                 className={cn(toolButton(false), "disabled:opacity-30 enabled:hover:text-bad")}
               >
                 <Trash2 size={20} />
@@ -537,7 +537,7 @@ export function BoardEditor({
         <div className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-lg bg-surface/95 p-1 shadow-card backdrop-blur">
           <button
             onClick={exportPng}
-            title="Скачать как PNG"
+            title="Download as PNG"
             className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted transition hover:bg-raised hover:text-fg"
           >
             <Download size={16} />
@@ -545,7 +545,7 @@ export function BoardEditor({
           </button>
           <button
             onClick={exportSvg}
-            title="Скачать как SVG"
+            title="Download as SVG"
             className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted transition hover:bg-raised hover:text-fg"
           >
             <Download size={16} />
@@ -556,7 +556,7 @@ export function BoardEditor({
         {shapes.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <p className="rounded-lg bg-white/70 px-4 py-2 text-base text-slate-500 shadow-sm">
-              {canEdit ? "Выберите фигуру внизу и протяните по полотну" : "Доска пока пуста"}
+              {canEdit ? "Pick a shape below and drag on the canvas" : "The board is empty"}
             </p>
           </div>
         )}

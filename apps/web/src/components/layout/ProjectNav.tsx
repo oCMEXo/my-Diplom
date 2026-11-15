@@ -20,8 +20,8 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
   const { data: projects } = useQuery({ queryKey: ["projects"], queryFn: () => api.get<Project[]>("/projects") });
 
   return (
-    <nav aria-label="Проекты" className="flex w-[72px] shrink-0 flex-col items-center gap-2 bg-canvas py-3">
-      <Link to="/" title="Все проекты" className="rounded-lg transition hover:scale-105">
+    <nav aria-label="Projects" className="flex w-[72px] shrink-0 flex-col items-center gap-2 bg-canvas py-3">
+      <Link to="/" title="All projects" className="rounded-lg transition hover:scale-105">
         <LogoMark size={48} />
       </Link>
       <span className="h-px w-8 bg-line" />
@@ -57,8 +57,8 @@ function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreate
         })}
         <button
           onClick={onCreateProject}
-          title="Новый проект"
-          aria-label="Новый проект"
+          title="New project"
+          aria-label="New project"
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface text-ok transition-all hover:rounded-2xl hover:bg-ok hover:text-canvas"
         >
           <Plus size={22} />
@@ -122,7 +122,7 @@ export function ProjectNav({
               className="flex h-9 w-full items-center gap-2 rounded-lg bg-canvas px-2.5 text-left text-sm text-muted transition hover:text-fg"
             >
               <Search size={16} />
-              <span className="flex-1">Найти файл</span>
+              <span className="flex-1">Find a file</span>
               <kbd className="whitespace-nowrap rounded border border-line px-1 text-xs text-faint">Ctrl P</kbd>
             </button>
           </div>
@@ -130,12 +130,12 @@ export function ProjectNav({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-2 py-4">
           <div className="mb-1 flex items-center justify-between px-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-faint">Файлы</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-faint">Files</h2>
             {canEdit && (
               <button
                 onClick={() => onCreateFile("code")}
-                aria-label="Создать файл"
-                title="Создать файл"
+                aria-label="Create a file"
+                title="Create a file"
                 className="rounded p-1 text-faint transition hover:bg-raised hover:text-fg"
               >
                 <Plus size={18} />
@@ -166,10 +166,10 @@ function UserPanel() {
   if (!user) return null;
   const state =
     status === "open"
-      ? { text: "в сети", dot: "bg-ok" }
+      ? { text: "online", dot: "bg-ok" }
       : status === "connecting"
-        ? { text: "подключение…", dot: "bg-warn" }
-        : { text: "нет связи", dot: "bg-faint" };
+        ? { text: "connecting…", dot: "bg-warn" }
+        : { text: "offline", dot: "bg-faint" };
   return (
     <div className="flex h-[3.75rem] shrink-0 items-center gap-2.5 bg-canvas/60 px-2">
       <UserMenu placement="above" />

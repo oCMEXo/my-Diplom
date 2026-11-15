@@ -35,8 +35,8 @@ export function SidePanel({
   const online = useOnlineUsers();
 
   const tabs: { id: PanelTab; label: string; icon: typeof Users; badge?: number; tone?: string }[] = [
-    { id: "chat", label: "Чат", icon: MessageSquare, badge: unread, tone: "bg-danger text-white" },
-    { id: "members", label: "Участники", icon: Users, badge: online.length, tone: "bg-ok/20 text-ok" },
+    { id: "chat", label: "Chat", icon: MessageSquare, badge: unread, tone: "bg-danger text-white" },
+    { id: "members", label: "Members", icon: Users, badge: online.length, tone: "bg-ok/20 text-ok" },
   ];
 
   return (
@@ -60,7 +60,7 @@ export function SidePanel({
             </button>
           ))}
         </div>
-        <IconButton label="Скрыть панель" onClick={onClose}>
+        <IconButton label="Hide the panel" onClick={onClose}>
           <X size={18} />
         </IconButton>
       </div>

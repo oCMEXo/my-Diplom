@@ -7,8 +7,9 @@ describe("colors", () => {
   });
 
   it("builds initials from one or two words", () => {
-    expect(initials("Аня")).toBe("АН");
-    expect(initials("Влад Иванов")).toBe("ВИ");
+    expect(initials("Anna")).toBe("AN");
+    expect(initials("Vlad Ivanov")).toBe("VI");
+    expect(initials("Émile Zola")).toBe("ÉZ");
     expect(initials("   ")).toBe("?");
   });
 

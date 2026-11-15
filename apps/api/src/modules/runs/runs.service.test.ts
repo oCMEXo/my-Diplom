@@ -33,7 +33,7 @@ describe("requestRun", () => {
   });
 
   it("enqueues a job with the language inferred from the file extension", async () => {
-    const owner = await user("Аня");
+    const owner = await user("Anna");
     const { project, file } = await projectWithFile(owner.id, "main.py");
 
     const jobs: RunJob[] = [];
@@ -48,7 +48,7 @@ describe("requestRun", () => {
       fileId: file.id,
       language: "python",
       code: "print(1)",
-      startedBy: { id: owner.id, name: "Аня" },
+      startedBy: { id: owner.id, name: "Anna" },
     });
   });
 

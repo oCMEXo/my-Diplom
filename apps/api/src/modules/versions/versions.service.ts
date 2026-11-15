@@ -24,7 +24,7 @@ function toVersionDto(version: { id: string; createdAt: Date; size: number; auth
 async function findFile(projectId: string, fileId: string) {
   const file = await prisma.file.findUnique({ where: { id: fileId }, select: { projectId: true, deletedAt: true } });
   if (!file || file.projectId !== projectId || file.deletedAt) {
-    throw new AppError("Файл не найден", 404);
+    throw new AppError("File not found", 404);
   }
 }
 
@@ -33,7 +33,7 @@ async function findVersion(fileId: string, versionId: string) {
     where: { id: versionId, fileId },
     select: { ...versionFields, content: true },
   });
-  if (!version) throw new AppError("Версия не найдена", 404);
+  if (!version) throw new AppError("Version not found", 404);
   return version;
 }
 

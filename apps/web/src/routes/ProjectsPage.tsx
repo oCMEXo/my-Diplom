@@ -56,7 +56,7 @@ export function ProjectsPage() {
         {notice && (
           <div role="status" className="mb-8 flex items-start gap-3 rounded-xl bg-bad/10 px-4 py-3 text-base text-bad">
             <p className="flex-1">{notice}</p>
-            <button onClick={() => setNotice(null)} aria-label="Скрыть" className="rounded p-0.5 transition hover:bg-bad/15">
+            <button onClick={() => setNotice(null)} aria-label="Hide" className="rounded p-0.5 transition hover:bg-bad/15">
               <X size={18} />
             </button>
           </div>
@@ -64,14 +64,14 @@ export function ProjectsPage() {
 
         <section className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Привет, {user?.name}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">Hi, {user?.name}</h1>
             <p className="mt-2 max-w-lg text-base text-muted">
-              Проект — это постоянное общее пространство. Создайте своё или присоединитесь по ссылке-приглашению.
+              A project is a shared place that stays. Create your own or join one with an invite link.
             </p>
           </div>
           <Button variant="primary" size="lg" onClick={() => setCreating(true)}>
             <Plus size={20} />
-            Новый проект
+            New project
           </Button>
         </section>
 
@@ -82,17 +82,17 @@ export function ProjectsPage() {
           <input
             value={link}
             onChange={(event) => setLink(event.target.value)}
-            placeholder="Вставьте ссылку-приглашение, чтобы присоединиться"
-            aria-label="Ссылка-приглашение"
+            placeholder="Paste an invite link to join"
+            aria-label="Invite link"
             className="min-w-0 flex-1 bg-transparent px-2 text-base placeholder:text-faint focus:outline-none"
           />
           <Button type="submit" disabled={!link.trim()}>
-            Присоединиться
+            Join
             <ArrowRight size={18} />
           </Button>
         </form>
 
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-faint">Ваши проекты</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-faint">Your projects</h2>
 
         {isLoading && (
           <div className="flex justify-center py-16">
@@ -102,9 +102,9 @@ export function ProjectsPage() {
 
         {isError && !projects && (
           <div className="py-12 text-center">
-            <p className="text-base font-medium">Не удалось загрузить проекты</p>
-            <p className="mb-4 mt-1 text-base text-muted">Похоже, нет связи с сервером.</p>
-            <Button onClick={() => void refetch()}>Повторить</Button>
+            <p className="text-base font-medium">Could not load the projects</p>
+            <p className="mb-4 mt-1 text-base text-muted">It looks like there is no connection to the server.</p>
+            <Button onClick={() => void refetch()}>Try again</Button>
           </div>
         )}
 
@@ -125,7 +125,7 @@ export function ProjectsPage() {
                   <div className="min-w-0 flex-1">
                     <p title={project.name} className="truncate text-lg font-semibold">{project.name}</p>
                     <p className="mt-1 text-sm text-faint">
-                      создан {new Date(project.createdAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
+                      created {new Date(project.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
@@ -135,8 +135,8 @@ export function ProjectsPage() {
                 </Link>
                 <button
                   onClick={() => setRemoving(project)}
-                  aria-label={project.myRole === "owner" ? `Удалить проект ${project.name}` : `Покинуть проект ${project.name}`}
-                  title={project.myRole === "owner" ? "Удалить проект" : "Покинуть проект"}
+                  aria-label={project.myRole === "owner" ? `Delete project ${project.name}` : `Leave project ${project.name}`}
+                  title={project.myRole === "owner" ? "Delete project" : "Leave project"}
                   className="touch-visible absolute right-3 top-3 rounded-lg p-1.5 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/card:opacity-100"
                 >
                   {project.myRole === "owner" ? <Trash2 size={18} /> : <LogOut size={18} />}
@@ -149,7 +149,7 @@ export function ProjectsPage() {
                 className="flex h-full min-h-[12rem] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-faint text-base text-muted transition hover:border-accent hover:text-accent-ink"
               >
                 <Plus size={24} />
-                Создать проект
+                Create a project
               </button>
             </li>
           </ul>
@@ -157,7 +157,7 @@ export function ProjectsPage() {
 
         {projects?.length === 0 && (
           <p className="mt-6 text-center text-base text-muted">
-            Пока пусто — создайте первый проект или откройте ссылку, которую вам прислали.
+            Nothing here yet. Create your first project or open a link someone sent you.
           </p>
         )}
       </main>

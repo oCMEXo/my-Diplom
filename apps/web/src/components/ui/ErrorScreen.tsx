@@ -25,11 +25,11 @@ export function ErrorScreen({
         <div className="flex flex-wrap justify-center gap-2">
           {onRetry && (
             <Button variant="primary" onClick={onRetry}>
-              Повторить
+              Try again
             </Button>
           )}
           <Link to="/">
-            <Button>К моим проектам</Button>
+            <Button>To my projects</Button>
           </Link>
         </div>
         {extra}

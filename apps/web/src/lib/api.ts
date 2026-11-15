@@ -22,7 +22,7 @@ let refreshPromise: Promise<void> | null = null;
 async function renewTokens(seenAccessToken: string): Promise<void> {
   // While this tab was waiting for its turn, another one may have renewed the pair already.
   const auth = tokenStore.reload();
-  if (!auth) throw new ApiError("Нужно войти снова", 401);
+  if (!auth) throw new ApiError("Please sign in again", 401);
   if (auth.tokens.accessToken !== seenAccessToken) return;
 
   const response = await fetch(`${API_URL}/auth/refresh`, {
@@ -37,11 +37,11 @@ async function renewTokens(seenAccessToken: string): Promise<void> {
     const latest = tokenStore.reload();
     if (latest && latest.tokens.refreshToken !== auth.tokens.refreshToken) return;
     tokenStore.clear();
-    throw new ApiError("Сессия истекла: войдите снова", 401);
+    throw new ApiError("Your session has expired. Please sign in again", 401);
   }
 
   // A 429 or a 502 says nothing about the session, so it must not sign the person out.
-  if (!response.ok) throw new ApiError("Сервер сейчас не отвечает, попробуйте чуть позже", response.status);
+  if (!response.ok) throw new ApiError("The server is not answering. Please try again a bit later", response.status);
 
   const data = await response.json();
   tokenStore.setTokens(data.tokens);
@@ -92,7 +92,7 @@ async function send(path: string, options: RequestInit = {}, retry = true): Prom
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ message: response.statusText }));
-    throw new ApiError(body.message ?? "Не удалось выполнить запрос", response.status);
+    throw new ApiError(body.message ?? "The request failed", response.status);
   }
 
   return response;

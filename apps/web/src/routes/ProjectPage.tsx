@@ -77,9 +77,9 @@ function FilesWatcher({ projectId }: { projectId: string }) {
 
 /** What the projects page says after the server took the open project away. */
 function revokedNotice(reason: AccessChangeReason, projectName: string) {
-  if (reason === "deleted") return `Проект «${projectName}» удалён владельцем.`;
-  if (reason === "left") return `Вы покинули проект «${projectName}».`;
-  return `Вас удалили из проекта «${projectName}».`;
+  if (reason === "deleted") return `The owner deleted the project “${projectName}”.`;
+  if (reason === "left") return `You left the project “${projectName}”.`;
+  return `You were removed from the project “${projectName}”.`;
 }
 
 export function ProjectPage() {
@@ -184,11 +184,11 @@ export function ProjectPage() {
     const missing = loadError instanceof ApiError && [400, 403, 404].includes(loadError.status);
     return (
       <ErrorScreen
-        title={missing ? "Проект недоступен" : "Не удалось открыть проект"}
+        title={missing ? "The project is not available" : "Could not open the project"}
         message={
           missing
-            ? "Проекта нет или у вас нет к нему доступа: возможно, ссылка устарела или вас убрали из участников."
-            : "Похоже, нет связи с сервером. Проверьте интернет и попробуйте ещё раз."
+            ? "The project does not exist or you have no access to it. Maybe the link is old or you were removed from the members."
+            : "It looks like there is no connection to the server. Check the internet and try again."
         }
         onRetry={
           missing
@@ -201,7 +201,7 @@ export function ProjectPage() {
       />
     );
   }
-  if (!project || !files) return <FullScreenLoader label="Открываем проект…" />;
+  if (!project || !files) return <FullScreenLoader label="Opening the project…" />;
 
   const canEdit = project.myRole === "owner" || project.myRole === "editor";
   // The server gives the link only to those who may hand it out; a viewer gets none.

@@ -20,7 +20,7 @@ export function LegalShell({ title, intro, children }: { title: string; intro: R
         <ThemeToggle />
       </div>
       <main className="mx-auto w-full max-w-2xl space-y-8">
-        <Link to="/" aria-label="На главную" className="inline-block">
+        <Link to="/" aria-label="Home" className="inline-block">
           <Wordmark />
         </Link>
         <div>
@@ -30,11 +30,11 @@ export function LegalShell({ title, intro, children }: { title: string; intro: R
         {children}
         <p className="border-t border-line pt-4 text-sm text-faint">
           <Link to="/privacy" className="underline hover:text-fg">
-            Данные и приватность
+            Data and privacy
           </Link>
           {" · "}
           <Link to="/terms" className="underline hover:text-fg">
-            Условия использования
+            Terms of use
           </Link>
         </p>
       </main>

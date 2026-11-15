@@ -10,7 +10,7 @@ function job(overrides: Record<string, unknown> = {}) {
     fileId: randomUUID(),
     language: "python",
     code: "print(1)",
-    startedBy: { id: randomUUID(), name: "Аня" },
+    startedBy: { id: randomUUID(), name: "Anna" },
     ...overrides,
   };
 }

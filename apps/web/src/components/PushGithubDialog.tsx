@@ -90,7 +90,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
         })
         .catch((error) => {
           if (id !== lookupId.current) return;
-          setLookup({ state: "error", message: error instanceof ApiError ? error.message : "Не удалось проверить токен" });
+          setLookup({ state: "error", message: error instanceof ApiError ? error.message : "Could not check the token" });
         });
     }, LOOKUP_DELAY_MS);
     return () => clearTimeout(timer);
@@ -120,7 +120,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
         })
         .catch((error) => {
           if (id === previewId.current) {
-            setPreview({ state: "error", message: error instanceof ApiError ? error.message : "Не удалось посмотреть изменения" });
+            setPreview({ state: "error", message: error instanceof ApiError ? error.message : "Could not load the changes" });
           }
         });
     }, SYNC_WAIT_MS / 3);
@@ -164,11 +164,11 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
 
   return (
     <Modal
-      title="Отправить в GitHub"
+      title="Push to GitHub"
       description={
         linked
-          ? `Изменённые файлы уйдут одним коммитом в ${linked.owner}/${linked.repo}.`
-          : "Проект ещё не связан с репозиторием — укажите, куда отправлять."
+          ? `Changed files go to ${linked.owner}/${linked.repo} as one commit.`
+          : "The project is not linked to a repository yet. Choose where to push."
       }
       onClose={onClose}
       width="max-w-lg"
@@ -179,11 +179,11 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
             <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-ok" />
             <div>
               <p className="font-medium">
-                Коммит создан в ветке {result.branch}
-                {result.newBranch && " (новая ветка)"}
+                Commit created in branch {result.branch}
+                {result.newBranch && " (new branch)"}
               </p>
               <p className="mt-1 text-muted">
-                Новых файлов — {result.added}, изменённых — {result.modified}, без изменений — {result.unchanged}.
+                New files: {result.added}, changed: {result.modified}, unchanged: {result.unchanged}.
               </p>
               <a
                 href={result.commitUrl}
@@ -191,13 +191,13 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                 rel="noreferrer noopener"
                 className="mt-2 inline-flex items-center gap-1.5 font-medium text-accent-ink hover:underline"
               >
-                Открыть коммит на GitHub <ExternalLink size={16} />
+                Open the commit on GitHub <ExternalLink size={16} />
               </a>
             </div>
           </div>
           <div className="flex justify-end">
             <Button variant="primary" onClick={onClose}>
-              Готово
+              Done
             </Button>
           </div>
         </div>
@@ -206,7 +206,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
           {error && <ErrorNote>{error.message}</ErrorNote>}
           {!linked && (
             <Field
-              label="Репозиторий"
+              label="Repository"
               placeholder="https://github.com/owner/repo"
               value={repoUrl}
               onChange={(event) => setRepoUrl(event.target.value)}
@@ -216,7 +216,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
 
           <div className="space-y-2">
             <Field
-              label="Токен GitHub"
+              label="GitHub token"
               type="password"
               autoComplete="off"
               placeholder="github_pat_…"
@@ -225,32 +225,32 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
               disabled={busy}
               hint={
                 <>
-                  Нужен токен с записью в репозиторий (Contents: Read and write).{" "}
+                  You need a token that can write to the repository (Contents: Read and write).{" "}
                   <a
                     href="https://github.com/settings/personal-access-tokens/new"
                     target="_blank"
                     rel="noreferrer noopener"
                     className="text-accent-ink hover:underline"
                   >
-                    Создать токен
+                    Create a token
                   </a>
-                  . Сервер использует его один раз и не сохраняет.
+                  . The server uses it once and does not keep it.
                 </>
               }
             />
             {lookup.state === "loading" && (
               <p className="flex items-center gap-2 text-sm text-muted">
-                <LoaderCircle size={16} className="animate-spin" /> Проверяем токен и загружаем ветки…
+                <LoaderCircle size={16} className="animate-spin" /> Checking the token and loading branches…
               </p>
             )}
             {lookup.state === "ready" && lookup.data.canPush && (
               <p className="flex items-center gap-2 text-sm text-ok">
-                <CheckCircle2 size={16} /> Токен подходит: можно писать в {lookup.data.repo.owner}/{lookup.data.repo.name}
+                <CheckCircle2 size={16} /> The token works: it can write to {lookup.data.repo.owner}/{lookup.data.repo.name}
               </p>
             )}
             {lookup.state === "ready" && !lookup.data.canPush && (
               <p className="flex items-center gap-2 text-sm text-warn">
-                <TriangleAlert size={16} /> У этого токена нет права записи в репозиторий
+                <TriangleAlert size={16} /> This token cannot write to the repository
               </p>
             )}
             {lookup.state === "error" && (
@@ -265,12 +265,12 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                 onChange={(event) => setRemember(event.target.checked)}
                 className="accent-[rgb(var(--accent))]"
               />
-              Запомнить токен в этом браузере
+              Remember the token in this browser
             </label>
           </div>
 
           <fieldset className="space-y-2" disabled={busy || lookup.state !== "ready"}>
-            <legend className="mb-1 text-sm font-medium text-muted">Куда отправить</legend>
+            <legend className="mb-1 text-sm font-medium text-muted">Where to push</legend>
             <div className={cn("grid gap-2 sm:grid-cols-2", lookup.state !== "ready" && "opacity-50")}>
               <label
                 className={cn(
@@ -286,7 +286,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     onChange={() => setTarget("existing")}
                     className="accent-[rgb(var(--accent))]"
                   />
-                  В существующую ветку
+                  To an existing branch
                 </span>
                 <select
                   value={existingBranch}
@@ -294,14 +294,14 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     setExistingBranch(event.target.value);
                     setTarget("existing");
                   }}
-                  aria-label="Ветка"
+                  aria-label="Branch"
                   className="field py-1.5"
                 >
                   {branches.length === 0 && <option value="">—</option>}
                   {branches.map((name) => (
                     <option key={name} value={name}>
                       {name}
-                      {lookup.state === "ready" && name === lookup.data.defaultBranch ? " (основная)" : ""}
+                      {lookup.state === "ready" && name === lookup.data.defaultBranch ? " (default)" : ""}
                     </option>
                   ))}
                 </select>
@@ -320,7 +320,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     onChange={() => setTarget("new")}
                     className="accent-[rgb(var(--accent))]"
                   />
-                  <GitBranch size={16} className="text-muted" />В новую ветку
+                  <GitBranch size={16} className="text-muted" />To a new branch
                 </span>
                 <input
                   value={newBranch}
@@ -328,22 +328,22 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
                     setNewBranch(event.target.value);
                     setTarget("new");
                   }}
-                  aria-label="Имя новой ветки"
+                  aria-label="New branch name"
                   className="field py-1.5 font-mono text-sm"
                 />
               </label>
             </div>
             <p className="text-sm text-faint">
               {target === "new"
-                ? "Основная ветка не изменится — потом можно открыть pull request."
-                : "Коммит попадёт прямо в выбранную ветку."}
+                ? "The default branch stays the same. You can open a pull request later."
+                : "The commit goes straight to the selected branch."}
             </p>
           </fieldset>
 
           <PreviewBlock preview={preview} overwrite={overwrite} onOverwrite={setOverwrite} disabled={busy} />
 
           <Field
-            label="Сообщение коммита"
+            label="Commit message"
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             maxLength={500}
@@ -352,11 +352,11 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
 
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="ghost" onClick={onClose} disabled={busy}>
-              Отмена
+              Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={!ready || busy}>
               <GitCommitHorizontal size={18} />
-              {phase === "saving" ? "Сохраняем правки…" : phase === "pushing" ? "Отправляем…" : "Отправить"}
+              {phase === "saving" ? "Saving edits…" : phase === "pushing" ? "Pushing…" : "Push"}
             </Button>
           </div>
         </form>
@@ -378,7 +378,7 @@ function FileList({ title, tone, paths }: { title: string; tone: string; paths: 
             {path}
           </li>
         ))}
-        {paths.length > 8 && <li className="text-faint">и ещё {paths.length - 8}…</li>}
+        {paths.length > 8 && <li className="text-faint">and {paths.length - 8} more…</li>}
       </ul>
     </div>
   );
@@ -399,7 +399,7 @@ function PreviewBlock({
   if (preview.state === "loading") {
     return (
       <p className="flex items-center gap-2 text-sm text-muted">
-        <LoaderCircle size={16} className="animate-spin" /> Смотрим, что изменилось…
+        <LoaderCircle size={16} className="animate-spin" /> Checking what changed…
       </p>
     );
   }
@@ -415,18 +415,18 @@ function PreviewBlock({
   if (added.length + modified.length + conflicts.length === 0) {
     return (
       <p className="rounded-lg bg-raised px-3 py-2.5 text-base text-muted">
-        Нечего отправлять: файлы проекта совпадают с репозиторием ({unchanged}).
+        Nothing to push: the project files match the repository ({unchanged}).
       </p>
     );
   }
   return (
     <div className="space-y-3 rounded-lg border border-line bg-canvas p-3">
-      <p className="text-sm font-semibold uppercase tracking-wider text-faint">Что будет отправлено</p>
-      <FileList title="Изменены" tone="text-accent-ink" paths={modified} />
-      <FileList title="Новые" tone="text-ok" paths={added} />
+      <p className="text-sm font-semibold uppercase tracking-wider text-faint">What will be pushed</p>
+      <FileList title="Changed" tone="text-accent-ink" paths={modified} />
+      <FileList title="New" tone="text-ok" paths={added} />
       {conflicts.length > 0 && (
         <div className="space-y-2 rounded-lg bg-warn/10 p-2.5">
-          <FileList title="Изменились и в GitHub" tone="text-warn" paths={conflicts} />
+          <FileList title="Also changed on GitHub" tone="text-warn" paths={conflicts} />
           <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"
@@ -435,11 +435,11 @@ function PreviewBlock({
               onChange={(event) => onOverwrite(event.target.checked)}
               className="mt-0.5 accent-[rgb(var(--accent))]"
             />
-            <span>Заменить версии из GitHub моими (чужие правки в этих файлах будут перезаписаны)</span>
+            <span>Replace the GitHub versions with mine (other people's edits in these files will be overwritten)</span>
           </label>
         </div>
       )}
-      {unchanged > 0 && <p className="text-sm text-faint">Без изменений: {unchanged}</p>}
+      {unchanged > 0 && <p className="text-sm text-faint">Unchanged: {unchanged}</p>}
     </div>
   );
 }

@@ -103,7 +103,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   vb: "Visual Basic",
   clojure: "Clojure",
   dockerfile: "Dockerfile",
-  plaintext: "Текст",
+  plaintext: "Text",
 };
 
 function fileName(path: string) {
@@ -139,7 +139,7 @@ export type LanguageSupport = "run" | "highlight" | "text";
 
 export interface LanguageInfo {
   language: string | null;
-  /** Shown to people: "Python", "C++", or "Текст" for a file the editor does not know. */
+  /** Shown to people: "Python", "C++", or "Text" for a file the editor does not know. */
   name: string;
   extension: string | null;
   support: LanguageSupport;
@@ -150,7 +150,7 @@ export interface LanguageInfo {
 export function describeLanguage(path: string, language: string | null = inferLanguage(path)): LanguageInfo {
   const extension = extensionOf(path);
   if (!language || language === "plaintext") {
-    return { language, name: "Текст", extension, support: "text", unknown: !language && extension !== null };
+    return { language, name: "Text", extension, support: "text", unknown: !language && extension !== null };
   }
   return {
     language,

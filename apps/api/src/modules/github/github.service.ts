@@ -43,7 +43,7 @@ function resolveRepo(
     return { owner: project.githubOwner, repo: project.githubRepo, linkedBranch: project.githubBranch, needsLink: false };
   }
   const parsed = repoUrl ? parseGithubUrl(repoUrl) : null;
-  if (!parsed) throw new AppError("Проект не связан с репозиторием GitHub: укажите ссылку на него.", 400);
+  if (!parsed) throw new AppError("The project is not linked to a GitHub repository. Give a link to it.", 400);
   return { owner: parsed.owner, repo: parsed.repo, linkedBranch: parsed.ref, needsLink: true };
 }
 
@@ -104,12 +104,12 @@ async function planPush(
 
   const info = await api.get<RepoInfo>(`/repos/${slug}`);
   if (info.permissions && !info.permissions.push) {
-    throw new AppError("У токена нет прав на запись в этот репозиторий (нужен доступ Contents: write).", 403);
+    throw new AppError("The token cannot write to this repository (it needs Contents: write).", 403);
   }
 
   const baseBranch = linkedBranch ?? info.default_branch;
   const target = input.branch?.trim() || baseBranch;
-  if (!validBranch(target)) throw new AppError("Недопустимое имя ветки.", 400);
+  if (!validBranch(target)) throw new AppError("This branch name is not allowed.", 400);
 
   const targetRef = await api.getOrNull<RefInfo>(`/repos/${slug}/git/ref/heads/${encodeRef(target)}`);
   const newBranch = !targetRef;
@@ -120,7 +120,7 @@ async function planPush(
   const headCommit = await api.get<{ tree: { sha: string } }>(`/repos/${slug}/git/commits/${headSha}`);
   const remoteTree = await api.get<TreeInfo>(`/repos/${slug}/git/trees/${headCommit.tree.sha}?recursive=1`);
   if (remoteTree.truncated) {
-    throw new AppError("Репозиторий слишком большой для отправки изменений из браузера.", 413);
+    throw new AppError("The repository is too large to push changes from the browser.", 413);
   }
   const remote = new Map(remoteTree.tree.filter((entry) => entry.type === "blob").map((entry) => [entry.path, entry]));
 
@@ -188,14 +188,14 @@ export async function pushToGithub(
 
   if (conflicts.length > 0) {
     const shown = conflicts.slice(0, 5).join(", ");
-    const more = conflicts.length > 5 ? ` и ещё ${conflicts.length - 5}` : "";
+    const more = conflicts.length > 5 ? ` and ${conflicts.length - 5} more` : "";
     throw new AppError(
-      `Эти файлы изменились в GitHub с момента импорта: ${shown}${more}. Отправка заменила бы чужие изменения.`,
+      `These files changed on GitHub after the import: ${shown}${more}. Pushing would overwrite those changes.`,
       409,
     );
   }
   if (changes.length === 0) {
-    throw new AppError("Нет изменений для отправки: файлы проекта совпадают с репозиторием.", 409);
+    throw new AppError("Nothing to push: the project files match the repository.", 409);
   }
 
   const tree = await api.post<{ sha: string }>(`/repos/${slug}/git/trees`, {

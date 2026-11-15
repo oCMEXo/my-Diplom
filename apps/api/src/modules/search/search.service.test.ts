@@ -69,11 +69,11 @@ describe("search", () => {
   it("ignores case, takes the query as plain text and trims it", async () => {
     const owner = await user();
     const p = await project(owner.id);
-    await file(p.id, "a.py", "print(Hello)\r\nHELLO()\r\nПривет, МИР");
+    await file(p.id, "a.py", "print(Hello)\r\nHELLO()\r\nSalut, ÉCOLE");
     await file(p.id, "b.py", "hellXo");
 
     expect((await searchProject(owner.id, p.id, "hello")).files[0]!.matches.map((m) => m.line)).toEqual([1, 2]);
-    expect((await searchProject(owner.id, p.id, "  мир ")).files[0]!.matches).toMatchObject([{ line: 3, column: 9 }]);
+    expect((await searchProject(owner.id, p.id, "  école ")).files[0]!.matches).toMatchObject([{ line: 3, column: 8 }]);
     // "." and "(" are not regex syntax here.
     expect(paths(await searchProject(owner.id, p.id, "hell."))).toEqual([]);
     expect((await searchProject(owner.id, p.id, "o()")).files[0]!.matches).toMatchObject([{ line: 2, column: 5 }]);

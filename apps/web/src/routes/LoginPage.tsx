@@ -25,7 +25,7 @@ export function LoginPage() {
       await login({ email, password });
       navigate(redirectTo);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось войти");
+      setError(err instanceof ApiError ? err.message : "Could not sign in");
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ export function LoginPage() {
       await continueAsGuest();
       navigate(redirectTo);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось войти как гость");
+      setError(err instanceof ApiError ? err.message : "Could not sign in as a guest");
     } finally {
       setLoading(false);
     }
@@ -47,12 +47,12 @@ export function LoginPage() {
   const registerLink = `/register${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`;
 
   return (
-    <AuthShell title="С возвращением" subtitle="Войдите, чтобы продолжить работу над проектами.">
+    <AuthShell title="Welcome back" subtitle="Sign in to continue working on your projects.">
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <ErrorNote>{error}</ErrorNote>}
         <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Field
-          label="Пароль"
+          label="Password"
           type="password"
           required
           autoComplete="current-password"
@@ -60,31 +60,31 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
-          {loading ? "Входим…" : "Войти"}
+          {loading ? "Signing in…" : "Sign in"}
         </Button>
 
         <div className="flex items-center gap-3 text-sm text-faint">
           <span className="h-px flex-1 bg-line" />
-          или
+          or
           <span className="h-px flex-1 bg-line" />
         </div>
 
         <Button size="lg" onClick={onGuest} disabled={loading} className="w-full">
           <Sparkles size={18} className="text-accent-ink" />
-          Продолжить как гость
+          Continue as guest
         </Button>
         <p className="text-center text-sm text-faint">
-          Гостю не нужны ни почта, ни пароль. Входя, вы принимаете{" "}
+          A guest needs no email and no password. By signing in, you accept the{" "}
           <Link to="/terms" className="underline hover:text-fg">
-            условия использования
+            terms of use
           </Link>
           .
         </p>
 
         <p className="pt-2 text-center text-base text-muted">
-          Нет аккаунта?{" "}
+          No account?{" "}
           <Link to={registerLink} className="font-medium text-accent-ink hover:underline">
-            Зарегистрироваться
+            Sign up
           </Link>
         </p>
       </form>

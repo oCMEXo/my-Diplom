@@ -3,8 +3,8 @@ import { previewInvite } from "../projects/projects.service.js";
 
 const SITE_NAME = "Collab";
 const DEFAULT_CARD = {
-  title: "Collab — совместная работа над проектом",
-  description: "Общее пространство для кода, документов и досок в реальном времени. Заходите по ссылке, даже без регистрации.",
+  title: "Collab: work on a project together",
+  description: "One shared place for code, documents and boards, in real time. Join by a link, even without an account.",
 };
 
 const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -26,7 +26,7 @@ function page(card: { title: string; description: string }, url: string, image: 
   const title = escapeHtml(card.title);
   const description = escapeHtml(card.description);
   return `<!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>${title}</title>
@@ -44,7 +44,7 @@ function page(card: { title: string; description: string }, url: string, image: 
 <body>
 <h1>${title}</h1>
 <p>${description}</p>
-<p><a href="${escapeHtml(url)}">Открыть</a></p>
+<p><a href="${escapeHtml(url)}">Open</a></p>
 </body>
 </html>
 `;
@@ -68,11 +68,11 @@ export const previewRoutes: FastifyPluginAsync<{ trustProxy: boolean }> = async 
       if (invite) {
         url = `${origin}/join/${code}`;
         card = {
-          title: `${invite.ownerName} приглашает вас в проект «${invite.projectName}»`,
+          title: `${invite.ownerName} invites you to the project “${invite.projectName}”`,
           description:
             invite.role === "editor"
-              ? "Откройте ссылку, введите имя и редактируйте вместе. Регистрация не нужна."
-              : "Откройте ссылку и введите имя, чтобы посмотреть проект. Регистрация не нужна.",
+              ? "Open the link, enter your name and edit together. No account needed."
+              : "Open the link and enter your name to view the project. No account needed.",
         };
       }
     }

@@ -5,7 +5,7 @@ import { api, ApiError } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { saveBlob } from "../../lib/save-blob";
 
-const ROLE_NAMES = { owner: "владелец", editor: "редактор", viewer: "наблюдатель" } as const;
+const ROLE_NAMES = { owner: "owner", editor: "editor", viewer: "viewer" } as const;
 
 function Item({
   icon,
@@ -91,7 +91,7 @@ export function ProjectMenu({
       saveBlob(await api.download(`/projects/${project.id}/export`), `${project.name}.zip`);
       setOpen(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось скачать архив");
+      setError(err instanceof ApiError ? err.message : "Could not download the archive");
     } finally {
       setExporting(false);
     }
@@ -103,7 +103,7 @@ export function ProjectMenu({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label={`${project.name}: действия с проектом`}
+        aria-label={`${project.name}: project actions`}
         className={cn(
           "flex h-14 w-full items-center gap-2 px-4 text-left transition hover:bg-raised",
           open && "bg-raised",
@@ -117,7 +117,7 @@ export function ProjectMenu({
         <div role="menu" className="absolute left-2 top-full z-30 mt-1 w-72 rounded-lg bg-canvas p-1.5 shadow-pop animate-pop">
           {onInvite && (
             <Item icon={<UserPlus size={18} />} onClick={choose(onInvite)}>
-              Пригласить участников
+              Invite people
             </Item>
           )}
           {project.github && (
@@ -126,21 +126,21 @@ export function ProjectMenu({
               onClick={choose(onBranches)}
               hint={<span className="max-w-[6rem] truncate font-mono text-xs">{project.github.branch ?? "—"}</span>}
             >
-              Ветка
+              Branch
             </Item>
           )}
           <Item icon={<TextSearch size={18} />} onClick={choose(onFindInFiles)} hint={<kbd className="font-mono text-xs opacity-70">Ctrl⇧F</kbd>}>
-            Поиск по тексту
+            Search text
           </Item>
           <div className="my-1 h-px bg-line" />
           {canEdit && (
             <Item icon={<FolderDown size={18} />} onClick={choose(onImport)}>
-              Импорт из GitHub
+              Import from GitHub
             </Item>
           )}
           {canEdit && (
             <Item icon={<Upload size={18} />} onClick={choose(onPush)} disabled={!canPush}>
-              Отправить в GitHub
+              Push to GitHub
             </Item>
           )}
           <Item
@@ -148,14 +148,14 @@ export function ProjectMenu({
             onClick={() => void downloadZip()}
             disabled={exporting}
           >
-            Скачать ZIP
+            Download ZIP
           </Item>
           {error && (
             <p role="alert" className="px-2.5 py-1 text-sm text-bad">
               {error}
             </p>
           )}
-          <p className="border-t border-line px-2.5 pb-1 pt-2 text-xs text-faint">Ваша роль: {ROLE_NAMES[project.myRole]}</p>
+          <p className="border-t border-line px-2.5 pb-1 pt-2 text-xs text-faint">Your role: {ROLE_NAMES[project.myRole]}</p>
         </div>
       )}
     </div>

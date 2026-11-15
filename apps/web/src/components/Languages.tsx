@@ -4,14 +4,14 @@ import { describeLanguage, languageCatalogue, RUNNABLE_LANGUAGES, languageName }
 import { cn } from "../lib/cn";
 import { Modal } from "./ui/Modal";
 
-const RUNNABLE_NAMES = RUNNABLE_LANGUAGES.map(languageName).join(" и ");
+const RUNNABLE_NAMES = RUNNABLE_LANGUAGES.map(languageName).join(" and ");
 
 /** Every language the platform knows: which ones run, which ones are only highlighted. */
 export function LanguageList() {
   const catalogue = languageCatalogue();
   const groups = [
-    { title: "Подсветка и запуск", note: "кнопка «Запустить» и терминал", entries: catalogue.filter((entry) => entry.support === "run") },
-    { title: "Только подсветка", note: "редактировать вместе можно, запустить нельзя", entries: catalogue.filter((entry) => entry.support === "highlight") },
+    { title: "Highlighting and running", note: "the Run button and the terminal", entries: catalogue.filter((entry) => entry.support === "run") },
+    { title: "Highlighting only", note: "you can edit together but not run", entries: catalogue.filter((entry) => entry.support === "highlight") },
   ];
   return (
     <div className="space-y-4">
@@ -34,7 +34,7 @@ export function LanguageList() {
         </section>
       ))}
       <p className="text-sm text-faint">
-        Файл с другим расширением тоже можно создать: он откроется как обычный текст, без подсветки и запуска.
+        You can create a file with another extension too. It opens as plain text, without highlighting or running.
       </p>
     </div>
   );
@@ -42,7 +42,7 @@ export function LanguageList() {
 
 export function LanguagesDialog({ onClose }: { onClose: () => void }) {
   return (
-    <Modal title="Поддерживаемые языки" description="Язык файла определяется по его расширению." onClose={onClose} width="max-w-xl">
+    <Modal title="Supported languages" description="The file extension sets the language." onClose={onClose} width="max-w-xl">
       <LanguageList />
     </Modal>
   );
@@ -55,33 +55,33 @@ export function LanguageHint({ path }: { path: string }) {
   const typed = path.trim() !== "";
 
   let message;
-  if (!typed) message = <span>Язык определяется по расширению.</span>;
+  if (!typed) message = <span>The extension sets the language.</span>;
   else if (info.support === "run")
     message = (
       <span className="inline-flex items-center gap-1 text-ok">
-        <Play size={14} className="fill-current" /> {info.name}: подсветка и запуск
+        <Play size={14} className="fill-current" /> {info.name}: highlighting and running
       </span>
     );
   else if (info.support === "highlight")
     message = (
       <span className="inline-flex items-center gap-1">
-        <CircleCheck size={14} className="text-ok" /> {info.name}: подсветка. Запускать можно только {RUNNABLE_NAMES}
+        <CircleCheck size={14} className="text-ok" /> {info.name}: highlighting. Only {RUNNABLE_NAMES} can run
       </span>
     );
   else if (info.unknown)
     message = (
       <span className="inline-flex items-start gap-1 text-warn">
-        <CircleAlert size={14} className="mt-0.5 shrink-0" /> Расширение .{info.extension} не распознано: файл откроется как обычный текст, без подсветки и запуска
+        <CircleAlert size={14} className="mt-0.5 shrink-0" /> The extension .{info.extension} is unknown. The file opens as plain text, without highlighting or running
       </span>
     );
-  else message = <span>Без расширения: файл откроется как обычный текст.</span>;
+  else message = <span>No extension: the file opens as plain text.</span>;
 
   return (
     <span className="block space-y-2">
       <span role="status" className="block">
         {message}{" "}
         <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="text-accent-ink underline-offset-2 hover:underline">
-          Какие языки поддерживаются?
+          Which languages are supported?
         </button>
       </span>
       {open && (

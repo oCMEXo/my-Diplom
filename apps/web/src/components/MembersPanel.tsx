@@ -15,7 +15,7 @@ import { RoleBadge } from "./ui/RoleBadge";
 function FollowButton({ person }: { person: PresenceUser }) {
   const { following, follow } = useFollowing();
   const active = following === person.id;
-  const label = active ? `Перестать следить: ${person.name}` : `Следить за: ${person.name}`;
+  const label = active ? `Stop following ${person.name}` : `Follow ${person.name}`;
   return (
     <button
       onClick={() => follow(active ? null : person.id)}
@@ -78,7 +78,7 @@ export function MembersPanel({
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
-        {changeRole.error && <ErrorNote>Не удалось изменить роль. Попробуйте ещё раз.</ErrorNote>}
+        {changeRole.error && <ErrorNote>Could not change the role. Please try again.</ErrorNote>}
         <ul className="space-y-0.5">
           {sorted.map((member) => {
             const manageable = isOwner && member.role !== "owner";
@@ -89,18 +89,18 @@ export function MembersPanel({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium">
                     {member.name}
-                    {member.userId === user?.id && <span className="ml-1.5 text-sm font-normal text-faint">это вы</span>}
+                    {member.userId === user?.id && <span className="ml-1.5 text-sm font-normal text-faint">you</span>}
                   </p>
                   {whereIs(person)}
                   {manageable && (
                     <select
                       value={member.role}
                       onChange={(event) => changeRole.mutate({ userId: member.userId, role: event.target.value as InviteRole })}
-                      aria-label={`Роль: ${member.name}`}
+                      aria-label={`Role: ${member.name}`}
                       className="mt-1 rounded-md border border-line bg-canvas px-1 py-1 text-sm text-muted transition focus:border-accent focus:outline-none"
                     >
-                      <option value="editor">редактор</option>
-                      <option value="viewer">наблюдатель</option>
+                      <option value="editor">editor</option>
+                      <option value="viewer">viewer</option>
                     </select>
                   )}
                 </div>
@@ -108,8 +108,8 @@ export function MembersPanel({
                 {manageable ? (
                   <button
                     onClick={() => setRemoving(member)}
-                    aria-label={`Убрать из проекта: ${member.name}`}
-                    title="Убрать из проекта"
+                    aria-label={`Remove from the project: ${member.name}`}
+                    title="Remove from the project"
                     className="touch-visible rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/member:opacity-100"
                   >
                     <UserMinus size={16} />
@@ -126,7 +126,7 @@ export function MembersPanel({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-medium">
                   {person.name}
-                  {person.isGuest && <span className="ml-1.5 text-sm font-normal text-faint">гость</span>}
+                  {person.isGuest && <span className="ml-1.5 text-sm font-normal text-faint">guest</span>}
                 </p>
                 {whereIs(person)}
               </div>
@@ -139,16 +139,16 @@ export function MembersPanel({
         <div className="border-t border-line p-3">
           <Button className="w-full" onClick={onInvite}>
             <UserPlus size={18} />
-            Пригласить
+            Invite
           </Button>
         </div>
       )}
 
       {removing && (
         <ConfirmDialog
-          title="Убрать из проекта?"
-          description={`${removing.name}: доступ к проекту пропадёт сразу, открытые вкладки закроются. Старая ссылка-приглашение тоже перестанет работать, поэтому остальным новичкам понадобится новая.`}
-          confirmLabel="Убрать"
+          title="Remove from the project?"
+          description={`${removing.name} loses access at once, and their open tabs close. The old invite link also stops working, so new people will need a new one.`}
+          confirmLabel="Remove"
           danger
           action={() => api.delete(`/projects/${projectId}/members/${removing.userId}`)}
           onDone={refresh}

@@ -52,8 +52,8 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
 
   return (
     <Modal
-      title="Пригласить в проект"
-      description="Любой, у кого есть ссылка, попадёт в проект — даже без регистрации, гостем."
+      title="Invite to the project"
+      description="Anyone with the link can join the project, even as a guest without an account."
       onClose={onClose}
       width="max-w-lg"
     >
@@ -63,29 +63,29 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
             <input
               readOnly
               value={link}
-              aria-label="Ссылка-приглашение"
+              aria-label="Invite link"
               onClick={(event) => event.currentTarget.select()}
               className="field font-mono text-sm"
             />
             <Button variant="primary" onClick={copyLink} className="shrink-0 sm:w-36">
               {copied ? <Check size={18} /> : <Copy size={18} />}
-              {copied ? "Скопировано" : "Копировать"}
+              {copied ? "Copied" : "Copy"}
             </Button>
           </div>
 
-          {copyFailed && <ErrorNote>Браузер не дал скопировать. Выделите ссылку в поле и скопируйте её вручную.</ErrorNote>}
-          {(regenerate.error ?? changeRole.error) && <ErrorNote>Не удалось изменить ссылку. Попробуйте ещё раз.</ErrorNote>}
+          {copyFailed && <ErrorNote>The browser did not allow copying. Select the link in the field and copy it yourself.</ErrorNote>}
+          {(regenerate.error ?? changeRole.error) && <ErrorNote>Could not change the link. Please try again.</ErrorNote>}
 
           {isOwner ? (
             <div className="space-y-3">
-              <p className="text-sm text-muted">Что смогут делать пришедшие по ссылке:</p>
+              <p className="text-sm text-muted">What people who join by the link can do:</p>
               <Segmented
-                label="Роль по ссылке"
+                label="Role for the link"
                 value={project.inviteRole}
                 onChange={(role) => changeRole.mutate(role)}
                 options={[
-                  { value: "editor", label: "Редактировать", icon: <Pencil size={20} /> },
-                  { value: "viewer", label: "Только смотреть", icon: <Eye size={20} /> },
+                  { value: "editor", label: "Edit", icon: <Pencil size={20} /> },
+                  { value: "viewer", label: "View only", icon: <Eye size={20} /> },
                 ]}
               />
               <Button
@@ -96,46 +96,46 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
                 className="!h-auto min-h-7 !whitespace-normal py-1 text-left"
               >
                 <RefreshCw size={16} className={regenerate.isPending ? "shrink-0 animate-spin" : "shrink-0"} />
-                Сделать новую ссылку (старая перестанет работать)
+                Make a new link (the old one stops working)
               </Button>
             </div>
           ) : (
             <p className="text-sm text-muted">
-              По этой ссылке участники получают роль «{project.inviteRole === "editor" ? "редактор" : "наблюдатель"}».
+              People who join by this link get the role “{project.inviteRole === "editor" ? "editor" : "viewer"}”.
             </p>
           )}
         </section>
 
         {isOwner && (
           <section className="space-y-3 border-t border-line pt-5">
-            <h3 className="text-base font-medium">Или пригласить по email</h3>
-            <p className="-mt-2 text-sm text-muted">Подойдёт, если человек уже зарегистрирован.</p>
+            <h3 className="text-base font-medium">Or invite by email</h3>
+            <p className="-mt-2 text-sm text-muted">Works if the person already has an account.</p>
             {inviteByEmail.error && (
               <ErrorNote>
-                {inviteByEmail.error instanceof ApiError ? inviteByEmail.error.message : "Не удалось пригласить"}
+                {inviteByEmail.error instanceof ApiError ? inviteByEmail.error.message : "Could not invite"}
               </ErrorNote>
             )}
-            {inviteByEmail.isSuccess && !inviteByEmail.isPending && <p className="text-sm text-ok">Участник добавлен</p>}
+            {inviteByEmail.isSuccess && !inviteByEmail.isPending && <p className="text-sm text-ok">Member added</p>}
             <form onSubmit={submitEmail} className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="name@example.com"
-                aria-label="Email участника"
+                aria-label="Member email"
                 className="field"
               />
               <select
                 value={emailRole}
                 onChange={(event) => setEmailRole(event.target.value as InviteRole)}
-                aria-label="Роль"
+                aria-label="Role"
                 className="field shrink-0 sm:w-36"
               >
-                <option value="editor">редактор</option>
-                <option value="viewer">наблюдатель</option>
+                <option value="editor">editor</option>
+                <option value="viewer">viewer</option>
               </select>
               <Button type="submit" disabled={!email.trim() || inviteByEmail.isPending}>
-                Добавить
+                Add
               </Button>
             </form>
           </section>

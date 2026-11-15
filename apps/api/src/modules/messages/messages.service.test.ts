@@ -29,12 +29,12 @@ describe("messages.service", () => {
   });
 
   it("stores a message and returns it with its author", async () => {
-    const owner = await user("Анна");
+    const owner = await user("Anna");
     const p = await project(owner.id);
 
-    const message = await createMessage(owner.id, p.id, { body: "привет" });
-    expect(message.body).toBe("привет");
-    expect(message.author).toEqual({ id: owner.id, name: "Анна", isGuest: false });
+    const message = await createMessage(owner.id, p.id, { body: "hello" });
+    expect(message.body).toBe("hello");
+    expect(message.author).toEqual({ id: owner.id, name: "Anna", isGuest: false });
   });
 
   it("lists messages oldest-first", async () => {

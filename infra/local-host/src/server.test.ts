@@ -199,7 +199,7 @@ let terminal: http.Server;
     try {
       const response = await fetch(`http://127.0.0.1:${port}/api/health`);
       expect(response.status).toBe(502);
-      expect(((await response.json()) as { message: string }).message).toMatch(/недоступен/);
+      expect(((await response.json()) as { message: string }).message).toMatch(/not available/);
     } finally {
       await close(lonely);
     }

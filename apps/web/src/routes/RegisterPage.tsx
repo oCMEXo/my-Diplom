@@ -25,7 +25,7 @@ export function RegisterPage() {
       await register({ name, email, password });
       navigate(redirectTo);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось зарегистрироваться");
+      setError(err instanceof ApiError ? err.message : "Could not sign up");
     } finally {
       setLoading(false);
     }
@@ -34,35 +34,35 @@ export function RegisterPage() {
   const loginLink = `/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`;
 
   return (
-    <AuthShell title="Создать аккаунт" subtitle="Свои проекты, приглашения и история — всё в одном месте.">
+    <AuthShell title="Create an account" subtitle="Your projects, invitations and history in one place.">
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <ErrorNote>{error}</ErrorNote>}
-        <Field label="Имя" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+        <Field label="Name" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Field
-          label="Пароль"
+          label="Password"
           type="password"
           required
           minLength={8}
           autoComplete="new-password"
-          hint="Не короче 8 символов"
+          hint="At least 8 characters"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
-          {loading ? "Создаём…" : "Создать аккаунт"}
+          {loading ? "Creating…" : "Create account"}
         </Button>
         <p className="text-center text-sm text-faint">
-          Создавая аккаунт, вы принимаете{" "}
+          By creating an account, you accept the{" "}
           <Link to="/terms" className="underline hover:text-fg">
-            условия использования
+            terms of use
           </Link>
           .
         </p>
         <p className="pt-2 text-center text-base text-muted">
-          Уже есть аккаунт?{" "}
+          Already have an account?{" "}
           <Link to={loginLink} className="font-medium text-accent-ink hover:underline">
-            Войти
+            Sign in
           </Link>
         </p>
       </form>

@@ -25,11 +25,11 @@ export async function restoreThroughCollab(
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch {
-    throw new AppError("Сервер совместного редактирования недоступен — попробуйте позже", 503);
+    throw new AppError("The collaboration server is not available. Please try later", 503);
   }
 
   if (response.ok) return;
-  if (response.status === 403) throw new AppError("Для этого действия не хватает прав в проекте", 403);
-  if (response.status === 404) throw new AppError("Версия не найдена", 404);
-  throw new AppError("Не удалось восстановить версию: сервер совместного редактирования ответил ошибкой", 502);
+  if (response.status === 403) throw new AppError("You do not have the rights for this in the project", 403);
+  if (response.status === 404) throw new AppError("Version not found", 404);
+  throw new AppError("Could not restore the version: the collaboration server returned an error", 502);
 }

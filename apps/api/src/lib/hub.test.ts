@@ -66,7 +66,7 @@ describe("hub.disconnect", () => {
   });
 
 describe("hub.setFile", () => {
-  const person = { id: "11111111-1111-4111-8111-111111111111", name: "Аня", isGuest: false };
+  const person = { id: "11111111-1111-4111-8111-111111111111", name: "Anna", isGuest: false };
   const socket = () => ({ sent: [] as string[], send(data: string) { this.sent.push(data); }, readyState: 1 });
 
   it("shares which file a person has open, once per change", () => {

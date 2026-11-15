@@ -6,12 +6,12 @@ import { cn } from "../lib/cn";
 import { IconButton } from "./ui/Button";
 
 const STATUS: Record<RunState["status"], { label: string; dot: string }> = {
-  running: { label: "выполняется…", dot: "bg-warn animate-pulse" },
-  ok: { label: "завершено", dot: "bg-ok" },
-  error: { label: "ошибка", dot: "bg-bad" },
-  timeout: { label: "превышено время (10 с)", dot: "bg-bad" },
-  failed: { label: "не удалось запустить", dot: "bg-bad" },
-  stopped: { label: "остановлено", dot: "bg-faint" },
+  running: { label: "running…", dot: "bg-warn animate-pulse" },
+  ok: { label: "finished", dot: "bg-ok" },
+  error: { label: "error", dot: "bg-bad" },
+  timeout: { label: "time limit (10 s)", dot: "bg-bad" },
+  failed: { label: "could not start", dot: "bg-bad" },
+  stopped: { label: "stopped", dot: "bg-faint" },
 };
 
 export function RunPanel({ run }: { run: RunState | undefined }) {
@@ -58,7 +58,7 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
         >
           <span className="flex items-center gap-2 font-semibold uppercase tracking-wider text-faint">
             <SquareTerminal size={16} />
-            Вывод
+            Output
             <ChevronUp size={16} className={cn("transition-transform", !open && "rotate-180")} />
           </span>
           {run && (
@@ -67,18 +67,18 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
               <span role="status">
                 {run.startedBy.name} · {STATUS[run.status].label}
               </span>
-              {run.durationMs !== null && ` · ${(run.durationMs / 1000).toFixed(1)} с`}
+              {run.durationMs !== null && ` · ${(run.durationMs / 1000).toFixed(1)} s`}
             </span>
           )}
         </button>
         {open && text && (
-          <IconButton label={copied ? "Скопировано" : "Копировать вывод"} onClick={copy} className="h-8 w-8">
+          <IconButton label={copied ? "Copied" : "Copy output"} onClick={copy} className="h-8 w-8">
             {copied ? <Check size={16} className="text-ok" /> : <Copy size={16} />}
           </IconButton>
         )}
         {open && (
           <IconButton
-            label={tall ? "Уменьшить панель" : "Увеличить панель"}
+            label={tall ? "Make the panel smaller" : "Make the panel bigger"}
             onClick={() => setTall((value) => !value)}
             className="h-8 w-8"
           >
@@ -93,8 +93,8 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
             <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-sm text-warn">
               <Info size={16} className="mt-0.5 shrink-0" />
               <span>
-                Программа ждёт ввода с клавиатуры, а при запуске кнопкой ввести его негде. Запустите её в терминале: он
-                открывается по Ctrl+`.
+                The program waits for keyboard input, but the Run button has no place to type it. Run it in the terminal: it
+                opens with Ctrl+`.
               </span>
             </p>
           )}
@@ -102,8 +102,8 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
             <p className="flex items-start gap-2 border-t border-line bg-warn/10 px-4 py-2 text-sm text-warn">
               <Info size={16} className="mt-0.5 shrink-0" />
               <span>
-                Модуль «{missing}» не найден. В песочнице нет сети и установленных пакетов: доступны встроенные модули
-                языка и файлы вашего проекта.
+                Module “{missing}” was not found. The sandbox has no network and no installed packages. You can use the built-in modules
+                of the language and the files of your project.
               </span>
             </p>
           )}
@@ -114,16 +114,16 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
               tall ? "h-[55vh]" : "h-48",
             )}
           >
-            {!run && <span className="text-faint">Здесь появится результат запуска — его увидят все участники.</span>}
+            {!run && <span className="text-faint">The result of a run appears here. Everyone in the project sees it.</span>}
             {run?.output.map((part, index) => (
               <span key={index} className={part.stream === "stderr" ? "text-bad" : undefined}>
                 {part.chunk}
               </span>
             ))}
             {run?.status === "running" && run.output.length === 0 && <span className="text-faint">…</span>}
-            {run?.truncated && <span className="text-warn">{"\n[вывод обрезан]"}</span>}
+            {run?.truncated && <span className="text-warn">{"\n[output cut]"}</span>}
             {run && run.status !== "running" && run.exitCode !== null && run.exitCode !== 0 && (
-              <span className="text-faint">{`\n[код выхода ${run.exitCode}]`}</span>
+              <span className="text-faint">{`\n[exit code ${run.exitCode}]`}</span>
             )}
           </pre>
         </>

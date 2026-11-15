@@ -25,14 +25,14 @@ function mergeById(existing: Message[], incoming: Message[]) {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
 function formatDay(iso: string) {
   const date = new Date(iso);
   const today = new Date();
-  if (date.toDateString() === today.toDateString()) return "Сегодня";
-  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+  if (date.toDateString() === today.toDateString()) return "Today";
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "long" });
 }
 
 const GROUP_GAP_MS = 5 * 60 * 1000;
@@ -153,7 +153,7 @@ export function ChatPanel({
       setMessages((prev) => mergeById(prev, [message]));
     } catch {
       setDraft(body);
-      setSendError("Не удалось отправить");
+      setSendError("Could not send");
     }
   }
 
@@ -172,7 +172,7 @@ export function ChatPanel({
             onClick={() => loadOlder().catch(() => undefined)}
             className="mb-3 w-full rounded-lg border border-line py-1.5 text-sm text-muted transition hover:bg-raised hover:text-fg"
           >
-            Показать ранее
+            Show earlier
           </button>
         )}
         {messages.length === 0 && (
@@ -180,7 +180,7 @@ export function ChatPanel({
             {loadState === "loading" && <Spinner />}
             {loadState === "failed" && (
               <>
-                <p className="text-base font-medium">Не удалось загрузить чат</p>
+                <p className="text-base font-medium">Could not load the chat</p>
                 <button
                   onClick={() => {
                     setLoadState("loading");
@@ -188,14 +188,14 @@ export function ChatPanel({
                   }}
                   className="text-sm font-medium text-accent-ink hover:underline"
                 >
-                  Повторить
+                  Try again
                 </button>
               </>
             )}
             {loadState === "ready" && (
               <>
-                <p className="text-base font-medium">Здесь пока тихо</p>
-                <p className="text-sm text-muted">Напишите первое сообщение — его увидят все участники проекта.</p>
+                <p className="text-base font-medium">No messages yet</p>
+                <p className="text-sm text-muted">Write the first message. Everyone in the project will see it.</p>
               </>
             )}
           </div>
@@ -224,8 +224,8 @@ export function ChatPanel({
                 <div className="min-w-0 flex-1">
                   {!grouped && (
                     <p className="flex flex-wrap items-baseline gap-x-2">
-                      <span className="font-medium text-fg">{mine ? "Вы" : m.author.name}</span>
-                      {m.author.isGuest && !mine && <span className="text-xs text-faint">гость</span>}
+                      <span className="font-medium text-fg">{mine ? "You" : m.author.name}</span>
+                      {m.author.isGuest && !mine && <span className="text-xs text-faint">guest</span>}
                       <span className="text-xs text-faint">{formatTime(m.createdAt)}</span>
                     </p>
                   )}
@@ -238,7 +238,7 @@ export function ChatPanel({
                           key={partIndex}
                           to={`/projects/${projectId}/files/${part.fileId}?line=${part.line}${part.column ? `&col=${part.column}` : ""}`}
                           onClick={onFileLink}
-                          title="Открыть файл на этой строке"
+                          title="Open the file at this line"
                           className="rounded bg-accent/10 px-1 font-mono text-[0.875em] text-accent-ink hover:underline"
                         >
                           {part.text}
@@ -257,7 +257,7 @@ export function ChatPanel({
         {sendError && <p className="mb-2 text-sm text-bad">{sendError}</p>}
         {status !== "open" && (
           <p role="status" className="mb-2 text-sm text-warn">
-            {status === "connecting" ? "Подключаемся к чату…" : "Нет связи — сообщения могут приходить с задержкой"}
+            {status === "connecting" ? "Connecting to the chat…" : "No connection. Messages may arrive late"}
           </p>
         )}
         <div className="flex items-end gap-2 rounded-lg border border-faint/80 bg-canvas px-3 py-2 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
@@ -268,11 +268,11 @@ export function ChatPanel({
             onKeyDown={onKeyDown}
             maxLength={2000}
             rows={1}
-            placeholder="Сообщение..."
-            aria-label="Сообщение"
+            placeholder="Message..."
+            aria-label="Message"
             className="mb-1 max-h-32 min-h-[1.5rem] min-w-0 flex-1 resize-none bg-transparent text-base leading-6 placeholder:text-faint focus:outline-none"
           />
-          <IconButton label="Отправить" type="submit" disabled={!draft.trim()} className="-mr-1 h-8 w-8 text-accent-ink">
+          <IconButton label="Send" type="submit" disabled={!draft.trim()} className="-mr-1 h-8 w-8 text-accent-ink">
             <SendHorizontal size={20} />
           </IconButton>
         </div>

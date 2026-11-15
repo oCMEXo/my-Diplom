@@ -136,11 +136,11 @@ describe("shapesToSvg", () => {
       shape({ type: "rect", x: 0, y: 0, w: 100, h: 50 }),
       shape({ type: "ellipse", x: 200, y: 0, w: 80, h: 80 }),
       shape({ type: "arrow", x: 0, y: 100, x2: 300, y2: 200 }),
-      shape({ type: "text", x: 50, y: 300, text: "метка" }),
+      shape({ type: "text", x: 50, y: 300, text: "label" }),
     ];
     const svg = shapesToSvg(shapes);
     for (const tag of ["<rect", "<ellipse", "<line", "<text"]) expect(svg).toContain(tag);
-    expect(svg).toContain("метка");
+    expect(svg).toContain("label");
 
     const bounds = boardBounds(shapes);
     expect(bounds.x).toBeLessThan(0);

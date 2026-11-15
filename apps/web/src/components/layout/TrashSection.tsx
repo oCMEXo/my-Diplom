@@ -40,7 +40,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
       setError(null);
       refresh();
     },
-    onError: (err) => setError(err instanceof ApiError ? err.message : "Не удалось восстановить файл"),
+    onError: (err) => setError(err instanceof ApiError ? err.message : "Could not restore the file"),
   });
 
   if (!trash || trash.length === 0) return null;
@@ -54,7 +54,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
       >
         <ChevronRight size={16} className={cn("transition-transform", open && "rotate-90")} />
         <Trash2 size={16} />
-        Корзина · {trash.length}
+        Trash · {trash.length}
       </button>
 
       {open && (
@@ -70,14 +70,14 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
                     <span className="block truncate line-through decoration-faint/50" title={file.path}>
                       {file.path.split("/").pop()}
                     </span>
-                    <span className="block text-xs">удалится через {daysLeft(file.purgeAt)} дн.</span>
+                    <span className="block text-xs">deleted in {daysLeft(file.purgeAt)} d</span>
                   </span>
                   {canEdit && (
                     <button
                       onClick={() => restore.mutate(file)}
                       disabled={restore.isPending}
-                      aria-label={`Восстановить ${file.path}`}
-                      title="Восстановить"
+                      aria-label={`Restore ${file.path}`}
+                      title="Restore"
                       className="rounded p-1 text-muted transition hover:bg-accent/15 hover:text-accent-ink"
                     >
                       <Undo2 size={16} />
@@ -86,8 +86,8 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
                   {isOwner && (
                     <button
                       onClick={() => setPurging(file)}
-                      aria-label={`Удалить навсегда ${file.path}`}
-                      title="Удалить навсегда"
+                      aria-label={`Delete forever ${file.path}`}
+                      title="Delete forever"
                       className="touch-visible rounded p-1 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/trash:opacity-100"
                     >
                       <Trash2 size={16} />
@@ -102,9 +102,9 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
 
       {purging && (
         <ConfirmDialog
-          title="Удалить навсегда?"
-          description={`«${purging.path}» исчезнет без возможности восстановления.`}
-          confirmLabel="Удалить навсегда"
+          title="Delete forever?"
+          description={`“${purging.path}” will be gone and cannot be restored.`}
+          confirmLabel="Delete forever"
           danger
           action={() => api.delete(`/projects/${projectId}/files/${purging.id}/permanent`)}
           onDone={refresh}

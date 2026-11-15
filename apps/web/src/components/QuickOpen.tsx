@@ -55,7 +55,7 @@ export function QuickOpen({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Найти файл"
+        aria-label="Find a file"
         className="w-full max-w-lg overflow-hidden rounded-xl bg-main shadow-pop animate-pop"
       >
         <div className="flex items-center gap-3 border-b border-line px-4">
@@ -65,8 +65,8 @@ export function QuickOpen({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Начните вводить имя файла"
-            aria-label="Имя файла"
+            placeholder="Start typing a file name"
+            aria-label="File name"
             className="h-12 w-full bg-transparent text-base placeholder:text-faint focus:outline-none"
           />
           <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 text-xs text-faint">Esc</kbd>
@@ -92,7 +92,7 @@ export function QuickOpen({
               </li>
             );
           })}
-          {results.length === 0 && <li className="px-3 py-6 text-center text-base text-faint">Ничего не найдено</li>}
+          {results.length === 0 && <li className="px-3 py-6 text-center text-base text-faint">Nothing found</li>}
         </ul>
       </div>
     </div>,

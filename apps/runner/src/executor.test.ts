@@ -77,13 +77,13 @@ suite("runInSandbox (real docker)", () => {
     expect(stdout.trim()).toBe("42");
   });
 
-  it("lets python import a sibling module, with a Cyrillic file name for the entry", async () => {
-    const { result, stdout } = await run("python", "import helper\nprint(helper.greet('мир'))", undefined, {
-      entry: "запуск.py",
-      files: [{ path: "helper.py", content: "def greet(name):\n    return 'привет, ' + name" }],
+  it("lets python import a sibling module, with a non-ASCII file name for the entry", async () => {
+    const { result, stdout } = await run("python", "import helper\nprint(helper.greet('wörld'))", undefined, {
+      entry: "café.py",
+      files: [{ path: "helper.py", content: "def greet(name):\n    return 'hello, ' + name" }],
     });
     expect(result.status).toBe("ok");
-    expect(stdout.trim()).toBe("привет, мир");
+    expect(stdout.trim()).toBe("hello, wörld");
   });
 
   it("reports the failing line in the entry file when the error comes from an imported one", async () => {

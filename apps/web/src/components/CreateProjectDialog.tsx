@@ -15,7 +15,7 @@ export function projectNameFromRepoUrl(url: string) {
   const path = url.trim().replace(/[?#].*$/, "").replace(/^git@github\.com:/i, "").replace(/^https?:\/\//i, "");
   const segments = path.split("/").filter(Boolean);
   if (/^(www\.)?github\.com$/i.test(segments[0] ?? "")) segments.shift();
-  return (segments[1] ?? segments[0] ?? "Импортированный проект").replace(/\.git$/i, "");
+  return (segments[1] ?? segments[0] ?? "Imported project").replace(/\.git$/i, "");
 }
 
 export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (project: Project) => void }) {
@@ -49,22 +49,22 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
   }
 
   return (
-    <Modal title="Новый проект" description="Это общее пространство: файлы, чат и участники в одном месте." onClose={onClose}>
+    <Modal title="New project" description="A shared place: files, chat and members together." onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <Segmented
-          label="Откуда начать"
+          label="How to start"
           value={source}
           onChange={setSource}
           options={[
-            { value: "empty", label: "Пустой проект", icon: <FolderPlus size={22} /> },
-            { value: "example", label: "С примером", icon: <FileCode size={22} /> },
-            { value: "github", label: "Из GitHub", icon: <GitBranch size={22} /> },
+            { value: "empty", label: "Empty project", icon: <FolderPlus size={22} /> },
+            { value: "example", label: "With an example", icon: <FileCode size={22} /> },
+            { value: "github", label: "From GitHub", icon: <GitBranch size={22} /> },
           ]}
         />
         {create.error && (
           <ErrorNote>
-            {create.error instanceof ApiError ? create.error.message : "Не удалось создать проект"}
-            {created && " Проект уже создан — можно открыть его и повторить импорт."}
+            {create.error instanceof ApiError ? create.error.message : "Could not create the project"}
+            {created && " The project was created. You can open it and try the import again."}
           </ErrorNote>
         )}
         {source !== "github" ? (
@@ -74,16 +74,16 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
               key={source}
               autoFocus
               data-autofocus
-              label="Название"
-              placeholder="Например, Курсовая по алгоритмам"
+              label="Name"
+              placeholder="For example, Algorithms coursework"
               maxLength={200}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              hint={source === "example" ? "В проекте будут короткая инструкция и файл, который можно сразу запустить." : undefined}
+              hint={source === "example" ? "The project gets a short guide and a file you can run right away." : undefined}
             />
             {source === "example" && (
               <Segmented
-                label="Язык примера"
+                label="Example language"
                 value={template}
                 onChange={setTemplate}
                 options={[
@@ -98,24 +98,24 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
             key="url"
             autoFocus
             data-autofocus
-            label="Ссылка на репозиторий"
+            label="Repository link"
             placeholder="https://github.com/owner/repo"
             value={url}
             onChange={(event) => setUrl(event.target.value)}
             disabled={create.isPending}
-            hint="Публичный репозиторий: проект получит его название, а текстовые файлы окажутся внутри."
+            hint="A public repository. The project takes its name, and its text files are copied in."
           />
         )}
         <div className="flex justify-end gap-2 pt-1">
           {created && create.error ? (
-            <Button onClick={() => onCreated(created)}>Открыть проект</Button>
+            <Button onClick={() => onCreated(created)}>Open the project</Button>
           ) : (
             <Button variant="ghost" onClick={onClose} disabled={create.isPending}>
-              Отмена
+              Cancel
             </Button>
           )}
           <Button type="submit" variant="primary" disabled={!ready || create.isPending}>
-            {create.isPending ? (source === "github" ? "Загружаем…" : "Создаём…") : source === "github" ? "Создать и импортировать" : "Создать"}
+            {create.isPending ? (source === "github" ? "Loading…" : "Creating…") : source === "github" ? "Create and import" : "Create"}
           </Button>
         </div>
       </form>

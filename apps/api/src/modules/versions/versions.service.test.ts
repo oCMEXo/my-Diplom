@@ -36,8 +36,8 @@ describe("versions.service", () => {
 
   /** A project with a viewer and a file that has two versions (the newer one by the owner). */
   async function fileWithHistory() {
-    const owner = await user("Анна");
-    const viewer = await user("Наблюдатель");
+    const owner = await user("Anna");
+    const viewer = await user("Viewer");
     const project = await createProject(owner.id, { name: "Versions test project" });
     projectIds.push(project.id);
     await inviteMember(owner.id, project.id, { email: viewer.email, role: "viewer" });
@@ -62,7 +62,7 @@ describe("versions.service", () => {
     const versions = await listVersions(viewer.id, project.id, file.id);
 
     expect(versions).toEqual([
-      { id: newer.id, createdAt: newer.createdAt.toISOString(), size: 8, authorName: "Анна" },
+      { id: newer.id, createdAt: newer.createdAt.toISOString(), size: 8, authorName: "Anna" },
       { id: older.id, createdAt: older.createdAt.toISOString(), size: 8, authorName: null },
     ]);
   });
@@ -128,7 +128,7 @@ describe("versions.service", () => {
 
     await expect(restoreVersion(owner.id, project.id, file.id, older.id, unreachable)).rejects.toMatchObject({
       statusCode: 503,
-      message: "Сервер совместного редактирования недоступен — попробуйте позже",
+      message: "The collaboration server is not available. Please try later",
     });
     await expect(
       restoreVersion(owner.id, project.id, file.id, older.id, fakeCollab(500).fetchImpl),
@@ -147,11 +147,11 @@ describe("versions.service", () => {
       expect(list.json()).toHaveLength(2);
 
       const one = await app.inject({ method: "GET", url: `${base}/${newer.id}`, headers });
-      expect(one.json()).toMatchObject({ content: "print(2)", authorName: "Анна" });
+      expect(one.json()).toMatchObject({ content: "print(2)", authorName: "Anna" });
 
       const restore = await app.inject({ method: "POST", url: `${base}/${newer.id}/restore`, headers });
       expect(restore.statusCode).toBe(403);
-      expect(restore.json().message).toBe("Для этого действия не хватает прав в проекте");
+      expect(restore.json().message).toBe("You do not have the rights for this in the project");
     } finally {
       await app.close();
     }

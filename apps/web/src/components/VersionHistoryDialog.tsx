@@ -65,21 +65,21 @@ export function VersionHistoryDialog({
   return (
     <Modal
       side
-      title="История версий"
-      description={`${file.path} · снимок сохраняется не чаще раза в 5 минут, хранятся последние 50`}
+      title="Version history"
+      description={`${file.path} · a version is saved at most every 5 minutes, the last 50 are kept`}
       onClose={onClose}
       width="max-w-5xl"
     >
       {versions.isPending ? (
         <p className="flex items-center gap-2 text-base text-muted">
-          <Spinner size={18} /> Загружаем историю…
+          <Spinner size={18} /> Loading the history…
         </p>
       ) : versions.error ? (
-        <ErrorNote>{versions.error instanceof ApiError ? versions.error.message : "Не удалось загрузить историю"}</ErrorNote>
+        <ErrorNote>{versions.error instanceof ApiError ? versions.error.message : "Could not load the history"}</ErrorNote>
       ) : !selected ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line px-6 py-12 text-center text-base text-muted">
           <History size={28} className="text-faint" />
-          Версий пока нет. Они появятся, когда в файл начнут вносить правки.
+          No versions yet. They appear when people edit the file.
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-4 md:flex-row">
@@ -98,7 +98,7 @@ export function VersionHistoryDialog({
                     {versionAge(version.createdAt)}
                   </span>
                   <span className="block truncate text-sm text-faint">
-                    {version.authorName ?? "автор неизвестен"} · {formatSize(version.size)}
+                    {version.authorName ?? "unknown author"} · {formatSize(version.size)}
                   </span>
                 </button>
               </li>
@@ -108,27 +108,27 @@ export function VersionHistoryDialog({
           <section className="flex min-h-[18rem] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-line">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-canvas px-3 py-2">
               <p className="min-w-0 flex-1 text-sm text-muted">
-                Версия от {versionMoment(selected.createdAt)}: <span className="text-bad">красным</span> — что было только в
-                ней, <span className="text-ok">зелёным</span> — что есть только сейчас
-                {same && <span className="text-ok"> · совпадает с текущим</span>}
+                Version from {versionMoment(selected.createdAt)}: <span className="text-bad">red</span> is only in that
+                version, <span className="text-ok">green</span> is only in the current text
+                {same && <span className="text-ok"> · same as the current text</span>}
               </p>
               {canEdit ? (
                 <Button size="sm" variant="primary" onClick={() => setConfirming(true)} disabled={text === undefined || same}>
                   <RotateCcw size={16} />
-                  Восстановить
+                  Restore
                 </Button>
               ) : (
-                <span className="text-sm text-faint">Восстанавливать версии могут редакторы</span>
+                <span className="text-sm text-faint">Editors can restore versions</span>
               )}
             </div>
             <div className="relative min-h-0 flex-1">
               {content.error ? (
                 <div className="p-3">
-                  <ErrorNote>{content.error instanceof ApiError ? content.error.message : "Не удалось загрузить версию"}</ErrorNote>
+                  <ErrorNote>{content.error instanceof ApiError ? content.error.message : "Could not load the version"}</ErrorNote>
                 </div>
               ) : text === undefined ? (
                 <p className="flex items-center gap-2 p-3 text-base text-muted">
-                  <Spinner size={18} /> Загружаем версию…
+                  <Spinner size={18} /> Loading the version…
                 </p>
               ) : (
                 <VersionDiff original={text} modified={current} language={language} />
@@ -140,10 +140,10 @@ export function VersionHistoryDialog({
 
       {confirming && (
         <ConfirmDialog
-          title="Восстановить эту версию?"
-          description={`Текст файла у всех участников заменится версией от ${versionMoment(selected!.createdAt)}. Нынешний текст сохранится в истории, так что восстановление можно отменить.`}
-          confirmLabel="Восстановить"
-          pendingLabel="Восстанавливаем…"
+          title="Restore this version?"
+          description={`The file text changes for everyone to the version from ${versionMoment(selected!.createdAt)}. The current text stays in the history, so you can undo this.`}
+          confirmLabel="Restore"
+          pendingLabel="Restoring…"
           action={() => api.post(`${base}/${selected!.id}/restore`)}
           onDone={() => {
             queryClient.invalidateQueries({ queryKey: ["versions", file.id] });

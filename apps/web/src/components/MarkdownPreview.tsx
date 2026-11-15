@@ -11,7 +11,7 @@ export function MarkdownPreview({ controller }: { controller: EditorController |
   return (
     <div className="flex h-full flex-col bg-main">
       <div className="shrink-0 border-b border-line px-5 py-2 text-xs font-semibold uppercase tracking-wider text-faint">
-        Предпросмотр
+        Preview
       </div>
       <div className="min-h-0 flex-1 overflow-auto px-6 py-6 sm:px-10">
         {text.trim() ? (
@@ -20,7 +20,7 @@ export function MarkdownPreview({ controller }: { controller: EditorController |
           </ReactMarkdown>
         ) : (
           <p className="mx-auto max-w-2xl text-base text-faint">
-            Начните писать слева — здесь сразу появится оформленный текст.
+            Start writing on the left. The formatted text appears here.
           </p>
         )}
       </div>

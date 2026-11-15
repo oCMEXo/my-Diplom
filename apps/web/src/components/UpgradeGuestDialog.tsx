@@ -22,15 +22,15 @@ export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
       await upgradeGuest({ email: email.trim(), password });
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось сохранить аккаунт");
+      setError(err instanceof ApiError ? err.message : "Could not save the account");
       setSaving(false);
     }
   }
 
   return (
     <Modal
-      title="Сохранить аккаунт"
-      description="Добавьте почту и пароль, чтобы вернуться к своим проектам с любого устройства. Проекты и чат останутся."
+      title="Save your account"
+      description="Add an email and a password to come back to your projects from any device. Your projects and chat stay."
       onClose={onClose}
     >
       <form onSubmit={submit} className="space-y-4">
@@ -44,22 +44,22 @@ export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
           onChange={(event) => setEmail(event.target.value)}
         />
         <Field
-          label="Пароль"
+          label="Password"
           type="password"
           required
           minLength={8}
           maxLength={72}
           autoComplete="new-password"
-          hint="Не короче 8 символов"
+          hint="At least 8 characters"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={saving}>
-            Отмена
+            Cancel
           </Button>
           <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? "Сохраняем…" : "Сохранить"}
+            {saving ? "Saving…" : "Save"}
           </Button>
         </div>
       </form>

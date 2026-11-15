@@ -29,7 +29,7 @@ describe("buildTar", () => {
   it("round-trips paths and contents, including non-ASCII ones", () => {
     const files = [
       { path: "main.js", content: "console.log(1)" },
-      { path: "scripts/запуск.js", content: "привет\n" },
+      { path: "scripts/café.js", content: "héllo\n" },
       { path: "empty.txt", content: "" },
       { path: "big.txt", content: "x".repeat(1500) },
     ];

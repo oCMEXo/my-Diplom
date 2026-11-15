@@ -73,7 +73,7 @@ describe("terminal server", () => {
 
   const ticketData = (): TerminalTicketData => ({
     userId: USER,
-    userName: "Аня",
+    userName: "Anna",
     projectId: PROJECT,
     files: [{ path: "main.js", content: "1" }],
   });
@@ -83,7 +83,7 @@ describe("terminal server", () => {
     const client = connect(url("ticket=nope"));
     await client.closed;
     expect(client.messages).toEqual([
-      { type: "exit", message: "Ссылка на терминал устарела. Откройте терминал заново." },
+      { type: "exit", message: "The terminal link has expired. Open the terminal again." },
     ]);
   });
 
@@ -96,7 +96,7 @@ describe("terminal server", () => {
     await client.until((all) => all.some((m) => m.type === "ready"));
 
     const session = sessions.opened[0]!;
-    expect(session.options).toMatchObject({ userName: "Аня", cols: 120, rows: 40, files: [{ path: "main.js", content: "1" }] });
+    expect(session.options).toMatchObject({ userName: "Anna", cols: 120, rows: 40, files: [{ path: "main.js", content: "1" }] });
     await client.until((all) => all.some((m) => m.type === "output" && m.data === "echo:ls\r"));
 
     client.socket.send(JSON.stringify({ type: "resize", cols: 90, rows: 30 }));
@@ -105,7 +105,7 @@ describe("terminal server", () => {
     client.socket.send(JSON.stringify({ type: "input", data: "pwd\r" }));
     await client.until((all) => all.some((m) => m.type === "output" && m.data === "echo:pwd\r"));
     expect(session.sizes).toEqual([[90, 30]]);
-    expect(client.messages[0]).toEqual({ type: "status", message: "Запускаем песочницу…" });
+    expect(client.messages[0]).toEqual({ type: "status", message: "Starting the sandbox…" });
 
     client.socket.close();
     await client.closed;
@@ -118,9 +118,9 @@ describe("terminal server", () => {
     const { url } = await start({ t1: ticketData() }, sessions);
     const client = connect(url("ticket=t1"));
     await client.until((all) => all.some((m) => m.type === "ready"));
-    sessions.opened[0]!.options.onExit("Командная строка закрыта (exit).");
+    sessions.opened[0]!.options.onExit("The shell was closed (exit).");
     await client.closed;
-    expect(client.messages.at(-1)).toEqual({ type: "exit", message: "Командная строка закрыта (exit)." });
+    expect(client.messages.at(-1)).toEqual({ type: "exit", message: "The shell was closed (exit)." });
   });
 
   it("limits how many terminals one person keeps open", async () => {
@@ -130,7 +130,7 @@ describe("terminal server", () => {
     const second = connect(url("ticket=b"));
     await second.closed;
     expect(second.messages.at(-1)?.type).toBe("exit");
-    expect(second.messages.at(-1)).toMatchObject({ message: expect.stringContaining("слишком много") });
+    expect(second.messages.at(-1)).toMatchObject({ message: expect.stringContaining("Too many") });
     first.socket.close();
   });
 
@@ -190,7 +190,7 @@ describe("terminal server", () => {
     server.closeFor(PROJECT, USER);
     await mine.closed;
 
-    expect(mine.messages.at(-1)).toMatchObject({ type: "exit", message: expect.stringContaining("доступ") });
+    expect(mine.messages.at(-1)).toMatchObject({ type: "exit", message: expect.stringContaining("access") });
     expect(theirs.socket.readyState).toBe(WebSocket.OPEN);
     theirs.socket.close();
   });

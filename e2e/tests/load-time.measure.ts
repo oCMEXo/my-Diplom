@@ -9,11 +9,11 @@ const TEN_MBIT_IN_BYTES = (10 * 1000 * 1000) / 8;
 
 test(`a project of ${FILES} files opens within ${LIMIT_MS} ms over 10 Mbit/s (NFR-P2)`, async ({ browser, request }) => {
   const registered = await request.post(`${API}/auth/register`, {
-    data: { name: "Замер", email: `${crypto.randomUUID()}@e2e.local`, password: "password123" },
+    data: { name: "Timer", email: `${crypto.randomUUID()}@e2e.local`, password: "password123" },
   });
   const auth = await registered.json();
   const headers = { Authorization: `Bearer ${auth.tokens.accessToken}` };
-  const project = await (await request.post(`${API}/projects`, { headers, data: { name: "Большой проект" } })).json();
+  const project = await (await request.post(`${API}/projects`, { headers, data: { name: "Big project" } })).json();
   for (let number = 1; number <= FILES; number += 1) {
     const path = `src/module-${String(number).padStart(3, "0")}.py`;
     const created = await request.post(`${API}/projects/${project.id}/files`, { headers, data: { path, type: "code" } });

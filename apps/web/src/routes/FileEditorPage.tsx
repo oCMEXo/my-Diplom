@@ -19,7 +19,7 @@ import { rememberFile } from "../lib/last-file";
 import { useAnnounceFile, useFollowing, useRun } from "../lib/RealtimeContext";
 import type { ProjectOutletContext } from "./ProjectPage";
 
-const DEFAULT_TITLE = "Collab — совместная работа над проектом";
+const DEFAULT_TITLE = "Collab: work on a project together";
 
 export function FileEditorPage() {
   const { projectId, fileId } = useParams<{ projectId: string; fileId: string }>();
@@ -77,12 +77,12 @@ export function FileEditorPage() {
   if (!file || !projectId) {
     return (
       <>
-        <ProjectHeader shell={shell} title="Файл не найден" />
+        <ProjectHeader shell={shell} title="File not found" />
         <div className="space-y-3 p-8 text-base text-muted">
-          <p>Возможно, файл удалили или у вас нет к нему доступа.</p>
+          <p>The file may have been deleted, or you have no access to it.</p>
           {projectId && (
             <Link to={`/projects/${projectId}`} className="font-medium text-accent-ink hover:underline">
-              Открыть другой файл проекта
+              Open another file of the project
             </Link>
           )}
         </div>
@@ -99,18 +99,18 @@ export function FileEditorPage() {
         onClick={() => setLanguagesOpen(true)}
         aria-label={
           languageInfo.support === "run"
-            ? `${languageInfo.name}: подсветка и запуск`
+            ? `${languageInfo.name}: highlighting and running`
             : languageInfo.support === "highlight"
-              ? `${languageInfo.name}: подсветка, запуск недоступен`
-              : "Язык не распознан: обычный текст"
+              ? `${languageInfo.name}: highlighting, no running`
+              : "Unknown language: plain text"
         }
-        title="Поддерживаемые языки"
+        title="Supported languages"
         className={cn(
           "hidden shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium transition hover:bg-raised bar-md:inline-flex",
           languageInfo.support === "text" ? "text-warn" : "text-faint hover:text-fg",
         )}
       >
-        {languageInfo.support === "text" ? "Текст" : languageInfo.name}
+        {languageInfo.support === "text" ? "Text" : languageInfo.name}
       </button>
       {languagesOpen && <LanguagesDialog onClose={() => setLanguagesOpen(false)} />}
     </>
@@ -126,7 +126,7 @@ export function FileEditorPage() {
         {!canEdit && (
           <span className="inline-flex items-center gap-1 rounded-md bg-raised px-1.5 py-0.5 text-xs font-medium text-muted">
             <Eye size={12} />
-            только чтение
+            read only
           </span>
         )}
         {languageChip}
@@ -160,7 +160,7 @@ export function FileEditorPage() {
       });
     } catch (err) {
       if (access.refused(err, () => void startRun())) return;
-      setRunError(err instanceof ApiError ? err.message : "Не удалось запустить");
+      setRunError(err instanceof ApiError ? err.message : "Could not run");
     }
   }
 
@@ -171,7 +171,7 @@ export function FileEditorPage() {
       await api.post(`/projects/${projectId}/runs/${run.runId}/stop`);
     } catch (err) {
       if (access.refused(err, () => void stopRun())) return;
-      setRunError(err instanceof ApiError ? err.message : "Не удалось остановить");
+      setRunError(err instanceof ApiError ? err.message : "Could not stop");
     }
   }
 
@@ -201,14 +201,14 @@ export function FileEditorPage() {
         size="sm"
         variant="ghost"
         onClick={() => shareLine(activeController?.getCursorLine() ?? 1)}
-        title="Сослаться на эту строку в чате (Alt+L)"
-        aria-label="Сослаться на эту строку в чате"
+        title="Mention this line in the chat (Alt+L)"
+        aria-label="Mention this line in the chat"
         // On the narrowest phones the header has no room; Alt+L and the editor's menu still do it.
         className="hidden bar-md:inline-flex"
       >
         <MessageSquarePlus size={16} />
       </Button>
-      <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)} title="История версий" aria-label="История версий">
+      <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)} title="Version history" aria-label="Version history">
         <History size={16} />
       </Button>
       {runnable && canEdit && (
@@ -221,14 +221,14 @@ export function FileEditorPage() {
           {access.dialog}
           {/* While the program runs, the same place stops it: an endless loop need not wait for the time limit. */}
           {running ? (
-            <Button size="sm" onClick={() => access.ensure(() => void stopRun())} aria-label="Остановить" title="Остановить программу">
+            <Button size="sm" onClick={() => access.ensure(() => void stopRun())} aria-label="Stop" title="Stop the program">
               <Square size={14} className="fill-current text-bad" />
-              <span className="hidden bar-md:inline">Остановить</span>
+              <span className="hidden bar-md:inline">Stop</span>
             </Button>
           ) : (
-            <Button size="sm" onClick={() => access.ensure(() => void startRun())} aria-label="Запустить" title="Запустить файл">
+            <Button size="sm" onClick={() => access.ensure(() => void startRun())} aria-label="Run" title="Run the file">
               <Play size={16} className="fill-current text-ok" />
-              <span className="hidden bar-md:inline">Запустить</span>
+              <span className="hidden bar-md:inline">Run</span>
             </Button>
           )}
         </>

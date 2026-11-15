@@ -91,7 +91,7 @@ export function extractRepoFiles(zip: Uint8Array): {
       },
     });
   } catch {
-    throw new AppError("Не удалось прочитать архив репозитория.", 422);
+    throw new AppError("Could not read the repository archive.", 422);
   }
 
   candidates.sort((a, b) => a.path.split("/").length - b.path.split("/").length || a.path.localeCompare(b.path));
@@ -111,7 +111,7 @@ export function extractRepoFiles(zip: Uint8Array): {
   try {
     contents = unzipSync(zip, { filter: (file) => chosen.has(file.name) });
   } catch {
-    throw new AppError("Не удалось прочитать архив репозитория.", 422);
+    throw new AppError("Could not read the repository archive.", 422);
   }
 
   const files: RepoFile[] = [];

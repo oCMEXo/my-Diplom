@@ -48,7 +48,7 @@ describe("importFromGithub", () => {
       owner.id,
       p.id,
       REPO_URL,
-      fakeGithub({ "main.py": "print('привет')", "docs/README.md": "# Demo" }),
+      fakeGithub({ "main.py": "print('hello')", "docs/README.md": "# Demo" }),
     );
 
     expect(result.imported).toBe(2);
@@ -62,7 +62,7 @@ describe("importFromGithub", () => {
 
     const doc = new Y.Doc();
     Y.applyUpdate(doc, stored.find((f) => f.path === "main.py")!.yjsState!);
-    expect(doc.getText("monaco").toString()).toBe("print('привет')");
+    expect(doc.getText("monaco").toString()).toBe("print('hello')");
   });
 
   it("does not overwrite files that already exist", async () => {

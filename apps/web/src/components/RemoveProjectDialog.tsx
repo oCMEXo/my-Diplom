@@ -25,24 +25,24 @@ export function RemoveProjectDialog({ project, onClose }: { project: Project; on
 
   return (
     <Modal
-      title={isOwner ? "Удалить проект?" : "Покинуть проект?"}
+      title={isOwner ? "Delete the project?" : "Leave the project?"}
       description={
         isOwner
-          ? `«${project.name}» будет удалён у всех участников вместе с файлами и перепиской. Это нельзя отменить.`
-          : `«${project.name}» исчезнет из вашего списка. Вернуться можно по ссылке-приглашению. Сам проект и файлы останутся у остальных.`
+          ? `“${project.name}” will be deleted for everyone, with its files and chat. This cannot be undone.`
+          : `“${project.name}” disappears from your list. You can come back with an invite link. The project and its files stay for the others.`
       }
       onClose={onClose}
     >
       <div className="space-y-4">
         {remove.error && (
-          <ErrorNote>{remove.error instanceof ApiError ? remove.error.message : "Не удалось выполнить действие"}</ErrorNote>
+          <ErrorNote>{remove.error instanceof ApiError ? remove.error.message : "Could not do this"}</ErrorNote>
         )}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={remove.isPending}>
-            Отмена
+            Cancel
           </Button>
           <Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>
-            {remove.isPending ? "Подождите…" : isOwner ? "Удалить навсегда" : "Покинуть"}
+            {remove.isPending ? "Please wait…" : isOwner ? "Delete forever" : "Leave"}
           </Button>
         </div>
       </div>

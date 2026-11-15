@@ -11,7 +11,7 @@ const BRANCH = /^(?!-)[A-Za-z0-9._/-]{1,200}$/;
 async function linkedProject(projectId: string) {
   const project = await prisma.project.findUniqueOrThrow({ where: { id: projectId } });
   if (!project.githubOwner || !project.githubRepo) {
-    throw new AppError("Проект не связан с репозиторием GitHub: сначала импортируйте его.", 400);
+    throw new AppError("The project is not linked to a GitHub repository. Import it first.", 400);
   }
   return { ...project, githubOwner: project.githubOwner, githubRepo: project.githubRepo };
 }
@@ -23,7 +23,7 @@ async function linkedProject(projectId: string) {
 async function nameCurrentBranch(project: Awaited<ReturnType<typeof linkedProject>>, fetchImpl: typeof fetch) {
   if (project.githubBranch) return project.githubBranch;
   const name = await defaultBranchName({ owner: project.githubOwner, repo: project.githubRepo, ref: null }, fetchImpl);
-  if (!name) throw new AppError("Не удалось узнать основную ветку репозитория. Попробуйте позже.", 502);
+  if (!name) throw new AppError("Could not find the default branch of the repository. Please try later.", 502);
   await prisma.$transaction([
     prisma.file.updateMany({ where: { projectId: project.id, branch: "" }, data: { branch: name } }),
     prisma.project.update({ where: { id: project.id }, data: { githubBranch: name } }),
@@ -77,7 +77,7 @@ export async function switchBranch(
   await requireProjectRole(projectId, userId, "editor");
   const target = name.trim();
   if (!BRANCH.test(target) || target.includes("..") || target.endsWith("/")) {
-    throw new AppError("Недопустимое имя ветки.", 400);
+    throw new AppError("This branch name is not allowed.", 400);
   }
 
   const project = await linkedProject(projectId);

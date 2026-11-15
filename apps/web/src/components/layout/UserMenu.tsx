@@ -49,7 +49,7 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
     <div ref={root} className="relative">
       <button
         onClick={() => setOpen((value) => !value)}
-        aria-label="Меню профиля"
+        aria-label="Profile menu"
         aria-expanded={open}
         className="rounded-full transition hover:ring-2 hover:ring-accent/50"
       >
@@ -67,27 +67,27 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
             <Avatar id={user.id} name={user.name} />
             <div className="min-w-0">
               <p className="truncate text-base font-medium">{user.name}</p>
-              <p className="text-sm text-muted">{user.isGuest ? "Гость · без регистрации" : "Аккаунт"}</p>
+              <p className="text-sm text-muted">{user.isGuest ? "Guest · no account" : "Account"}</p>
             </div>
           </div>
           <div className="my-1 h-px bg-line" />
           {user.isGuest && (
             <button role="menuitem" onClick={() => show("upgrade")} className={cn(ITEM, "text-fg")}>
               <Save size={18} className="text-accent-ink" />
-              Сохранить аккаунт
+              Save your account
             </button>
           )}
           <button role="menuitem" onClick={() => show("rename")} className={ITEM}>
             <Pencil size={18} />
-            Изменить имя
+            Change name
           </button>
           <button role="menuitem" onClick={toggle} className={ITEM}>
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            {theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+            {theme === "dark" ? "Light theme" : "Dark theme"}
           </button>
           <Link role="menuitem" to="/privacy" className={ITEM}>
             <Shield size={18} />
-            Данные и приватность
+            Data and privacy
           </Link>
           <div className="my-1 h-px bg-line" />
           <button
@@ -96,7 +96,7 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-base text-bad transition hover:bg-bad/10"
           >
             <LogOut size={18} />
-            Выйти
+            Sign out
           </button>
           <button
             role="menuitem"
@@ -104,7 +104,7 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-base text-bad transition hover:bg-bad/10"
           >
             <Trash2 size={18} />
-            Удалить аккаунт
+            Delete account
           </button>
         </div>
       )}
@@ -113,16 +113,16 @@ export function UserMenu({ placement = "below" }: { placement?: "below" | "above
       {dialog === "delete" && <DeleteAccountDialog onClose={() => setDialog(null)} />}
       {dialog === "guest-logout" && (
         <Modal
-          title="Выйти из гостевого аккаунта?"
-          description="У гостя нет ни почты, ни пароля, поэтому войти снова не получится. Вы потеряете доступ к проектам, в которых сейчас участвуете. Чтобы этого не случилось, сохраните аккаунт."
+          title="Sign out of the guest account?"
+          description="A guest has no email and no password, so you cannot sign in again. You will lose access to the projects you are in now. To keep them, save your account."
           onClose={() => setDialog(null)}
         >
           <div className="flex flex-wrap justify-end gap-2">
             <Button variant="danger" onClick={logout}>
-              Всё равно выйти
+              Sign out anyway
             </Button>
             <Button variant="primary" onClick={() => setDialog("upgrade")} data-autofocus>
-              Сохранить аккаунт
+              Save your account
             </Button>
           </div>
         </Modal>

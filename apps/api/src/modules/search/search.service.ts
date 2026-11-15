@@ -52,7 +52,7 @@ export async function searchProject(userId: string, projectId: string, rawQuery:
   await requireProjectRole(projectId, userId, "viewer");
   const query = rawQuery.trim();
   if (query.length < SEARCH_LIMITS.minQuery || query.length > SEARCH_LIMITS.maxQuery) {
-    throw new AppError(`Для поиска введите от ${SEARCH_LIMITS.minQuery} до ${SEARCH_LIMITS.maxQuery} символов`, 400);
+    throw new AppError(`Type from ${SEARCH_LIMITS.minQuery} to ${SEARCH_LIMITS.maxQuery} characters to search`, 400);
   }
 
   const files = await prisma.file.findMany({
