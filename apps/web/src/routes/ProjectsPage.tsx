@@ -14,6 +14,7 @@ import { Wordmark } from "../components/ui/Logo";
 import { RoleBadge } from "../components/ui/RoleBadge";
 import { Spinner } from "../components/ui/Spinner";
 import { VerifyEmailBanner } from "../components/VerifyEmailBanner";
+import { ClassesSection } from "../components/ClassesSection";
 
 function projectCode(value: string) {
   // Accepts a full invite link or just the code.
@@ -93,6 +94,8 @@ export function ProjectsPage() {
             <ArrowRight size={18} />
           </Button>
         </form>
+
+        <ClassesSection />
 
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-faint">Your projects</h2>
 

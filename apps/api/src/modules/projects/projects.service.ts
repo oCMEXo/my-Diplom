@@ -7,6 +7,7 @@ import { announceAccessChange } from "../../lib/access-changes.js";
 import { hub } from "../../lib/hub.js";
 import { templateFiles } from "./templates.js";
 import { checkProjectLimit } from "../../lib/limits.js";
+import { isClassTeacherOf } from "../classes/classes.service.js";
 
 interface ProjectLike {
   id: string;
@@ -18,6 +19,7 @@ interface ProjectLike {
   githubOwner: string | null;
   githubRepo: string | null;
   githubBranch: string | null;
+  classId: string | null;
 }
 
 function toProjectDto(project: ProjectLike, myRole: ProjectRole) {
@@ -34,6 +36,7 @@ function toProjectDto(project: ProjectLike, myRole: ProjectRole) {
       project.githubOwner && project.githubRepo
         ? { owner: project.githubOwner, repo: project.githubRepo, branch: project.githubBranch }
         : null,
+    classId: project.classId,
   };
 }
 
@@ -54,7 +57,7 @@ export async function createProject(userId: string, input: CreateProjectInput) {
 
 export async function listProjects(userId: string) {
   const memberships = await prisma.projectMember.findMany({
-    where: { userId },
+    where: { userId, NOT: { role: { not: "owner" }, project: { classId: { not: null } } } },
     include: { project: true },
     orderBy: { project: { createdAt: "desc" } },
   });
@@ -163,6 +166,9 @@ export async function removeMember(
   }
   if (target.role === "owner") {
     throw new AppError("The owner cannot be removed from the project. The project can only be deleted", 400);
+  }
+  if (requesterId !== targetUserId && (await isClassTeacherOf(projectId, targetUserId))) {
+    throw new AppError("The teacher of the class stays in the project", 400);
   }
 
   await prisma.projectMember.delete({
