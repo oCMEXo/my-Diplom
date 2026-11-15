@@ -1,489 +1,427 @@
-# 3 Реализация
+# 3 Implementation
 
-## 3.1 Общая организация кода
+## 3.1 How the code is organised
 
-Репозиторий — монорепозиторий на pnpm workspaces; весь код на TypeScript.
-Пакет `@collab/shared` содержит схемы Zod (запросы, ответы, события реального
-времени) и константы и подключается и сервером, и клиентом, поэтому форма
-данных на обеих сторонах проверяется компилятором, а на границе сервера —
-ещё и проверкой во время выполнения. Пакет `@collab/db` содержит Prisma-схему, миграции и
-клиент. Качество кода контролируется линтером (ESLint), проверкой типов и
-автоматическими тестами; все три проверки выполняются в GitHub Actions на
-каждый push и pull request с поднятыми PostgreSQL и Redis.
+The repository is a pnpm workspaces monorepo; all code is TypeScript. The `@collab/shared` package holds
+Zod schemas (requests, responses, real-time events) and constants, and both the server and the client use
+it, so the shape of the data is checked by the compiler on both sides and, at the server boundary, also at
+run time. The `@collab/db` package holds the Prisma schema, the migrations and the client. Code quality is
+checked by a linter (ESLint), type checking and automated tests; all three run in GitHub Actions on every
+push and pull request, with PostgreSQL and Redis started for them.
 
-## 3.2 REST API и авторизация
+## 3.2 REST API and auth
 
-API построен на Fastify; типизация и документация выводятся из одних и тех же
-схем Zod (`fastify-type-provider-zod`), поэтому спецификация OpenAPI
-(Swagger UI на `/docs`) не расходится с кодом. Единый обработчик ошибок
-переводит доменные исключения в HTTP-ответы с нужным статусом.
+The API is built on Fastify; types and documentation come from the same Zod schemas
+(`fastify-type-provider-zod`), so the OpenAPI specification (Swagger UI at `/docs`) does not drift from
+the code. One error handler turns domain exceptions into HTTP responses with the right status.
 
-Проверка прав вынесена в одну функцию, которая по паре «проект, пользователь»
-находит роль и сравнивает её с требуемой (`viewer < editor < owner`). Для
-не-участника она отвечает «не найдено», а не «запрещено», что не позволяет
-перебором выяснить, какие проекты существуют. Эта же логика переиспользована в
-WebSocket-эндпоинте и в сервере синхронизации.
+Access checks live in one function that finds the role for a "project, user" pair and compares it with
+the required one (`viewer < editor < owner`). For a non-member it answers "not found", not "forbidden",
+so nobody can find out by trying which projects exist. The same logic is reused in the WebSocket endpoint
+and in the sync server.
 
-Аутентификация: argon2id для паролей; access-токен — JWT с коротким сроком;
-refresh-токен — случайная строка, в БД хранится только её SHA-256, а при
-обновлении токен заменяется новым (ротация). **Гостевой вход** создаёт
-учётную запись с флагом `is_guest` без настоящего email и пароля (служебный
-адрес и случайный пароль, который никому не сообщается) и выдаёт обычную пару
-токенов, поэтому весь остальной код (права, участие в проекте, чат) работает
-для гостей без особых случаев. **Ссылка-приглашение** — случайный код проекта;
-запрос `POST /join/:code` добавляет вызывающего в проект с ролью, настроенной у
-ссылки, и идемпотентен: повторный переход не меняет уже выданную роль.
-Владелец может перевыпустить код (старая ссылка перестаёт работать) и изменить
-роль, выдаваемую ссылкой.
+Authentication: argon2id for passwords; the access token is a short-lived JWT; the refresh token is a
+random string of which the database stores only the SHA-256, and on refresh the token is replaced with a
+new one (rotation). **Guest entry** creates an account with the `is_guest` flag, without a real email or
+password (a technical address and a random password that nobody is told), and issues an ordinary pair of
+tokens, so all the other code (rights, project membership, chat) works for guests without special cases.
+An **invite link** is a random project code; `POST /join/:code` adds the caller to the project with the
+role set for the link, and it is idempotent: following the link again does not change a role already
+given. The owner can replace the code (the old link stops working) and change the role the link gives.
 
-Код ссылки — это право войти редактором, поэтому наблюдателю сервер его не отдаёт
-(`inviteCode: null`), и кнопки «Пригласить» у него нет. Код сменяется, когда участника
-убирают или понижают до наблюдателя, и когда ссылка с ролью наблюдателя становится
-ссылкой для редакторов: иначе человек мог бы вернуть себе доступ старой ссылкой или
-поднять себе роль.
+The link code is the right to join as an editor, so the server does not give it to a viewer
+(`inviteCode: null`), and a viewer has no "Invite" button. The code changes when a member is removed or
+demoted to viewer, and when a viewer link becomes an editor link: otherwise a person could get access
+back with the old link or raise their own role.
 
-Гость не может вернуться в свою учётную запись после выхода: у него нет ни почты, ни
-пароля. Поэтому выход гостя сначала предупреждает об этом, а `POST /auth/upgrade`
-добавляет к той же записи почту и пароль, так что проекты и история остаются.
-`POST /auth/delete-account` удаляет запись, её сообщения и проекты, которыми человек
-владеет; зарегистрированный пользователь подтверждает это паролем. Открытые соединения
-закрываются так же, как при удалении из проекта, а клиент стирает копии документов в
-IndexedDB (право на удаление, GDPR, ст. 17).
+A guest cannot get back into their account after signing out: they have no email and no password. So
+signing out as a guest first warns about this, and `POST /auth/upgrade` adds an email and a password to
+the same account, so the projects and the history stay. `POST /auth/delete-account` deletes the account,
+its messages and the projects the person owns; a registered user confirms it with the password. Open
+connections are closed as when someone is removed from a project, and the client erases its copies of the
+documents in IndexedDB (the right to erasure, GDPR Art. 17).
 
-На клиенте сессию нельзя терять из-за сбоя сервера: токены стираются только при ответе
-401 на обновление, а 429 и 502 оставляют человека в системе. Обновление токена
-использует ротацию, поэтому две вкладки не должны делать его одновременно: вкладки
-становятся в очередь через Web Locks, а вторая, дождавшись, читает новую пару из
-`localStorage`. Событие `storage` переносит вход и выход на остальные вкладки.
-WebSocket, в отличие от запроса, не может повторить попытку после 401, поэтому перед
-каждым подключением клиент проверяет срок токена и при необходимости получает новый:
-после долгого перерыва в сети синхронизация возобновляется сама.
+On the client, the session must not be lost because of a server failure: tokens are erased only when a
+refresh gets a 401, while a 429 or a 502 keeps the person signed in. The refresh uses rotation, so two
+tabs must not do it at the same time: tabs queue through Web Locks, and the second one, after waiting,
+reads the new pair from `localStorage`. The `storage` event carries signing in and out to the other tabs.
+A WebSocket, unlike a request, cannot retry after a 401, so before every connection the client checks the
+token's expiry and gets a new one if needed: after a long time offline, sync resumes by itself.
 
-Адрес почты приводится к нижнему регистру ещё в схеме запроса, поэтому `Anya@Mail.com` и
-`anya@mail.com` — один человек; существующие записи приведены миграцией. Вход по
-неизвестному адресу тратит на проверку столько же времени, сколько неверный пароль:
-иначе по времени ответа можно было бы узнать, у кого есть аккаунт. Приглашение по почте
-своим ответом всё же говорит, зарегистрирован ли адрес, поэтому у него тот же лимит
-запросов, что и у входа.
+The email address is lower-cased already in the request schema, so `Anya@Mail.com` and `anya@mail.com`
+are one person; existing records were converted by a migration. Signing in with an unknown address takes
+as long as a wrong password: otherwise the response time would show who has an account. Inviting by email
+does reveal in its answer whether the address is registered, so it has the same rate limit as signing in.
 
-## 3.3 Сервер синхронизации
+## 3.3 Sync server
 
-Сервер `collab` — Hocuspocus [10] с расширением хранения. Имя документа — идентификатор
-файла. При подключении хук проверки проверяет подпись JWT, находит файл, проверяет
-членство в проекте и для роли `viewer` включает режим read-only. Снимок
-документа сохраняется в `files.yjs_state` с задержкой: через 1 с после последней
-правки, но не реже чем раз в 3 с при непрерывном наборе.
+The `collab` server is Hocuspocus [10] with a storage extension. The document name is the file id. On
+connect, an auth hook checks the JWT signature, finds the file, checks project membership and turns on
+read-only mode for the `viewer` role. The document snapshot is saved to `files.yjs_state` with a delay:
+1 s after the last edit, but at least every 3 s during continuous typing.
 
-Проверка на реальных клиентах показала важную особенность CRDT-архитектуры.
-Клиент-наблюдатель **может локально изменить** свой документ Yjs (локальная
-копия всегда изменяема — на этом и построена мгновенная реакция), но сервер не
-принимает и не рассылает эту правку, и она не попадает в хранилище. Следовательно,
-режим read-only на сервере — гарантия целостности данных, а не блокировка
-интерфейса; сам редактор у наблюдателя дополнительно переводится в режим «только
-чтение» на клиенте.
+Testing with real clients showed an important property of the CRDT architecture. A viewer client **can
+change its Yjs document locally** (the local copy is always writable; instant response is built on that),
+but the server does not accept or forward this edit, and it does not reach the storage. So read-only mode
+on the server guarantees data integrity; it is not an interface lock. The viewer's editor is also set to
+read-only on the client.
 
-## 3.4 Клиент
+## 3.4 Client
 
-**Редактор кода.** Monaco, связанный с документом Yjs через `y-monaco`;
-Monaco и его фоновые обработчики (Web Workers) собираются локально (без загрузки с CDN), что необходимо для
-офлайн-режима. Присутствие участников передаётся через awareness: каждый клиент
-публикует имя и цвет, а курсоры и выделения других участников отрисовываются
-CSS-правилами, которые генерируются из состояния awareness. Поскольку эти данные
-приходят от других клиентов, имена и цвета перед попаданием в CSS проходят
-фильтрацию (допускаются только строго заданный формат цвета и безопасные символы
-имени), что покрыто тестами.
+**Code editor.** Monaco, bound to the Yjs document through `y-monaco`; Monaco and its background workers
+(Web Workers) are bundled locally (not loaded from a CDN), which offline mode needs. Presence goes through
+awareness: each client publishes a name and a colour, and other participants' cursors and selections are
+drawn by CSS rules generated from the awareness state. Since this data comes from other clients, names and
+colours are filtered before they reach CSS (only a strict colour format and safe name characters are
+allowed), and this is covered by tests.
 
-**Документы Markdown.** Тот же редактор в режиме Markdown и предпросмотр
-(`react-markdown`), который перерисовывается при любой — локальной или чужой —
-правке; сырой HTML в предпросмотре не допускается.
+**Markdown documents.** The same editor in Markdown mode and a preview (`react-markdown`) that re-renders
+on every edit, local or remote; raw HTML is not allowed in the preview.
 
-**Доска дизайна.** Отрисовка на Canvas (`react-konva`), данные — в Yjs: `Y.Map`
-фигур по идентификатору (тип, координаты, размеры, цвет, текст) и `Y.Array` с
-порядком слоёв. Фигуры: прямоугольник, овал, текст, стрелка; перемещение,
-изменение размера, цвета, удаление, отмена/повтор (`Y.UndoManager`, отменяются
-только собственные правки), курсоры участников, экспорт в PNG и SVG. Свойства
-фигуры независимы, поэтому один участник может двигать фигуру, а другой в это же
-время красить её — оба изменения сохранятся; при конкурентной записи одного и
-того же свойства выживает одна запись, одинаковая у всех. Загрузка картинок
-(S3) в объём работы не вошла — это первая из функций доски, которую план
-допускает сократить.
+**Design board.** Drawn on Canvas (`react-konva`), with the data in Yjs: a `Y.Map` of shapes by id (type,
+position, size, colour, text) and a `Y.Array` with the layer order. Shapes: rectangle, ellipse, text,
+arrow; moving, resizing, recolouring, deleting, undo/redo (`Y.UndoManager`, which undoes only your own
+edits), participants' cursors, export to PNG and SVG. Shape properties are independent, so one person can
+move a shape while another recolours it, and both changes are kept; when the same property is written
+concurrently, one write survives, the same for everyone. Uploading pictures (S3) did not make it into the
+scope; it is the first board feature the plan allows to cut.
 
-**Офлайн.** Service worker (Workbox через `vite-plugin-pwa`) кэширует оболочку
-приложения; кэш REST-запросов сохраняется в localStorage на неделю, чтобы списки
-проектов и файлов были доступны без сети; тело каждого открытого файла лежит в
-IndexedDB. При выходе из учётной записи кэш запросов очищается, чтобы данные
-одного пользователя не остались на устройстве для следующего.
+**Offline.** The service worker (Workbox through `vite-plugin-pwa`) caches the app shell; the cache of
+REST answers is saved to localStorage for a week so the project and file lists are available offline; the
+body of each opened file is in IndexedDB. Signing out clears the request cache, so one user's data does
+not stay on the device for the next person.
 
-## 3.5 Чат, присутствие и события реального времени
+## 3.5 Chat, presence and real-time events
 
-Чат — таблица `messages` и два способа доставки: REST для записи и истории
-(постраничная прокрутка по курсору — идентификатору сообщения) и событие по
-WebSocket `/ws` для живой доставки. Сообщение сначала записывается в БД и
-лишь затем рассылается, поэтому доставленное сообщение всегда сохранено.
-Клиент склеивает ответ POST и эхо по WebSocket по идентификатору, а после
-переподключения заново запрашивает последнюю страницу, чтобы подобрать
-пропущенное за время обрыва.
+The chat is the `messages` table with two delivery paths: REST for writing and for the history (paging by
+a cursor, the message id) and an event over the `/ws` WebSocket for live delivery. A message is first
+written to the database and only then sent out, so a delivered message is always saved. The client joins
+the POST response and the WebSocket echo by id, and after a reconnect it asks for the last page again to
+pick up what it missed during the break.
 
-Хаб рассылки (концентратор WebSocket-соединений) хранит соединения по проектам; он же ведёт список присутствующих
-(пользователь учитывается один раз, даже если открыто несколько вкладок) и
-рассылает событие `presence.updated` при каждом входе и выходе. Тот же канал
-используется для вывода запуска кода. Токен передаётся в строке запроса, так как
-браузерный `WebSocket` не позволяет задать собственные заголовки; код закрытия `4401` означает плохой
-токен (клиент обновляет его и повторяет), `4403` — не участник проекта (клиент не
-повторяет).
+The broadcast hub (a hub of WebSocket connections) keeps connections per project; it also keeps the list
+of who is present (a user is counted once even with several tabs open) and sends a `presence.updated`
+event on every join and leave. The same channel carries code run output. The token is passed in the query
+string because the browser `WebSocket` cannot set its own headers; close code `4401` means a bad token (the
+client refreshes it and retries), and `4403` means not a project member (the client does not retry).
 
-## 3.6 Запуск кода
+## 3.6 Running code
 
-Запрос запуска (`POST /projects/:id/files/:fileId/run`, роль `editor` и выше)
-несёт текущий текст файла — клиент отправляет его сам, потому что сохранённый
-снимок отстаёт от редактора на время задержки сохранения. Язык определяется по
-расширению файла по одной таблице из пакета `shared` (`describeLanguage`); она же
-говорит интерфейсу, что будет с файлом: подсветка и запуск (JavaScript, Python),
-только подсветка (ещё 38 языков) или обычный текст. Эту таблицу показывает окно
-«Поддерживаемые языки», а диалог нового файла предупреждает о нераспознанном
-расширении, пока имя ещё набирается. API ставит задачу в очередь BullMQ, сервис `runner` исполняет
-её в одноразовом контейнере и публикует события `run.started`, `run.output`,
-`run.finished` в Redis; `api` пересылает их подписчикам проекта.
+A run request (`POST /projects/:id/files/:fileId/run`, role `editor` and above) carries the current text
+of the file: the client sends it itself, because the saved snapshot lags behind the editor by the save
+delay. The language is chosen by the file extension from one table in the `shared` package
+(`describeLanguage`); the same table tells the interface what happens to the file: highlighting and
+running (JavaScript, Python), highlighting only (38 more languages) or plain text. The "Supported
+languages" window shows this table, and the new-file dialog warns about an unknown extension while the
+name is still being typed. The API puts a job into a BullMQ queue, the `runner` service runs it in a
+one-off container and publishes the events `run.started`, `run.output` and `run.finished` to Redis, and
+`api` forwards them to the project's subscribers.
 
-Ограничения контейнера приведены в таблице 3.1; они проверены автоматическими
-тестами на настоящем Docker.
+Table 3.1 lists the container limits; they are checked by automated tests on real Docker.
 
-Таблица 3.1 — Ограничения контейнера запуска кода
+Table 3.1. Limits of the code run container
 
-| Параметр | Значение |
+| Setting | Value |
 |---|---|
-| Сеть | отключена (`--network none`) |
-| Файловая система | только чтение, `/tmp` — 16 МБ в памяти |
-| Пользователь | `nobody` (65534), все capabilities сброшены, `no-new-privileges` |
-| Память / CPU / процессы | 128 МБ без swap / 0,5 ядра / не более 64 |
-| Время | 10 с, затем принудительное завершение контейнера |
-| Вывод | не более 64 КБ |
+| Network | off (`--network none`) |
+| File system | read-only, `/tmp` is 16 MB in memory |
+| User | `nobody` (65534), all capabilities dropped, `no-new-privileges` |
+| Memory / CPU / processes | 128 MB without swap / 0.5 core / at most 64 |
+| Time | 10 s, then the container is killed |
+| Output | at most 64 KB |
 
-Проект подаётся в контейнер tar-архивом через стандартный ввод и распаковывается в
-его собственную tmpfs в памяти, так что на файловую систему хоста ничего не
-пишется, а запущенная программа видит соседние файлы проекта (`require('./logger')`,
-`import helper`, файлы в папках). Текущий файл берётся из редактора (свежий текст),
-остальные — из сохранённых документов, до 400 файлов и 3 МБ. Путь запускаемого
-файла передаётся переменной окружения и берётся в кавычки, поэтому имя файла не
-может внедрить shell-код. Номер строки ошибки извлекается из трассировки по пути
-запущенного файла (кадры из других файлов пропускаются) и подсвечивается в редакторе
-у всех участников. Сторонние пакеты установить нельзя: в песочнице нет сети.
-Тесты проверяют, что код не может открыть сетевое соединение, записать в
-корневую файловую систему, работает не от root, а бесконечный цикл и избыточный
-вывод ограничиваются.
+The project goes into the container as a tar archive on standard input and is unpacked into the
+container's own tmpfs in memory, so nothing is written to the host's file system, and the program sees the
+other project files (`require('./logger')`, `import helper`, files in folders). The current file comes from
+the editor (the latest text), the rest from the saved documents, up to 400 files and 3 MB. The path of the
+file being run is passed in an environment variable and quoted, so a file name cannot inject shell code.
+The error line number is taken from the trace by the path of the file being run (frames from other files
+are skipped) and highlighted in the editor for everyone. Third-party packages cannot be installed: the
+sandbox has no network. Tests check that the code cannot open a network connection, cannot write to the
+root file system, does not run as root, and that an endless loop and too much output are limited.
 
-Запуск намеренно остаётся скромной функцией: небольшая кнопка в шапке редактора
-и сворачиваемая панель вывода, общая для всех участников проекта.
+Running code is deliberately a small feature: a small button in the editor header and a collapsible output
+panel shared by all project members.
 
-**Терминал.** Кроме кнопки запуска есть живая командная строка, как в Git Bash: панель
-внизу страницы проекта (кнопка «Терминал» в боковой панели или Ctrl+\`), в которой можно
-выполнить `ls`, `node main.js`, `python app.py`, нажать Ctrl+C и т. п. В браузере работает
-xterm.js, на сервере — bash в отдельном контейнере с настоящим псевдотерминалом (TTY),
-поэтому цвета, редактирование строки и полноэкранные программы ведут себя как обычно.
+**Terminal.** Besides the Run button there is a live command line, like Git Bash: a panel at the bottom of
+the project page (the terminal button in the header, or Ctrl+\`), where you can run `ls`,
+`node main.js`, `python app.py`, press Ctrl+C and so on. The browser runs xterm.js, and the server runs
+bash in a separate container with a real pseudo-terminal (TTY), so colours, line editing and full-screen
+programs behave as usual.
 
-Устроено так, чтобы доступ к Docker по-прежнему был только у `runner`:
+It is built so that only `runner` has access to Docker, as before:
 
-1. Браузер просит у API терминал (`POST /projects/:id/terminal`, роль `editor` и выше).
-   API собирает текстовые файлы активной ветки и кладёт их в Redis под одноразовым
-   случайным билетом (192 бита) на 60 секунд.
-2. Браузер подключается по WebSocket к серверу терминалов в `runner` с этим билетом.
-   Runner забирает билет командой `GETDEL` (второй раз он не сработает), создаёт
-   контейнер через Docker Engine API и копирует в его tmpfs `/project` файлы проекта
-   tar-архивом через stdin служебного `exec`.
-3. Затем запускается `bash` через второй `exec` с TTY; нажатия клавиш и вывод ходят по
-   WebSocket в JSON-сообщениях (`input`, `resize` / `status`, `ready`, `output`, `exit`).
-   Вывод декодируется потоково, чтобы многобайтовый символ UTF-8 на стыке
-   фрагментов не искажался.
+1. The browser asks the API for a terminal (`POST /projects/:id/terminal`, role `editor` and above). The
+   API collects the text files of the active branch and puts them into Redis under a one-time random
+   ticket (192 bits) for 60 seconds.
+2. The browser connects over WebSocket to the terminal server in `runner` with this ticket. The runner
+   takes the ticket with `GETDEL` (it will not work a second time), creates a container through the Docker
+   Engine API and copies the project files into its tmpfs `/project` as a tar archive through the stdin of
+   a helper `exec`.
+3. Then `bash` starts through a second `exec` with a TTY; keystrokes and output travel over the WebSocket
+   in JSON messages (`input`, `resize` / `status`, `ready`, `output`, `exit`). The output is decoded as a
+   stream, so a multi-byte UTF-8 character split between two chunks is not broken.
 
-Ограничения контейнера терминала те же по смыслу, что у запуска, но рассчитаны на
-сеанс: нет сети, корневая система только для чтения, пользователь `nobody`, сброшены
-все capabilities, 256 МБ памяти без swap, 0,5 ядра, до 128 процессов, `/project` — 64 МБ
-и `/tmp` — 32 МБ в памяти. Главный процесс контейнера — `sleep` на 30 минут, поэтому
-сеанс не может жить дольше, даже если runner упадёт; при закрытии панели или вкладки
-контейнер останавливается и удаляется сразу. Одновременно не больше двух терминалов у
-пользователя и восьми на сервер. Образ (Node.js 22, Python 3, bash) собирается сервисом
-`runner` при первом запуске. Правки в терминале в проект не возвращаются: это песочница со снимком
-файлов, кнопка «Новый сеанс» берёт свежий снимок.
+The terminal container limits mean the same as for runs but are sized for a session: no network, a
+read-only root system, the user `nobody`, all capabilities dropped, 256 MB of memory without swap,
+0.5 core, up to 128 processes, `/project` of 64 MB and `/tmp` of 32 MB in memory. The container's main
+process is a 30-minute `sleep`, so a session cannot live longer even if the runner crashes; when the panel
+or the tab closes, the container is stopped and removed at once. A user can have at most two terminals at
+once, and a server at most eight. The image (Node.js 22, Python 3, bash) is built by `runner` on the first
+start. Edits in the terminal do not go back into the project: it is a sandbox with a snapshot of the
+files, and the "New session with the current files" button takes a fresh snapshot.
 
-**Когда что-то идёт не так.** Контейнер запуска останавливается сам (`timeout` внутри него)
-на 5 секунд позже срока, после которого его снимает runner: это страхует от падения самого
-runner. Запрос на запуск не ждёт очередь дольше 5 секунд, если нет связи с Redis (ответ
-503), и получает отказ 429, когда в очереди уже 100 программ. Вывод терминала перестаёт
-читаться, пока браузер не заберёт накопившийся мегабайт, поэтому `yes` не заполняет память
-сервера. Сервер синхронизации запускается и без Redis: документы работают, а отзыв доступа
-у открытых соединений начинает действовать, как только Redis появляется.
+**When something goes wrong.** A run container stops by itself (`timeout` inside it) 5 seconds after the
+limit at which the runner kills it: this covers a crash of the runner itself. A run request does not wait
+for the queue longer than 5 seconds if there is no connection to Redis (answer 503), and gets a 429 when
+100 programs are already in the queue. The terminal output stops being read until the browser takes the
+megabyte that has piled up, so `yes` does not fill the server's memory. The sync server starts without
+Redis too: documents work, and revoking access on open connections starts working as soon as Redis
+appears.
 
-## 3.7 Развёртывание
+## 3.7 Deployment
 
-Для трёх Node-сервисов используется один Dockerfile (аргумент сборки выбирает
-сервис); `runner` дополнительно получает Docker CLI и доступ к сокету хоста для
-запуска песочниц — осознанный компромисс ADR-004, поэтому на хосте нет ничего,
-кроме самого стека. `docker-compose.yml` поднимает `api`, `collab`, `runner`,
-Redis и Caddy (автоматический HTTPS и проксирование WebSocket), а миграции
-применяются отдельной разовой задачей `migrate` (профиль `tools`); PostgreSQL — в
-RDS, клиентское приложение — в S3 за CloudFront. Пошаговая инструкция и сценарий
-развёртывания в GitHub Actions —
-`docs/deploy-aws.md`, `.github/workflows/deploy.yml`.
+The three Node services share one Dockerfile (a build argument picks the service); `runner` also gets the
+Docker CLI and access to the host socket to start sandboxes, a conscious trade-off of ADR-004, which is
+why the host runs nothing but the stack. `docker-compose.yml` starts `api`, `collab`, `runner`, Redis and
+Caddy (automatic HTTPS and WebSocket proxying), and the migrations run as a separate one-off `migrate` job
+(the `tools` profile); PostgreSQL is in RDS, the client app in S3 behind CloudFront. The step-by-step guide
+and the GitHub Actions deployment workflow are `docs/deploy-aws.md` and `.github/workflows/deploy.yml`.
 
-**Развёртывание в Google Cloud.** Работающий экземпляр развёрнут проще: всё на одной
-виртуальной машине Compute Engine (e2-medium, регион europe-north1 — в ЕС, как требует
-п. 2.8 BA), включая PostgreSQL и Redis (`infra/gcp/docker-compose.yml`). Caddy отдаёт собранный
-сайт и на том же адресе проксирует `/api`, `/collab` и `/terminal`, как локальный тестовый
-хостинг; адрес строится из статического IP через sslip.io, поэтому свой домен не нужен. Сайт
-собирается на компьютере разработчика, а сервисы — на машине из `git archive HEAD`
-(`infra/gcp/deploy.mjs`); секреты создаются на машине при первом запуске и в репозиторий не
-попадают. Запуск кода на публичном сайте требует кода доступа владельца.
+**Deployment on Google Cloud.** The running instance is deployed in a simpler way: everything is on one
+Compute Engine virtual machine (e2-medium, region europe-north1, in the EU as section 2.8 of the BA
+requires), including PostgreSQL and Redis (`infra/gcp/docker-compose.yml`). Caddy serves the built site
+and, on the same address, proxies `/api`, `/collab` and `/terminal`, like the local test hosting; the
+address is built from the static IP through sslip.io, so no own domain is needed. The site is built on the
+developer's computer, and the services on the machine from `git archive HEAD` (`infra/gcp/deploy.mjs`);
+secrets are created on the machine on the first run and never reach the repository. Running code on the
+public site needs the owner's access code.
 
-**Тестовый хостинг на локальном компьютере.** Для демонстрации без AWS есть команда
-`pnpm host:test` (`docs/deploy-local.md`). Она создаёт отдельную базу, собирает сайт с
-относительными адресами (`/api`, `/collab`), запускает API и сервер синхронизации на
-локальных портах и ставит перед ними небольшой прокси на Node.js, который отдаёт сайт, пересылает
-`/api` и WebSocket-соединения `/collab` и добавляет заголовки безопасности. Один адрес на всё
-позволяет вынести наружу единственный бесплатный туннель Cloudflare (терминалы идут через
-тот же прокси по пути `/terminal`). Запуск программ и терминал на публичном адресе доступны
-только по коду доступа владельца: при старте генерируется код вида `K7PX-M2QD-9WRT`,
-который печатается в окне хостинга; API принимает запросы запуска и выдачи терминала только
-с заголовком `X-Run-Code`, сравнивая его за постоянное время, а проверка кода
-(`POST /run-access`) ограничена по частоте как вход в систему. Режим сообщает `GET /features`
-(`open`, `code` или `off`), и интерфейс спрашивает код один раз. Включено также ограничение
-частоты запросов (общее и более строгое на вход, регистрацию и гостевой вход), а порты сервисов
-слушают только `127.0.0.1`. Прокси покрыт тестами (маршрутизация, WebSocket, кэш, ошибка при
-недоступном API), ограничение частоты, выключение запуска и код доступа — тестами API.
+**Test hosting on a local computer.** For a demo without a cloud there is `pnpm host:test`
+(`docs/deploy-local.md`). It creates a separate database, builds the site with relative addresses
+(`/api`, `/collab`), starts the API and the sync server on local ports and puts a small Node.js proxy in
+front of them that serves the site, forwards `/api` and the `/collab` WebSocket connections and adds
+security headers. One address for everything lets a single free Cloudflare tunnel carry the site outside
+(terminals go through the same proxy under `/terminal`). Running programs and the terminal on the public
+address work only with the owner's access code: at start a code like `K7PX-M2QD-9WRT` is generated and
+printed in the hosting window; the API accepts run and terminal requests only with the `X-Run-Code`
+header, comparing it in constant time, and the code check (`POST /run-access`) is rate-limited like
+sign-in. `GET /features` reports the mode (`open`, `code` or `off`), and the interface asks for the code
+once. Rate limits are on as well (a general one and a stricter one for sign-in, sign-up and guest entry),
+and the service ports listen only on `127.0.0.1`. The proxy is covered by tests (routing, WebSocket,
+caching, an error when the API is down), and the rate limits, turning running off and the access code by
+API tests.
 
-**Сжатие сайта.** Редактор Monaco делает основной файл сайта большим: 4,75 МБ. Перед запуском
-прокси рядом с каждым текстовым файлом кладётся его сжатая копия (`.br`, `.gz`, функция
-`compressWebRoot`), и браузер получает 1,08 МБ. Сжатие выполняется один раз, а не на каждый
-запрос. На канале 10 Мбит/с проект из 200 файлов открывается за 2,0 с вместо 5,1 с (п. 5.5).
+**Compressing the site.** The Monaco editor makes the main file of the site large: 4.75 MB. Before the
+proxy starts, a compressed copy (`.br`, `.gz`, the `compressWebRoot` function) is put next to every text
+file, and the browser receives 1.08 MB. Compression runs once, not on every request. On a 10 Mbit/s link a
+project with 200 files opens in 2.0 s instead of 5.1 s (section 5.5).
 
-## 3.8 Связь с GitHub: импорт и отправка изменений
+## 3.8 GitHub: import and pushing changes
 
-**Импорт.** Чтобы поделиться уже существующим проектом, достаточно вставить ссылку
-на публичный репозиторий: в пустой проект («Импортировать из GitHub») или сразу при
-создании проекта («Из GitHub»). Принимаются привычные формы: `https://github.com/o/r`,
-с `.git`, ссылка на ветку `…/tree/dev`, `git@github.com:o/r.git` и короткое `o/r`.
+**Import.** To share an existing project, it is enough to paste a link to a public repository: into an
+empty project ("Import from GitHub") or right when creating a project ("From GitHub"). The usual forms
+work: `https://github.com/o/r`, with `.git`, a branch link `…/tree/dev`, `git@github.com:o/r.git` and the
+short `o/r`.
 
-Сервер скачивает архив репозитория и создаёт файл проекта для каждого текстового
-файла, сразу записывая содержимое в хранимый документ Yjs. Поэтому после импорта
-файл открывается у всех участников как обычный совместный документ. Репозиторий
-берётся «как есть»: пропускаются только каталоги `.git` и `node_modules`, служебные файлы ОС,
-бинарные файлы (и файлы не в UTF-8) и файлы выше лимитов. Markdown-файлы становятся
-документами, остальные — кодом, язык определяется по расширению. Файлы, которые в
-проекте уже есть, не перезаписываются. Окно результата называет пропущенные файлы, а
-при вставке ссылки на другой репозиторий в уже связанный проект предупреждает, что
-файлы смешаются.
+The server downloads the repository archive and creates a project file for each text file, writing the
+content straight into a stored Yjs document. So after an import the file opens for all participants as an
+ordinary shared document. The repository is taken "as it is": only the `.git` and `node_modules` folders,
+OS junk files, binary files (and files not in UTF-8) and files over the limits are skipped. Markdown files
+become documents, the rest become code, and the language is chosen by the extension. Files that already
+exist in the project are not overwritten. The result window names the skipped files, and when a link to
+another repository is pasted into an already linked project, it warns that the files will be mixed.
 
-Для файлов, пришедших из репозитория, хранится git-хеш содержимого (`source_sha`), а
-у проекта — ссылка на репозиторий (`github_owner`, `github_repo`, `github_branch`).
+For files from the repository the git hash of the content is stored (`source_sha`), and the project keeps
+the repository link (`github_owner`, `github_repo`, `github_branch`).
 
-Загрузка по ссылке от пользователя — потенциально опасная операция, поэтому
-введены ограничения:
+Downloading from a link given by a user is a potentially dangerous operation, so there are limits:
 
-- **SSRF.** Из ссылки разбираются только имя владельца и репозитория (строгие
-  регулярные выражения), а адрес загрузки сервер строит сам:
-  `https://codeload.github.com/<владелец>/<репозиторий>/zip/<ветка>`. Перенаправления
-  принимаются только на `github.com` и `codeload.github.com` по HTTPS (не более трёх).
-- **Размеры.** Архив — до 25 МБ (загрузка прерывается при превышении), файлов — не
-  больше 500, каждый до 512 КБ, всего до 10 МБ распакованного текста; при нехватке
-  лимита сохраняются файлы ближе к корню.
-- **Пути.** Пути с `..`, обратными слэшами и слишком длинные отбрасываются.
-- **Права.** Импортировать может участник с ролью не ниже редактора.
+- **SSRF.** Only the owner and repository names are parsed from the link (strict regular expressions), and
+  the server builds the download address itself:
+  `https://codeload.github.com/<owner>/<repo>/zip/<branch>`. Redirects are accepted only to `github.com`
+  and `codeload.github.com` over HTTPS (at most three).
+- **Sizes.** The archive is up to 25 MB (the download stops when it is exceeded), at most 500 files, each
+  up to 512 KB, and up to 10 MB of unpacked text in total; when the limit is hit, files closer to the root
+  are kept.
+- **Paths.** Paths with `..`, backslashes, and paths that are too long are dropped.
+- **Rights.** Only a member with the editor role or higher can import.
 
-**Отправка изменений.** Кнопка «Отправить в GitHub» создаёт коммит в репозитории
-проекта через REST API GitHub (Git Data API), без установленного git на сервере.
-Пользователь вводит персональный токен GitHub с правом записи; сервер использует его
-в одном запросе к `api.github.com`, не сохраняет и не пишет в журнал (в браузере токен
-запоминается только по явному согласию). Работает так:
+**Pushing changes.** The "Push to GitHub" button creates a commit in the project's repository through
+GitHub's REST API (the Git Data API), without git installed on the server. The user enters a GitHub
+personal token with write access; the server uses it in one request to `api.github.com`, does not store it
+and does not log it (the browser remembers the token only if the user explicitly agrees). It works like
+this:
 
-1. Сервер читает текущее содержимое файлов проекта из сохранённых документов Yjs. Сервер
-   синхронизации записывает правки в базу в течение трёх секунд, поэтому интерфейс
-   перед отправкой выжидает 3,5 секунды.
-2. Берётся дерево целевой ветки на GitHub. Для каждого файла считается git-хеш
-   содержимого и сравнивается с деревом: совпадает — файл не менялся; иначе, если файл
-   редактировался здесь (хеш отличается от записанного при последней синхронизации),
-   он отправляется как изменённый или новый.
-3. **Защита от перезаписи чужого.** Если файл менялся и здесь, и в GitHub после
-   синхронизации, отправка останавливается с перечнем файлов; заменить их можно только
-   явным согласием («Всё равно отправить»). Файлы, которые здесь не трогали, не
-   отправляются никогда, поэтому чужие коммиты в них сохраняются.
-4. Создаётся новое дерево на основе текущего, коммит и обновление ветки без `force`.
-   Если указанной ветки нет, она создаётся от основной (удобный безопасный вариант:
-   отправить правки в новую ветку).
-5. После успеха запоминаются новые хеши, и следующая отправка включает только новые
-   правки. Если проект ещё не связан с репозиторием, ссылку на него указывают при первой
-   отправке.
+1. The server reads the current content of the project files from the saved Yjs documents. The sync
+   server writes edits to the database within three seconds, so the interface waits 3.5 seconds before
+   pushing.
+2. The tree of the target branch on GitHub is fetched. For each file the git hash of the content is
+   computed and compared with the tree: if it matches, the file has not changed; otherwise, if the file was
+   edited here (the hash differs from the one recorded at the last sync), it is sent as changed or new.
+3. **Protection against overwriting other people's work.** If a file changed both here and on GitHub after
+   the sync, the push stops with a list of the files; they can be replaced only with explicit consent (the
+   "Replace the GitHub versions with mine" checkbox). Files not touched here are never sent, so other
+   people's commits in them stay.
+4. A new tree is created on top of the current one, then a commit, and the branch is updated without
+   `force`. If the given branch does not exist, it is created from the default one (a handy safe option:
+   push the edits to a new branch).
+5. After success the new hashes are remembered, and the next push includes only new edits. If the project
+   is not linked to a repository yet, the link is given at the first push.
 
-Доски в репозиторий не отправляются (это не текстовые файлы), пустые новые файлы
-пропускаются. Не поддерживаются: удаление файлов в репозитории (файл, удалённый в
-проекте, в GitHub остаётся), переименование (создаётся новый файл), приватные
-репозитории при импорте, получение чужих изменений обратно из GitHub.
+Boards are not pushed to the repository (they are not text files), and empty new files are skipped. Not
+supported: deleting files in the repository (a file deleted in the project stays on GitHub), renaming (a
+new file is created), private repositories on import, pulling other people's changes back from GitHub.
 
-**Ветки.** Проект, импортированный из GitHub, можно переключить на любую ветку
-репозитория (значок ветки под названием проекта). У каждой ветки свой набор файлов:
-в таблице `files` есть столбец `branch`, а уникальность пути проверяется в паре
-«ветка — путь». Ветка, которую открывают впервые, загружается с GitHub; при возврате
-на ветку, открытую раньше, ничего не скачивается — файлы показываются такими, какими
-их оставили, вместе с ещё не отправленными правками. Активная ветка общая для всех
-участников: сервер рассылает событие `project.branch`, и у остальных список файлов
-обновляется сам. Новые файлы, запуск кода (соседние файлы для `require`) и отправка
-в GitHub работают только с файлами активной ветки. Переключать ветку могут владелец
-и редакторы; имя ветки проверяется (без `..`, пробелов и ведущего `-`).
+**Branches.** A project imported from GitHub can be switched to any branch of the repository (the branch
+item in the project menu). Each branch has its own set of files: the `files` table has a `branch` column,
+and path uniqueness is checked within the "branch, path" pair. A branch opened for the first time is
+downloaded from GitHub; going back to a branch opened before downloads nothing: the files are shown as
+they were left, with edits not pushed yet. The active branch is shared by all participants: the server
+sends a `project.branch` event, and the others' file lists update by themselves. New files, running code
+(neighbour files for `require`) and pushing to GitHub work only with the files of the active branch. The
+owner and editors can switch the branch; the branch name is checked (no `..`, spaces or a leading `-`).
 
-## 3.9 Корзина, участники, поиск файлов
+## 3.9 Trash, members, file search
 
-- **Корзина.** Удаление файла не стирает его: файл помечается (`deleted_at`), его путь
-  переезжает в `.trash/<id>/…`, а исходный сохраняется в `trashed_path`. Так имя файла
-  можно сразу занять новым файлом, а восстановление возвращает путь (и отказывает с
-  понятным сообщением, если имя уже занято). Файлы из корзины не открываются сервером
-  синхронизации, не попадают в запуск кода и в отправку на GitHub. Окончательно удалить
-  файл из корзины может только владелец.
-- **Автоочистка корзины.** Файл, пролежавший в корзине дольше срока хранения (30 дней,
-  переменная `TRASH_RETENTION_DAYS`), удаляется окончательно. Таймер запускается в
-  процессе API (`server.ts`, сразу при старте и затем раз в час) и вызывает
-  `purgeExpiredTrash`, которая удаляет просроченные файлы пачками по 500, чтобы один
-  проход не держал длинную блокировку. Таймер не входит в `buildApp`, поэтому тесты
-  ничего не удаляют сами по себе. Список корзины отдаёт для каждого файла `purgeAt`, и
-  панель показывает «удалится через N дн.».
-- **Удаление неиспользуемых гостевых аккаунтов.** Тот же таймер вызывает `purgeStaleGuests`:
-  гостевой аккаунт старше срока хранения (30 дней, `GUEST_RETENTION_DAYS`), которого нет ни в
-  одном проекте и у которого не осталось действующей сессии, удаляется вместе со своими
-  сообщениями в чате — как при удалении аккаунта самим человеком. Условия повторяются в самом
-  запросе на удаление, поэтому гость, успевший войти в проект между выборкой и удалением,
-  сохраняет аккаунт.
-- **Участники.** Владелец меняет роль участника (редактор/наблюдатель) и исключает его из
-  проекта; участник может сам покинуть проект, а владелец — удалить проект целиком.
-- **Мгновенный отзыв доступа.** Права проверяются при подключении сокета, поэтому
-  изменение должно дойти и до уже открытых соединений. После удаления участника, выхода
-  из проекта или удаления проекта API закрывает его WebSocket `/ws` кодом `4410` с
-  причиной (`removed`, `left`, `deleted`); клиент не переподключается, а уходит на
-  список проектов с объяснением («Вас удалили из проекта …»). Сервер синхронизации —
-  отдельный процесс, поэтому API публикует то же изменение в канал Redis
-  `access-changes`, и сервер синхронизации закрывает соединения этого пользователя с
-  документами этого проекта (при удалении проекта — всех). При понижении до наблюдателя
-  соединения закрываются кодом «переподключись»: провайдер сразу подключается снова и
-  получает соединение только для чтения, а событие `project.members` обновляет права в
-  интерфейсе. Если Redis недоступен, изменение всё равно сохраняется в базе, и открытые
-  документы теряют доступ при следующем подключении, как раньше.
-- **Страница приглашения.** Публичная конечная точка `GET /join/:code` возвращает только
-  название проекта, имя владельца и роль по ссылке, чтобы показать их до входа.
-- **Профиль.** `PATCH /auth/me` меняет отображаемое имя (в том числе у гостя).
-- **Быстрый переход.** Нечёткий поиск по пути: символы запроса должны встретиться по
-  порядку, совпадение в имени файла весомее совпадения в папках, при равенстве выигрывает
-  более короткий путь. Работает на клиенте по уже загруженному списку файлов.
-- **Поиск по содержимому.** Ctrl+Shift+F (или кнопка рядом с «Найти файл») открывает панель
-  поиска по тексту всех файлов активной ветки. Искать приходится на сервере
-  (`GET /projects/:id/search?q=…`, доступно и наблюдателю): содержимое файлов хранится только как
-  состояние Yjs, поэтому каждый файл декодируется в текст. Запрос — обычный текст, а не регулярное
-  выражение, без учёта регистра, от 2 до 200 символов; файлы из корзины, доски и `node_modules`
-  пропускаются. Ответ ограничен 50 совпадениями на файл и 500 всего с признаком усечения, длинные
-  строки обрезаются до окна вокруг совпадения. Клиент ждёт паузы в наборе и не кладёт результаты
-  в сохраняемый кеш запросов; щелчок по совпадению открывает файл по ссылке с `?line=…&col=…`, и
-  редактор ставит курсор на это место, при необходимости дождавшись текста с сервера.
-- **Предпросмотр отправки.** Перед коммитом окно «Отправить в GitHub» показывает, что уйдёт:
-  изменённые и новые файлы, файлы, изменившиеся и в GitHub (с галочкой «заменить моими»),
-  и сколько файлов без изменений. Расчёт один и тот же для предпросмотра и для самой
-  отправки (`POST /projects/:id/github/preview` ничего не создаёт в репозитории), поэтому
-  показанное совпадает с отправленным; кнопка «Отправить» недоступна, пока нечего
-  отправлять или конфликты не разрешены.
-- **Вкладки файлов.** Открытые в проекте файлы показаны вкладками (хранятся в браузере,
-  не больше двенадцати; удалённые файлы пропадают сами), закрытие активной вкладки
-  переключает на соседнюю.
-- **Подсказки при запуске.** Если программа не нашла стороннего пакета, панель вывода
-  объясняет, что в песочнице нет сети и установленных пакетов; при ошибке вывод
-  прокручивается к началу, где находится само сообщение.
+- **Trash.** Deleting a file does not erase it: the file is marked (`deleted_at`), its path moves to
+  `.trash/<id>/…`, and the original is kept in `trashed_path`. This way the file name can be taken by a new
+  file at once, and a restore brings the path back (and refuses with a clear message if the name is taken).
+  Files in the trash are not opened by the sync server and do not take part in code runs or GitHub pushes.
+  Only the owner can delete a file from the trash for good.
+- **Automatic trash cleanup.** A file that has been in the trash longer than the retention period (30 days,
+  the `TRASH_RETENTION_DAYS` variable) is deleted for good. A timer runs in the API process (`server.ts`,
+  right at start and then every hour) and calls `purgeExpiredTrash`, which deletes expired files in
+  batches of 500, so one pass does not hold a long lock. The timer is not part of `buildApp`, so tests
+  delete nothing by themselves. The trash list returns `purgeAt` for each file, and the panel shows
+  "deleted in N d".
+- **Deleting unused guest accounts.** The same timer calls `purgeStaleGuests`: a guest account older than
+  the retention period (30 days, `GUEST_RETENTION_DAYS`) that is in no project and has no live session left
+  is deleted together with its chat messages, as when a person deletes their own account. The conditions
+  are repeated in the delete query itself, so a guest who joined a project between the lookup and the
+  delete keeps the account.
+- **Members.** The owner changes a member's role (editor/viewer) and removes members from the project; a
+  member can leave the project, and the owner can delete the whole project.
+- **Instant revoking of access.** Rights are checked when a socket connects, so a change must reach
+  connections that are already open. After a member is removed, leaves or the project is deleted, the API
+  closes their `/ws` WebSocket with code `4410` and a reason (`removed`, `left`, `deleted`); the client
+  does not reconnect but goes to the project list with an explanation ("You were removed from the project
+  …"). The sync server is a separate process, so the API publishes the same change to the Redis channel
+  `access-changes`, and the sync server closes this user's connections to the documents of this project
+  (all of them when the project is deleted). On a demotion to viewer, the connections are closed with a
+  "reconnect" code: the provider connects again at once and gets a read-only connection, and the
+  `project.members` event updates the rights in the interface. If Redis is down, the change is still saved
+  in the database, and open documents lose access on the next connection, as before.
+- **Invitation page.** The public endpoint `GET /join/:code` returns only the project name, the owner's
+  name and the link's role, to show them before signing in.
+- **Profile.** `PATCH /auth/me` changes the display name (guests included).
+- **Go to file.** Fuzzy search by path: the characters of the query must appear in order, a match in the
+  file name weighs more than one in the folders, and on a tie the shorter path wins. It runs on the client
+  over the file list that is already loaded.
+- **Search in content.** Ctrl+Shift+F (or the "Search text" item in the project menu) opens a panel that
+  searches the text of all files of the active branch. The search has to run on the server
+  (`GET /projects/:id/search?q=…`, available to viewers too): file content is stored only as Yjs state, so
+  each file is decoded to text. The query is plain text, not a regular expression, case-insensitive, from
+  2 to 200 characters; files in the trash, boards and `node_modules` are skipped. The answer is limited to
+  50 matches per file and 500 in total, with a truncation flag, and long lines are cut to a window around
+  the match. The client waits for a pause in typing and does not put the results into the persisted query
+  cache; clicking a match opens the file with `?line=…&col=…`, and the editor puts the cursor there, waiting
+  for the text from the server if needed.
+- **Push preview.** Before a commit, the "Push to GitHub" window shows what will go: changed and new files,
+  files that also changed on GitHub (with a "replace with mine" checkbox), and how many files are
+  unchanged. The calculation is the same for the preview and for the push itself
+  (`POST /projects/:id/github/preview` creates nothing in the repository), so what is shown matches what is
+  sent; the "Push" button is disabled while there is nothing to push or conflicts are not resolved.
+- **File tabs.** Files open in the project are shown as tabs (kept in the browser, at most twelve; deleted
+  files disappear by themselves), and closing the active tab switches to the neighbour.
+- **Run hints.** If a program did not find a third-party package, the output panel explains that the
+  sandbox has no network and no installed packages; after an error the output scrolls to the top, where the
+  message itself is.
 
-## 3.10 История версий файла
+## 3.10 File version history
 
-Снимки кода и документов Markdown делает сервер синхронизации — тот же хук, который
-сохраняет `files.yjs_state`. Снимок берётся не чаще раза в 5 минут на файл и только
-если текст отличается от последней версии; у файла хранятся последние 50 версий,
-более старые удаляются. Проверка стоит на пути каждого сохранения (раз в 1–3 секунды
-во время набора), поэтому последняя версия каждого открытого файла кэшируется в
-памяти: пока интервал не прошёл, хук не делает запросов к базе и даже не собирает
-текст документа. Версия хранится в таблице `file_versions` **обычным текстом**, а не
-состоянием Yjs: её только показывают и возвращают как текст, а в тексте нет истории
-правок CRDT, поэтому он меньше. Автор версии — тот, чья правка сохранялась в момент
-снимка. Доски в историю не попадают.
+Snapshots of code and Markdown documents are taken by the sync server, in the same hook that saves
+`files.yjs_state`. A snapshot is taken at most once every 5 minutes per file and only if the text differs
+from the last version; a file keeps its last 50 versions, and older ones are deleted. The check is on the
+path of every save (every 1–3 seconds while typing), so the last version of each open file is cached in
+memory: until the interval has passed, the hook makes no database queries and does not even build the
+document text. A version is stored in the `file_versions` table as **plain text**, not as Yjs state: it is
+only shown and restored as text, and plain text has no CRDT edit history inside, so it is smaller. The
+author of a version is the person whose edit was being saved at the time of the snapshot. Boards are not
+part of the history.
 
-API отдаёт список (`GET …/files/:fileId/versions`, роль не ниже `viewer`) и текст
-версии (`GET …/versions/:versionId`). Окно «История версий» в шапке редактора
-показывает версии со временем «5 минут назад» и автором, а выбранную — как разницу
-с текущим текстом (diff Monaco только для чтения).
+The API returns the list (`GET …/files/:fileId/versions`, role `viewer` or higher) and the text of a
+version (`GET …/versions/:versionId`). The "Version history" window in the editor header shows the
+versions with a time like "5 minutes ago" and the author, and the selected one as a diff against the
+current text (a read-only Monaco diff).
 
-**Восстановление и живое редактирование.** Перезаписать `yjs_state` из API нельзя:
-пока файл открыт, документ живёт в памяти сервера синхронизации, и следующее его
-сохранение затёрло бы запись API, а у подключённых людей текст не изменился бы.
-Поэтому `POST …/versions/:versionId/restore` (роль не ниже `editor`) проверяет права
-и передаёт запрос серверу синхронизации по HTTP (`COLLAB_URL`) с одноминутным
-токеном того же пользователя; сервер ещё раз проверяет роль, как при любом
-подключении. Он открывает документ прямым соединением Hocuspocus (загружая его из
-базы, если файл никто не открыл) и в **одной транзакции Yjs** заменяет текст версией.
-Заменяется только отличающаяся часть (общие начало и конец сохраняются), поэтому
-курсоры участников вне неё остаются на месте. Для участников это обычная правка: она
-приходит им одним обновлением и сливается с тем, что они набирают в тот же момент.
-Текст, который был до замены, сохраняется как версия, так что восстановление
-отменяется тем же способом. Затем документ сразу сохраняется в базу.
+**Restoring during live editing.** The API cannot overwrite `yjs_state`: while the file is open, the
+document lives in the sync server's memory, its next save would overwrite the API's write, and the
+connected people's text would not change. So `POST …/versions/:versionId/restore` (role `editor` or
+higher) checks the rights and passes the request to the sync server over HTTP (`COLLAB_URL`) with a
+one-minute token of the same user; the server checks the role again, as for any connection. It opens the
+document through a direct Hocuspocus connection (loading it from the database if nobody has the file open)
+and replaces the text with the version in **one Yjs transaction**. Only the differing part is replaced
+(the common start and end stay), so participants' cursors outside it stay where they are. For the
+participants this is an ordinary edit: it reaches them as one update and merges with what they are typing
+at the same moment. The text from before the replacement is saved as a version, so a restore can be undone
+the same way. Then the document is saved to the database at once.
 
-Найденная при проверке в браузере особенность: Monaco держит в файле один вид
-переводов строк и приводит к нему всё, что получает, поэтому версия с `\n` в
-документе с `\r\n` (его создаёт редактор под Windows) расходилась бы с текстом в
-редакторе. Перед заменой переводы строк версии приводятся к тем, что в документе
-сейчас.
+A detail found while testing in the browser: Monaco keeps one kind of line break per file and converts
+everything it receives, so a version with `\n` in a document with `\r\n` (the editor creates those on
+Windows) would drift from the text in the editor. Before the replacement, the version's line breaks are
+converted to the ones the document uses now.
 
-## 3.11 Работа вокруг файла
+## 3.11 Working around a file
 
-**Следование за участником.** Клиент сообщает по `/ws`, какой файл открыт
-(`presence.file`), а сервер добавляет это в список присутствующих. Щелчок по аватару
-включает следование: страница переходит в тот же файл, а положение чужого курсора
-берётся из awareness (относительная позиция Yjs переводится в абсолютную) и
-прокручивается в область видимости. Следование заканчивается по Esc, при наборе текста,
-при ручном переходе в другой файл и при уходе человека из проекта.
+**Following a participant.** The client reports over `/ws` which file is open (`presence.file`), and the
+server adds this to the presence list. Clicking an avatar turns on following: the page goes to the same
+file, and the other person's cursor position is taken from awareness (a relative Yjs position is converted
+to an absolute one) and scrolled into view. Following ends on Esc, when you type, when you open another
+file by hand, and when the person leaves the project.
 
-**Ссылка на строку в чате.** Кнопка над редактором, контекстное меню и Alt+L вставляют
-в сообщение `путь:строка`. При показе сообщения чистая функция `createFileRefParser`
-(`lib/file-refs.ts`) превращает такие фрагменты в ссылки, причём только для файлов этого
-проекта: `localhost:8080` и `12:30` остаются текстом. Имя без папки становится ссылкой,
-лишь если такой файл один. Тело сообщения на сервере не меняется.
+**Mentioning a line in the chat.** A button above the editor, the context menu and Alt+L insert
+`path:line` into the message. When a message is shown, the pure function `createFileRefParser`
+(`lib/file-refs.ts`) turns such fragments into links, but only for files of this project: `localhost:8080`
+and `12:30` stay text. A name without a folder becomes a link only if there is exactly one such file. The
+message body on the server does not change.
 
-**Счётчик непрочитанного.** Отметка времени лежит в `localStorage` отдельно для каждого
-проекта и браузера; база данных для этого не нужна. Пока чат скрыт, новые сообщения
-других людей увеличивают счётчик, а при открытии проекта и после обрыва связи он
-пересчитывается по последней странице сообщений.
+**Unread counter.** A timestamp is kept in `localStorage` per project and browser; no database is needed
+for it. While the chat is hidden, new messages from other people increase the counter, and on opening the
+project and after a connection break it is recalculated from the last page of messages.
 
-**Архив проекта.** `GET /projects/:id/export` собирает текстовые файлы активной ветки в
-ZIP (`fflate`) и доступен всем участникам, включая наблюдателей. Доски в архив не входят:
-они сохраняются из самой доски в PNG или SVG.
+**Project archive.** `GET /projects/:id/export` packs the text files of the active branch into a ZIP
+(`fflate`) and is available to all members, viewers included. Boards are not in the archive: they are
+saved from the board itself as PNG or SVG.
 
-**Проект с примером.** Новый проект можно создать не пустым, а с примером (поле `template` в
-`POST /projects`): вместе с проектом, одним запросом к базе, создаются короткая инструкция
-`README.md` и файл на Python или JavaScript, готовый к запуску. Содержимое сразу хранится как
-состояние Yjs (`textToYjsState`), как при импорте из GitHub, и проект открывается на инструкции.
+**Project from an example.** A new project can start not empty but from an example (the `template` field
+in `POST /projects`): together with the project, in one database query, a short guide `README.md` and a
+Python or JavaScript file ready to run are created. The content is stored as Yjs state right away
+(`textToYjsState`), as with a GitHub import, and the project opens on the guide.
 
-**Предпросмотр ссылок.** Мессенджер строит карточку ссылки по HTML страницы и не выполняет
-веб-приложение. Поэтому прокси (Caddy и локальный тестовый хост) отправляет роботов мессенджеров —
-по заголовку `User-Agent`, только для главной страницы и ссылок-приглашений — на `GET /preview/*`
-в API. Он отдаёт небольшую страницу с разметкой Open Graph: для действующего приглашения —
-«Имя приглашает вас в проект „Название“», иначе — описание сайта. Имена экранируются, а адрес
-сайта берётся из заголовков прокси и проверяется по символам, допустимым в имени узла.
+**Link previews.** A messenger builds a link card from the page's HTML and does not run the web app. So
+the proxy (Caddy and the local test host) sends messenger bots, by the `User-Agent` header and only for the
+start page and invite links, to `GET /preview/*` in the API. It returns a small page with Open Graph tags:
+for a valid invitation "Name invites you to the project “Project”", otherwise the site description. Names
+are escaped, and the site address is taken from the proxy headers and checked against the characters
+allowed in a host name.
 
-**Условия использования.** Страница `/terms` открыта без входа, как и страница о данных; на неё
-ссылаются формы входа, регистрации и приглашения. Она описывает допустимое использование запуска
-кода (п. 3.6) и то, что может сделать владелец сайта при нарушении.
+**Terms of use.** The `/terms` page is open without signing in, like the data page; the sign-in, sign-up
+and invitation forms link to it. It describes acceptable use of running code (section 3.6) and what the
+site owner can do when the rules are broken.
 
-## 3.12 Замеченные в ходе разработки особенности
+## 3.12 Things noticed during development
 
-- **Тип контента у запросов без тела.** Клиентская обёртка над `fetch` всегда
-  выставляла `Content-Type: application/json`, даже у запросов без тела; Fastify
-  отвергает такой запрос как пустой JSON. Ошибка проявилась только на первых
-  POST-запросах без тела (вход по ссылке) и была найдена при проверке в браузере.
-- **Ошибки клиента как 500.** Общий обработчик ошибок сначала
-  превращал в 500 любую ошибку, не являющуюся доменной; теперь он сохраняет
-  статус самой ошибки (например, 400 для некорректного тела).
-- **PID 1 в контейнере неуязвим для своих.** Первая версия самоостановки выполняла
-  `exec timeout -s KILL …` и не работала: процесс с PID 1 не получает даже SIGKILL от процессов
-  своего пространства имён, поэтому программа выполнялась бесконечно. Ошибку нашёл тест с
-  настоящим Docker; контейнеру добавлен процесс init (`--init`), и программа больше не PID 1.
-- **Ошибка стенда с разрезанием меток.** При подготовке стенда
-  (глава 4) случайная позиция вставки попадала внутрь чужой метки и разрезала её,
-  из-за чего подсчёт правок расходился **одинаково в обеих системах**; это
-  указало на ошибку стенда, а не алгоритма, и вставки были ограничены границами
-  меток.
+- **Content type on requests without a body.** The client wrapper around `fetch` always set
+  `Content-Type: application/json`, even on requests without a body; Fastify rejects such a request as
+  empty JSON. The bug showed up only on the first POST requests without a body (joining by link) and was
+  found while testing in the browser.
+- **Client errors as 500.** The common error handler first turned any non-domain error into a 500; now it
+  keeps the status of the error itself (for example, 400 for an invalid body).
+- **PID 1 in a container ignores its own kind.** The first version of the self-stop ran
+  `exec timeout -s KILL …` and did not work: the process with PID 1 does not get even SIGKILL from processes
+  in its own namespace, so the program ran forever. A test with real Docker found the bug; the container
+  got an init process (`--init`), and the program is no longer PID 1.
+- **A bench bug with split tokens.** While preparing the bench (chapter 4), a random insert position landed
+  inside another token and split it, so the edit count diverged **the same way in both systems**; this
+  pointed to a bug in the bench, not in an algorithm, and inserts were limited to token boundaries.

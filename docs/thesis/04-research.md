@@ -1,286 +1,252 @@
-# 4 Исследование: CRDT против OT
+# 4 Research: CRDT vs OT
 
-## 4.1 Постановка
+## 4.1 The question
 
-**Вопрос.** Какой подход — CRDT или OT — лучше подходит для совместного
-редактирования кода по задержке, корректности и масштабируемости, особенно при
-работе офлайн?
+**Question.** Which approach, CRDT or OT, suits collaborative code editing better in terms of latency,
+correctness and scalability, especially for offline work?
 
-**Рабочая гипотеза.** CRDT даёт сопоставимую задержку при
-небольшом числе пользователей и выигрывает в офлайн-сценариях, но проигрывает по
-размеру документа и памяти.
+**Working hypothesis.** A CRDT gives a comparable latency with a small number of users and wins in offline
+scenarios, but loses on document size and memory.
 
-**Сравниваемые системы.**
+**Systems compared.**
 
-- CRDT: Yjs [8], сервер Hocuspocus [10] (тот же, что в платформе, без БД);
-- OT: ShareDB [3] с типом `json0` [4] (текст — подтип `text0`), хранилище в памяти процесса.
+- CRDT: Yjs [8], the Hocuspocus server [10] (the same as in the platform, without a database);
+- OT: ShareDB [3] with the `json0` type [4] (text through the `text0` subtype), in-memory storage.
 
-Обе системы запущены без слоя хранения: сравнивается алгоритм синхронизации и его
-сервер, а не база данных. Реализации стенда — каталог `bench/`; полные результаты
-— `bench/results/REPORT.md` и `bench/results/latest.json`.
+Both systems run without a storage layer: the sync algorithm and its server are compared, not the
+database. The bench is in the `bench/` folder; the full results are in `bench/results/REPORT.md` and
+`bench/results/latest.json`.
 
-## 4.2 Методика
+## 4.2 Method
 
-**Стенд.** Сервер каждой системы — отдельный процесс Node.js, что позволяет
-измерять его CPU и память независимо от клиентов. Каждый клиент («бот») —
-настоящий клиент своей системы (`HocuspocusProvider` с `Y.Doc` либо
-`ShareDB.Connection`) с собственным WebSocket-соединением. В сценарии
-одновременного набора боты распределены по отдельным процессам (до 12 клиентов
-на процесс, не более 8 процессов; при N = 100 — по 12–13 клиентов); в остальных
-сценариях все клиенты работают в управляющем процессе стенда. Задержка измеряется от вызова вставки у автора
-до появления правки у другого клиента по общим часам машины. Все правки — вставки
-уникальных меток вида `<c012.45>`: по ним можно проверить, что ни одна правка не
-потеряна, и точно сопоставить отправку с получением.
+**Bench.** The server of each system is a separate Node.js process, so its CPU and memory can be measured
+apart from the clients. Each client ("bot") is a real client of its system (`HocuspocusProvider` with a
+`Y.Doc`, or a `ShareDB.Connection`) with its own WebSocket connection. In the typing scenario the bots are
+spread over separate processes (up to 12 clients per process, at most 8 processes; at N = 100, 12–13
+clients each); in the other scenarios all clients run in the bench's main process. Latency is measured from
+the insert call at the author to the edit appearing at another client, using the machine's shared clock.
+All edits are inserts of unique tokens like `<c012.45>`: they make it possible to check that no edit is
+lost and to match sending with receiving exactly.
 
-**Контроль стенда.** Для каждого прогона фиксируется задержка цикла событий (p99)
-в процессах с ботами; точка считается валидной, если она ниже 100 мс. Фоновое
-значение на этой машине — около 20–25 мс (гранулярность таймеров Windows).
-Максимум по всем 72 прогонам набора — 32 мс.
+**Bench check.** For each run, the event loop lag (p99) in the bot processes is recorded; a point counts as
+valid if it is below 100 ms. The background value on this machine is about 20–25 ms (Windows timer
+granularity). The maximum over all 72 typing runs is 32 ms.
 
-**Сценарии.**
+**Scenarios.**
 
-1. *Одновременный набор:* N ∈ {2, 5, 10, 25, 50, 100} пользователей, каждый
-   вставляет метку в среднем раз в секунду (экспоненциальные интервалы), 10 с.
-   Два режима: правки в случайных границах меток («разные места») и вставка всеми
-   в позицию 0 («одна позиция» — максимум конфликтов).
-2. *Офлайн:* пять клиентов; один отключается, делает K правок локально
-   (K ∈ {50, 200, 1000}), остальные за это время делают ещё K; затем клиент
-   возвращается. Время слияния — от переподключения до совпадения текста у всех.
-3. *Рост документа (один прогон на точку):* пять клиентов делают 1000 / 5000 / 20000 правок
-   (вставка символа или удаление 1–5 символов) при доле удалений 5% и 30%;
-   измеряется размер документа.
-4. *Доска:* N ∈ {2, 10, 50} клиентов двигают фигуры (5 перемещений в секунду
-   на клиента, 8 с) в двух режимах: каждый свою фигуру / все одну и ту же. Это другой
-   тип CRDT (карта регистров вместо последовательности символов) против операций
-   `oi`/`od` над объектом в OT.
+1. *Typing at the same time:* N ∈ {2, 5, 10, 25, 50, 100} users, each inserting a token on average once a
+   second (exponential intervals), for 10 s. Two modes: edits at random token boundaries ("different
+   places") and everyone inserting at position 0 ("same position", the most conflicts).
+2. *Offline:* five clients; one disconnects and makes K edits locally (K ∈ {50, 200, 1000}), while the
+   others make another K; then the client comes back. Merge time is from the reconnect until everyone has
+   the same text.
+3. *Document growth (one run per point):* five clients make 1000 / 5000 / 20000 edits (inserting a
+   character or deleting 1–5 characters) with 5% and 30% deletions; the document size is measured.
+4. *Board:* N ∈ {2, 10, 50} clients move shapes (5 moves per second per client, for 8 s) in two modes: each
+   their own shape / everyone the same one. This is another kind of CRDT (a map of registers instead of a
+   sequence of characters) against the `oi`/`od` operations on an object in OT.
 
-**Метрики.** Задержка (среднее, p50, p95, p99), корректность (одинаковые хеши
-текста у всех клиентов и наличие всех правок), загрузка CPU и пиковая память
-серверного процесса, трафик на правку (байты, отправленные и полученные всеми
-клиентами, делённые на число правок), размер документа, время слияния после
-офлайна.
+**Metrics.** Latency (mean, p50, p95, p99), correctness (the same text hash at all clients and all edits
+present), CPU load and peak memory of the server process, traffic per edit (bytes sent and received by all
+clients, divided by the number of edits), document size, merge time after offline work.
 
-**Повторы.** Каждая точка сценариев 1, 2 и 4 повторена 3 раза; в таблицах — среднее,
-разброс (минимум–максимум по повторам) указан для p95 и времени слияния.
-Генератор случайных чисел детерминирован (`mulberry32`), зерно зависит от номера
-повтора.
+**Repeats.** Each point of scenarios 1, 2 and 4 is repeated 3 times; the tables show the mean, and the
+range (minimum–maximum over the repeats) is given for p95 and the merge time. The random number generator
+is deterministic (`mulberry32`), and the seed depends on the repeat number.
 
-**Окружение.** Windows 11, AMD Ryzen 7 5700U (16 потоков), 14 ГБ ОЗУ, Node.js
-22. Серверы и клиенты — на одной машине (loopback).
+**Environment.** Windows 11, AMD Ryzen 7 5700U (16 threads), 14 GB RAM, Node.js 22. Servers and clients
+run on one machine (loopback).
 
-## 4.3 Результаты
+## 4.3 Results
 
-Всего выполнено 138 прогонов: 72 (набор), 18 (офлайн), 36 (доска), 12 (рост
-документа); в наборе — 23 498 правок.
+In total there were 138 runs: 72 (typing), 18 (offline), 36 (board), 12 (document growth); the typing runs
+made 23,498 edits.
 
-### 4.3.1 Корректность
+### 4.3.1 Correctness
 
-**Во всех 138 прогонах обе системы сошлись к одному тексту (одинаковые хеши у
-всех клиентов), ни одна правка не потеряна, каждая правка доставлена каждому
-получателю (доля доставки 100%).** Это относится и к режиму максимального числа
-конфликтов (все вставляют в одну позицию), и к слиянию после офлайна, и к
-одновременному перемещению одной фигуры многими клиентами. По корректности
-различий нет: оба подхода решают задачу.
+**In all 138 runs both systems converged to the same text (the same hashes at all clients), no edit was
+lost, and every edit reached every receiver (100% delivery).** This holds for the mode with the most
+conflicts (everyone inserting at the same position), for merging after offline work and for many clients
+moving the same shape at once. There is no difference in correctness: both approaches solve the task.
 
-### 4.3.2 Задержка
+### 4.3.2 Latency
 
-Выдержки из результатов приведены в таблице 4.1 (подробно — `bench/results/REPORT.md`),
-распределение p95 по числу пользователей — на рисунке 4.1.
+Table 4.1 gives extracts from the results (details in `bench/results/REPORT.md`), and figure 4.1 shows p95
+by the number of users.
 
-Таблица 4.1 — Задержка доставки правки, мс (правки в разных местах документа)
+Table 4.1. Edit delivery latency, ms (edits in different places of the document)
 
 | N | Yjs p50 | ShareDB p50 | Yjs p95 | ShareDB p95 |
 |---|---|---|---|---|
-| 2 | 2,0 | 1,6 | 7,0 | 3,4 |
-| 25 | 2,8 | 2,0 | 6,0 | 6,7 |
-| 100 | 9,9 | 5,0 | 28,7 | 13,4 |
+| 2 | 2.0 | 1.6 | 7.0 | 3.4 |
+| 25 | 2.8 | 2.0 | 6.0 | 6.7 |
+| 100 | 9.9 | 5.0 | 28.7 | 13.4 |
 
-Для режима «одна позиция» картина та же: p50 9,6 и 5,1 мс при N = 100.
+The "same position" mode shows the same picture: p50 of 9.6 and 5.1 ms at N = 100.
 
-Обе системы показывают задержку порядка единиц миллисекунд (p95 не выше 10,3 мс в среднем по трём повторам, в отдельном повторе до 12,3 мс)
-вплоть до 50 пользователей и до 29 мс (p95) при 100. До 50 пользователей значения
-на порядок ниже порога, который человек замечает при наборе текста (порядка
-100 мс), при 100 пользователях — в 3–4 раза ниже его. До 25
-пользователей разница между системами — доли миллисекунды (ShareDB быстрее по
-медиане на 0,4–0,8 мс; по p95 Yjs даже быстрее при N = 25). При N = 100 Yjs
-примерно вдвое медленнее (p95 28,7 против 13,4 мс), но остаётся далеко от
-заметных величин. Конфликтный режим (одна позиция) не ухудшает задержку ни у одной
-из систем.
+Both systems show latencies of a few milliseconds (p95 at most 10.3 ms on average over three repeats, up
+to 12.3 ms in a single repeat) up to 50 users, and up to 29 ms (p95) at 100. Up to 50 users the values are
+an order of magnitude below the threshold people notice when typing (about 100 ms), and at 100 users they
+are 3–4 times below it. Up to 25 users the difference between the systems is a fraction of a millisecond
+(ShareDB is faster by 0.4–0.8 ms on the median; on p95 Yjs is even faster at N = 25). At N = 100 Yjs is
+about twice as slow (p95 of 28.7 against 13.4 ms) but stays far from noticeable values. The conflict mode
+(same position) does not make the latency worse for either system.
 
-![p95, правки в разных местах](../../bench/results/charts/typing-latency-p95-spread.svg)
+![p95, edits in different places](../../bench/results/charts/typing-latency-p95-spread.svg)
 
-Рисунок 4.1 — Задержка p95 при правках в разных местах документа
+Figure 4.1. p95 latency with edits in different places of the document
 
-### 4.3.3 Нагрузка на сервер и трафик
+### 4.3.3 Server load and traffic
 
-Загрузка CPU, память и трафик показаны на рисунках 4.2–4.4.
+Figures 4.2–4.4 show CPU load, memory and traffic.
 
-- **CPU сервера** у обеих систем не превышает 1,5% одного ядра до N = 50
-  (среднее по повторам); при N = 100 — 12% (Yjs) и 8% (ShareDB). Нагрузка
-  сопоставима.
-- **Память процесса сервера (RSS):** у Yjs выше на 11–22% на всех N (например,
-  87 против 74 МБ при N = 2 и 95 против 86 МБ при N = 100). Абсолютная разница —
-  10–17 МБ.
-- **Трафик на правку:** у Yjs в **2,2–2,9 раза меньше**, чем у ShareDB
-  (141 против 311 байт при N = 2; 4743 против 13 360 при N = 100); в режиме
-  «одна позиция» — в 2,4–3,3 раза меньше. Этот результат
-  противоположен ожидаемому «CRDT тяжелее»: Yjs передаёт компактные бинарные
-  обновления, ShareDB — JSON-сообщения с версиями и подтверждениями. Рост трафика
-  на правку с N у обеих систем линейный, как и должен быть при рассылке каждой
-  правки всем участникам.
+- **Server CPU** stays below 1.5% of one core for both systems up to N = 50 (mean over repeats); at
+  N = 100 it is 12% (Yjs) and 8% (ShareDB). The load is comparable.
+- **Server process memory (RSS):** Yjs uses 11–22% more at every N (for example, 87 against 74 MB at
+  N = 2 and 95 against 86 MB at N = 100). The absolute difference is 10–17 MB.
+- **Traffic per edit:** Yjs sends **2.2–2.9 times less** than ShareDB (141 against 311 bytes at N = 2;
+  4743 against 13,360 at N = 100); in the "same position" mode, 2.4–3.3 times less. This is the opposite of
+  the expected "CRDT is heavier": Yjs sends compact binary updates, ShareDB sends JSON messages with
+  versions and acknowledgements. Traffic per edit grows linearly with N for both systems, as it should when
+  every edit is sent to every participant.
 
 ![CPU](../../bench/results/charts/server-cpu.svg)
 
-Рисунок 4.2 — Загрузка CPU серверного процесса
+Figure 4.2. CPU load of the server process
 
-![Память](../../bench/results/charts/server-memory.svg)
+![Memory](../../bench/results/charts/server-memory.svg)
 
-Рисунок 4.3 — Пиковая память (RSS) серверного процесса
+Figure 4.3. Peak memory (RSS) of the server process
 
-![Трафик](../../bench/results/charts/traffic-per-edit.svg)
+![Traffic](../../bench/results/charts/traffic-per-edit.svg)
 
-Рисунок 4.4 — Трафик на одну правку
+Figure 4.4. Traffic per edit
 
-### 4.3.4 Работа офлайн
+### 4.3.4 Offline work
 
-Время слияния и трафик после работы без сети приведены в таблице 4.2 и на
-рисунке 4.5.
+Table 4.2 and figure 4.5 show the merge time and traffic after offline work.
 
-Таблица 4.2 — Слияние после работы офлайн
+Table 4.2. Merging after offline work
 
-| K правок | Yjs, слияние мс (разброс) | ShareDB, слияние мс (разброс) | Yjs, КБ | ShareDB, КБ |
+| K edits | Yjs, merge ms (range) | ShareDB, merge ms (range) | Yjs, KB | ShareDB, KB |
 |---|---|---|---|---|
-| 50 | 39 (36–41) | 16 (15–16) | 16,0 | 5,6 |
-| 200 | 84 (80–90) | 16 (16–17) | 67,3 | 16,8 |
-| 1000 | 260 (239–301) | 15 (14–17) | 346,1 | 75,6 |
+| 50 | 39 (36–41) | 16 (15–16) | 16.0 | 5.6 |
+| 200 | 84 (80–90) | 16 (16–17) | 67.3 | 16.8 |
+| 1000 | 260 (239–301) | 15 (14–17) | 346.1 | 75.6 |
 
-Обе системы слили правки без потерь, но **слияние у ShareDB быстрее и почти не
-зависит от K, а у Yjs растёт с K; трафик при слиянии у Yjs в 2,9–4,6 раза больше**.
-Это не подтверждает ожидание, что CRDT выигрывает в офлайн-сценарии по скорости
-слияния. Вероятное объяснение (в рамках работы отдельно не проверялось):
-клиент ShareDB, пока связи нет, не отправляет операции по одной, а складывает
-неподтверждённые операции в очередь, операции которой библиотека может объединять
-(композиция операций), и
-сервер преобразует результат за небольшое число шагов; Yjs же интегрирует каждый
-из ~2K новых элементов в позицию, найденную по цепочке ссылок, и пересылает их
-как отдельные структуры. Преимущество CRDT в офлайне — не скорость слияния, а
-отсутствие арбитра: слияние не требует от сервера знаний о порядке и работает
-при любой топологии (в том числе когда сервер недоступен).
+Both systems merged the edits without losses, but **ShareDB merges faster and almost independently of K,
+while Yjs grows with K; Yjs's traffic during the merge is 2.9–4.6 times higher**. This does not confirm the
+expectation that a CRDT wins the offline scenario on merge speed. A likely explanation (not tested
+separately in this work): while there is no connection, the ShareDB client does not send operations one by
+one but collects unacknowledged operations in a queue whose operations the library can combine (operation
+composition), and the server transforms the result in a small number of steps; Yjs integrates each of the
+~2K new elements at a position found through the chain of references and sends them as separate
+structures. The advantage of a CRDT offline is not merge speed but the absence of an arbiter: merging does
+not need the server to know the order and works in any topology (including when the server is not
+available).
 
-![Слияние после офлайна](../../bench/results/charts/offline-merge.svg)
+![Merge after offline work](../../bench/results/charts/offline-merge.svg)
 
-Рисунок 4.5 — Время слияния после работы офлайн
+Figure 4.5. Merge time after offline work
 
-### 4.3.5 Размер документа
+### 4.3.5 Document size
 
-Размер удобно разделить на две величины: сколько байт нужно клиенту, чтобы
-открыть документ («чтобы открыть»), и сколько хранится всего. У Yjs это одно и то
-же — всё состояние, включая метки удаления. У ShareDB клиент получает только
-снимок, а журнал операций (из которого можно восстановить любую версию) хранится
-на сервере.
+It helps to split the size into two values: how many bytes a client needs to open the document ("to open")
+and how much is stored in total. For Yjs these are the same: the whole state, tombstones included. For
+ShareDB the client gets only the snapshot, and the operation log (from which any version can be rebuilt) is
+kept on the server.
 
-Результаты для доли удалений 5% (типичный набор текста) приведены в таблице 4.3,
-зависимость размера от числа правок для долей удалений 5% и 30% — на
-рисунках 4.6 и 4.7.
+Table 4.3 gives the results for 5% deletions (typical typing), and figures 4.6 and 4.7 show how the size
+depends on the number of edits for 5% and 30% deletions.
 
-Таблица 4.3 — Размер документа при доле удалений 5%
+Table 4.3. Document size with 5% deletions
 
-| Правок | Yjs: открыть = всего, байт | ShareDB: открыть, байт | ShareDB: всего, байт | Текст Yjs / ShareDB, байт |
+| Edits | Yjs: open = total, bytes | ShareDB: open, bytes | ShareDB: total, bytes | Text Yjs / ShareDB, bytes |
 |---|---|---|---|---|
-| 1 000 | 14 286 | 1 015 | 32 713 | 803 / 807 |
-| 5 000 | 76 228 | 4 223 | 166 445 | 4 089 / 4 014 |
-| 20 000 | 314 089 | 16 331 | 678 273 | 16 236 / 16 122 |
+| 1,000 | 14,286 | 1,015 | 32,713 | 803 / 807 |
+| 5,000 | 76,228 | 4,223 | 166,445 | 4,089 / 4,014 |
+| 20,000 | 314,089 | 16,331 | 678,273 | 16,236 / 16,122 |
 
-Вывод двойной. **Чтобы открыть документ, Yjs требует в 14–19 раз больше
-байт, чем снимок ShareDB** (14 286 против 1 015 при 1000 правок; 314 089 против
-16 331 при 20 000): состояние Yjs включает идентификаторы каждого вставленного
-символа и метки удаления. **Но суммарно Yjs хранит в 2,2–2,3 раза меньше, чем
-ShareDB со снимком и журналом** (около 15 байт на правку против 33).
-При доле удалений 30% текст почти не растёт (100–750 байт), а Yjs растёт с числом
-правок (≈ 10–11 байт на правку), потому что метки удаления сохраняются: при 20 000
-правок состояние — 220 КБ ради текста в 111 байт, тогда как снимок ShareDB — 389 байт.
-Следовательно, для документа с интенсивной правкой накладные расходы CRDT
-реальны и растут с историей, а не с размером текста.
+The conclusion has two sides. **To open a document, Yjs needs 14–19 times more bytes than the ShareDB
+snapshot** (14,286 against 1,015 at 1000 edits; 314,089 against 16,331 at 20,000): the Yjs state includes
+the identifiers of every inserted character and the tombstones. **But in total Yjs stores 2.2–2.3 times
+less than ShareDB with its snapshot and log** (about 15 bytes per edit against 33). With 30% deletions the
+text hardly grows (100–750 bytes), while Yjs grows with the number of edits (≈ 10–11 bytes per edit),
+because tombstones are kept: at 20,000 edits the state is 220 KB for a text of 111 bytes, while the ShareDB
+snapshot is 389 bytes. So for a heavily edited document the CRDT overhead is real and grows with the
+history, not with the size of the text.
 
-![Размер документа, 5% удалений](../../bench/results/charts/document-size-del5.svg)
+![Document size, 5% deletions](../../bench/results/charts/document-size-del5.svg)
 
-Рисунок 4.6 — Размер документа при доле удалений 5%
+Figure 4.6. Document size with 5% deletions
 
-![Размер документа, 30% удалений](../../bench/results/charts/document-size-del30.svg)
+![Document size, 30% deletions](../../bench/results/charts/document-size-del30.svg)
 
-Рисунок 4.7 — Размер документа при доле удалений 30%
+Figure 4.7. Document size with 30% deletions
 
-### 4.3.6 Доска дизайна
+### 4.3.6 Design board
 
-Задержка при перемещении фигур показана на рисунке 4.8.
+Figure 4.8 shows the latency when moving shapes.
 
-Задержка при перемещении фигур у обеих систем совпадает в пределах разброса:
-p95 около 2–3 мс при N ≤ 10 и 17–18 мс при N = 50 (p50 6–7 мс); режим «все двигают одну фигуру»
-не отличается от режима «каждый свою». Во всех прогонах состояния всех клиентов
-совпали. Для перемещения фигур выбор алгоритма практически не влияет на
-результат; модель «карта регистров» достаточна.
+The latency when moving shapes is the same for both systems within the range: p95 of about 2–3 ms at
+N ≤ 10 and 17–18 ms at N = 50 (p50 of 6–7 ms); the "everyone moves one shape" mode is no different from
+"each moves their own". In all runs the states of all clients matched. For moving shapes the choice of
+algorithm makes practically no difference; the "map of registers" model is enough.
 
-![Доска](../../bench/results/charts/board-latency-p95.svg)
+![Board](../../bench/results/charts/board-latency-p95.svg)
 
-Рисунок 4.8 — Задержка p95 при перемещении фигур на доске
+Figure 4.8. p95 latency when moving shapes on the board
 
-### 4.3.7 Наблюдение о границах стенда
+### 4.3.7 A note on the limits of the bench
 
-В пробных запусках при скорости набора 2 правки/с на пользователя и N = 100
-Yjs показывал заметно большую задержку, чем ShareDB, и загруженность процессов с
-ботами указывала на то, что узким местом стали клиенты, а не сервер. Поэтому
-основная серия выполнена при 1 правке/с, где стенд не перегружен (контроль
-описан в п. 4.2). Пробные запуски не входят в основную серию, их данные не
-сохранены и не повторялись, поэтому это лишь наблюдение, а не результат: оно
-указывает на то, что клиентская часть Yjs в Node.js при высокой интенсивности стоит дороже
-клиентской части ShareDB, но требует отдельной проверки. В браузере каждый
-участник — отдельный процесс, поэтому для реального применения это менее
-существенно.
+In trial runs with a typing speed of 2 edits/s per user and N = 100, Yjs showed a noticeably higher latency
+than ShareDB, and the load of the bot processes suggested that the clients, not the server, had become the
+bottleneck. So the main series was run at 1 edit/s, where the bench is not overloaded (the check is
+described in section 4.2). The trial runs are not part of the main series, their data was not saved and
+they were not repeated, so this is only an observation, not a result: it suggests that the Yjs client side
+in Node.js costs more than the ShareDB client side at high intensity, but it needs a separate check. In a
+browser each participant is a separate process, so this matters less in real use.
 
-## 4.4 Проверка гипотезы
+## 4.4 Checking the hypothesis
 
-Сопоставление гипотезы с результатами приведено в таблице 4.4.
+Table 4.4 compares the hypothesis with the results.
 
-Таблица 4.4 — Проверка рабочей гипотезы
+Table 4.4. Checking the working hypothesis
 
-| Утверждение гипотезы | Результат |
+| Claim of the hypothesis | Result |
 |---|---|
-| Сопоставимая задержка при небольшом числе пользователей | **Подтверждено.** До 25 пользователей разница медиан — доли миллисекунды; обе системы на порядок ниже заметного порога |
-| CRDT выигрывает в офлайн-сценариях | **Не подтверждено по скорости слияния:** ShareDB быстрее (15–16 мс против 39–260 мс) и трафик меньше. Корректность одинакова. Преимущество CRDT архитектурное (нет арбитра), а не скоростное |
-| CRDT проигрывает по размеру документа | **Подтверждено частично:** состояние, которое нужно клиенту для открытия, в 14–19 раз больше и растёт с историей правок; суммарно же хранение у Yjs в 2,2–2,3 раза компактнее ShareDB с журналом |
-| CRDT проигрывает по памяти | **Подтверждено, эффект малый:** RSS сервера выше на 11–22% (10–17 МБ) |
-| (не в гипотезе) трафик | У Yjs в 2,2–2,9 раза меньше на правку |
+| Comparable latency with a small number of users | **Confirmed.** Up to 25 users the difference in medians is a fraction of a millisecond; both systems are an order of magnitude below the noticeable threshold |
+| A CRDT wins in offline scenarios | **Not confirmed on merge speed:** ShareDB is faster (15–16 ms against 39–260 ms) and sends less traffic. Correctness is the same. The advantage of a CRDT is architectural (no arbiter), not speed |
+| A CRDT loses on document size | **Partly confirmed:** the state a client needs to open the document is 14–19 times bigger and grows with the edit history; in total, though, Yjs storage is 2.2–2.3 times more compact than ShareDB with its log |
+| A CRDT loses on memory | **Confirmed, the effect is small:** server RSS is 11–22% higher (10–17 MB) |
+| (not in the hypothesis) traffic | Yjs sends 2.2–2.9 times less per edit |
 
-## 4.5 Угрозы валидности
+## 4.5 Threats to validity
 
-- **Одна машина, loopback.** Нет реальной сети с задержкой и потерями пакетов;
-  абсолютные значения задержки в реальной эксплуатации будут больше, а различия
-  между системами — определяться в основном сетью.
-- **Клиенты на Node.js, а не в браузерах.** Стоимость клиентской обработки в
-  браузере другая; в основной серии генератор нагрузки не был узким местом
-  (максимум задержки цикла событий 32 мс), но абсолютные значения клиентской
-  стоимости не переносятся напрямую.
-- **Серверы без БД.** Сравнивается алгоритм, а не полный стек; в платформе Yjs
-  дополнительно сохраняет снимок в PostgreSQL.
-- **Правки — вставки меток по 8–10 символов**, а не посимвольный набор; это
-  упрощает проверку целостности, но делает единицу правки крупнее реальной.
-- **Одна скорость набора** (1 правка/с на пользователя) и один документ; не
-  исследована зависимость от очень больших документов (сотни килобайт текста) и
-  интенсивных пиков.
-- **Одна реализация OT** (`json0`/`text0`). Другие типы (`ot-text`, `rich-text`)
-  и другие серверы могли бы вести себя иначе; объяснение разницы в слиянии после
-  офлайна — предположение, проверка которого вынесена в дальнейшую работу.
-- **Хранение журнала ShareDB** — в памяти процесса; размер журнала отражает
-  объём данных, а не конкретный формат на диске.
+- **One machine, loopback.** There is no real network with delay and packet loss; absolute latencies in
+  real use will be higher, and the differences between the systems will be set mainly by the network.
+- **Clients in Node.js, not in browsers.** The cost of client-side processing in a browser is different; in
+  the main series the load generator was not the bottleneck (event loop lag at most 32 ms), but absolute
+  client-side costs do not carry over directly.
+- **Servers without a database.** The algorithm is compared, not the full stack; in the platform Yjs also
+  saves a snapshot to PostgreSQL.
+- **Edits are inserts of 8–10-character tokens**, not typing character by character; this makes checking
+  integrity easier but makes an edit bigger than a real one.
+- **One typing speed** (1 edit/s per user) and one document; very large documents (hundreds of kilobytes of
+  text) and intensive peaks were not studied.
+- **One OT implementation** (`json0`/`text0`). Other types (`ot-text`, `rich-text`) and other servers could
+  behave differently; the explanation of the difference in merging after offline work is an assumption,
+  and checking it is left for further work.
+- **The ShareDB log is stored** in process memory; the log size reflects the amount of data, not a
+  particular format on disk.
 
-## 4.6 Воспроизведение
+## 4.6 Reproducing
 
 ```bash
-pnpm --filter @collab/bench bench          # полный набор (≈ 30 минут)
-pnpm --filter @collab/bench bench:quick    # быстрая проверка (≈ 2 минуты)
+pnpm --filter @collab/bench bench          # full set (≈ 30 minutes)
+pnpm --filter @collab/bench bench:quick    # quick check (≈ 2 minutes)
 ```
 
-Результаты записываются в `bench/results/` (`latest.json`, `REPORT.md`,
-`charts/*.svg`). Скорость набора меняется переменной `EDITS_PER_SECOND`.
-Тесты стенда (`bench/src/scenarios.test.ts`) проверяют сходимость обеих систем во
-всех сценариях на малых размерах.
+The results are written to `bench/results/` (`latest.json`, `REPORT.md`, `charts/*.svg`). The typing speed
+is set with the `EDITS_PER_SECOND` variable. The bench tests (`bench/src/scenarios.test.ts`) check that both
+systems converge in all scenarios at small sizes.

@@ -1,240 +1,212 @@
-# Рецензия текста пояснительной записки
+# Review of the explanatory note
 
-Служебный документ для автора; в пояснительную записку не входит. Проверка
-выполнена 05.10.2026 на ветке `cloud/thesis-review` (от `main`, коммит `d0f9141`).
-Изменения разбиты на три коммита: факты, язык, оформление по ГОСТ и список
-источников.
+A working document for the author; it is not part of the explanatory note. The review was done on
+5 October 2026. The changes were split into three commits: facts, language, and formatting with the list
+of sources.
 
-## 1. Как проверялось
+## 1. How it was checked
 
-- **Тесты запущены, а не только посчитаны.** Инфраструктура —
-  `docker compose -f infra/docker-compose.dev.yml up -d`, база `collab_test`,
-  `pnpm install --frozen-lockfile`, `prisma migrate deploy` (5 миграций, схема
-  актуальна). Результаты (все успешны):
+- **The tests were run, not only counted.** Infrastructure:
+  `docker compose -f infra/docker-compose.dev.yml up -d`, database `collab_test`,
+  `pnpm install --frozen-lockfile`, `prisma migrate deploy` (5 migrations, the schema is up to date).
+  Results (all passed):
 
-  | Пакет | Тестов в тексте | Фактически прошло |
+  | Package | Tests in the text | Actually passed |
   |---|---|---|
   | `apps/api` | 126 | 126 |
   | `infra/local-host` | 9 | 9 |
   | `apps/collab` | 5 | 5 |
-  | `apps/runner` (настоящий Docker) | 46 | 46 |
+  | `apps/runner` (real Docker) | 46 | 46 |
   | `apps/web` | 57 | 57 |
-  | `bench` | 10 | 10 (5 тестов × 2 системы) |
-  | `e2e` (Playwright, `E2E_RUNNER=1`, runner запущен) | 22 | 22 прошло, 1 пропущен (`screenshots.spec.ts`, как и задумано) |
-  | **Всего** | **275** | **275** |
+  | `bench` | 10 | 10 (5 tests × 2 systems) |
+  | `e2e` (Playwright, `E2E_RUNNER=1`, runner started) | 22 | 22 passed, 1 skipped (`screenshots.spec.ts`, as intended) |
+  | **Total** | **275** | **275** |
 
-  E2E-прогон занял 3,4 мин (в тексте было «около 70 секунд» — исправлено).
-- **Цифры главы 4** сверены с `bench/results/latest.json` и `REPORT.md`
-  (138 прогонов: 72 + 18 + 36 + 12; 23 498 правок в наборе; максимум задержки
-  цикла событий 32,03 мс; все прогоны сошлись, доля доставки 1,0). Средние CPU и
-  RSS пересчитаны по повторам из JSON.
-- **Ограничения песочницы, эндпоинты, порты, события, лимиты импорта** сверены с
-  кодом (`apps/runner/src/sandbox.ts`, `terminal/session.ts`,
-  `packages/shared/src/**`, `apps/api/src/app.ts`, `*.routes.ts`,
-  `apps/collab/src/server.ts`, `packages/db/prisma/schema.prisma`,
+  The E2E run took 3.4 min (the text said "about 70 seconds"; fixed).
+- **The numbers of chapter 4** were checked against `bench/results/latest.json` and `REPORT.md` (138 runs:
+  72 + 18 + 36 + 12; 23,498 edits in the typing runs; maximum event loop lag 32.03 ms; all runs converged,
+  delivery share 1.0). Mean CPU and RSS were recalculated over the repeats from the JSON.
+- **Sandbox limits, endpoints, ports, events, import limits** were checked against the code
+  (`apps/runner/src/sandbox.ts`, `terminal/session.ts`, `packages/shared/src/**`, `apps/api/src/app.ts`,
+  `*.routes.ts`, `apps/collab/src/server.ts`, `packages/db/prisma/schema.prisma`,
   `infra/docker-compose.yml`, `infra/docker/Dockerfile`).
-- **Сборка PWA** выполнена (`vite build`): precache — 110 файлов, 13 828 КиБ.
-- **Источники** сверены через ACM DL / Springer / dblp / arXiv (авторы, год,
-  страницы, DOI); сайты документации открыты 05.10.2026.
+- **The PWA build** was run (`vite build`): precache of 110 files, 13,828 KiB.
+- **Sources** were checked through ACM DL / Springer / dblp / arXiv (authors, year, pages, DOI);
+  documentation sites were opened on 5 October 2026.
 
-## 2. Что изменено
+## 2. What was changed
 
-### Глава 1
-- [x] Подпись и ссылка в тексте для таблицы 1.1.
-- [x] Ссылки `[1]`–`[10]` расставлены в порядке первого упоминания.
-- [x] Уточнено: `clock` в Yjs — счётчик вставленных клиентом элементов, а не
-      «операций».
-- [x] Пример в п. 1.3: «удалённую правку» (двусмысленно) → «правку другого участника».
-- [x] Термины: CvRDT/CmRDT получили русские названия; «надгробия» → «метки удаления»
-      (единый термин во всех главах); исправлена фраза про TP2; «скретч-пад» убран.
-- [x] Раздел «Источники к главе» перенесён в отдельный структурный элемент
-      `07-references.md`.
+### Chapter 1
+- [x] Caption and in-text reference for table 1.1.
+- [x] References `[1]`–`[10]` placed in the order of first mention.
+- [x] Made precise: `clock` in Yjs counts the elements inserted by a client, not "operations".
+- [x] The example in section 1.3: "a remote edit" (ambiguous) → "another participant's edit".
+- [x] Terms: CvRDT/CmRDT got plain names; one term for tombstones in all chapters; the sentence about TP2
+      was fixed; "scratch pad" was removed.
+- [x] The "Sources for the chapter" section moved to a separate element, `07-references.md`.
 
-### Глава 2
-- [x] **Противоречие:** в «Что не делается» были перечислены терминал и интеграция с
-      Git, хотя оба реализованы (п. 3.6, 3.8). Формулировка заменена на «полноценный
-      Git-клиент…», а в функциональные требования добавлен п. 8 о вспомогательных
-      функциях (проверьте, согласны ли вы с этим).
-- [x] «Четыре серверных процесса» → «клиентское приложение, три серверных сервиса и
-      два хранилища»; у `runner` указан сервер терминалов.
-- [x] ADR-003 ссылался на «раздел 3.5» — ограничения описаны в п. 3.6.
-- [x] Таблица модели данных дополнена полями, добавленными позже (`github_*`,
-      `branch`, `source_sha`, `deleted_at`, `trashed_path`, `created_at` у
-      `refresh_tokens`); пояснено, чего нет на ER-диаграмме.
-- [x] Гость создаётся не «без email и пароля», а со служебным адресом
-      `guest-…@guest.local` и случайным паролем — формулировка уточнена (также в 3.2, 5.4).
-- [x] Нумерация подзаголовков 2.1.1–2.1.4, 2.3.1; подписи таблиц 2.1–2.3 и рисунков
-      2.1–2.14 (включая 10 снимков экрана), ссылки на них в тексте.
-- [x] Стиль: «хэш» → «хеш», «фронтенд» → «клиентское приложение», «воркер» →
-      «обработчик очереди», «человек» → «участник/пользователь», «уже 1024 px» →
-      «шириной менее 1024 px».
+### Chapter 2
+- [x] **Contradiction:** "What is not done" listed the terminal and Git integration, although both are
+      built (sections 3.6, 3.8). The wording became "a full Git client…", and item 8 about helper
+      features was added to the functional requirements (please check that you agree).
+- [x] "Four server processes" → "a client app, three server services and two stores"; the terminal server
+      is named for `runner`.
+- [x] ADR-003 referred to "section 3.5"; the limits are described in section 3.6.
+- [x] The data model table got the columns added later (`github_*`, `branch`, `source_sha`, `deleted_at`,
+      `trashed_path`, `created_at` in `refresh_tokens`); what the ER diagram leaves out is explained.
+- [x] A guest is created not "without email and password" but with a technical address
+      `guest-…@guest.local` and a random password; the wording was made precise (also in 3.2, 5.4).
+- [x] Subheadings numbered 2.1.1–2.1.4, 2.3.1; captions for tables 2.1–2.3 and figures 2.1–2.14
+      (including 10 screenshots), with references in the text.
+- [x] Style: consistent terms for hash, client app, queue worker, participant/user, and screen widths.
 
-### Глава 3
-- [x] «Хук проверки подписывает JWT» → «проверяет подпись JWT».
-- [x] Задержка сохранения снимка конкретизирована: 1 с после правки, не реже раза в
-      3 с (`debounce`/`maxDebounce` в `apps/collab/src/server.ts`).
-- [x] `docker-compose.yml`: миграции — отдельная задача `migrate` в профиле `tools`.
-- [x] Подпись таблицы 3.1; ссылка `[10]` на Hocuspocus.
-- [x] Стиль: «рантайм-валидация», «воркеры Monaco», «не умеет заголовки», «буква
-      UTF-8», «runner'ом», «мусор ОС», «кеш», «убирает из проекта» исправлены.
+### Chapter 3
+- [x] "The auth hook signs the JWT" → "checks the JWT signature".
+- [x] The snapshot save delay made concrete: 1 s after an edit, at least every 3 s
+      (`debounce`/`maxDebounce` in `apps/collab/src/server.ts`).
+- [x] `docker-compose.yml`: migrations are a separate `migrate` job in the `tools` profile.
+- [x] Caption for table 3.1; reference `[10]` for Hocuspocus.
+- [x] Style: several slang words replaced with neutral ones.
 
-### Глава 4
-- [x] Боты в отдельных процессах — только в сценарии набора (в остальных клиенты
-      живут в управляющем процессе); при N = 100 — по 12–13 клиентов на процесс.
-- [x] Длительность сценария доски — 8 с (из `bench/src/run.ts`).
-- [x] «p95 до 10 мс до 50 пользователей» → «не выше 10,3 мс» (у Yjs при N = 50
-      p95 = 10,3 и 10,1 мс).
-- [x] «Все значения на порядок ниже порога 100 мс» верно только до N = 50; при
-      N = 100 (p95 28,7 мс) — в 3–4 раза ниже. Исправлено.
-- [x] CPU «не превышает 1%» → «1,5%» (среднее при N = 50 — 1,2–1,4%).
-- [x] Разница RSS «порядка 10 МБ» → «10–17 МБ».
-- [x] Трафик в режиме «одна позиция» — 2,4–3,3 раза (добавлено); трафик при слиянии
-      «в 3–5 раз» → «в 2,9–4,6 раза».
-- [x] Таблица 4.4: «в 2 раза компактнее» → «в 2,2–2,3 раза» (как в п. 4.3.5).
-- [x] Длина меток «8–12 символов» → «8–10» (`<c000.0>` … `<c000.999>`).
-- [x] Подписи таблиц 4.1–4.4 и рисунков 4.1–4.8, ссылки на них; «в 4.2» → «в п. 4.2».
-- [x] Стиль: «in-memory», «композировать», «намекает», «продуктивная среда», «Сервера».
+### Chapter 4
+- [x] Bots run in separate processes only in the typing scenario (in the others the clients live in the
+      main process); at N = 100 there are 12–13 clients per process.
+- [x] The board scenario lasts 8 s (from `bench/src/run.ts`).
+- [x] "p95 up to 10 ms up to 50 users" → "at most 10.3 ms" (Yjs at N = 50 has p95 = 10.3 and 10.1 ms).
+- [x] "All values are an order of magnitude below the 100 ms threshold" is true only up to N = 50; at
+      N = 100 (p95 28.7 ms) they are 3–4 times below it. Fixed.
+- [x] CPU "does not exceed 1%" → "1.5%" (the mean at N = 50 is 1.2–1.4%).
+- [x] RSS difference "about 10 MB" → "10–17 MB".
+- [x] Traffic in the "same position" mode is 2.4–3.3 times (added); traffic during the merge "3–5 times" →
+      "2.9–4.6 times".
+- [x] Table 4.4: "2 times more compact" → "2.2–2.3 times" (as in section 4.3.5).
+- [x] Token length "8–12 characters" → "8–10" (`<c000.0>` … `<c000.999>`).
+- [x] Captions for tables 4.1–4.4 and figures 4.1–4.8, with references; "in 4.2" → "in section 4.2".
+- [x] Style: several anglicisms and slang words replaced.
 
-### Глава 5
-- [x] Описание тестов `apps/web` дополнено (были перечислены 4 темы из 10 файлов).
-- [x] Время E2E-прогона: «около 70 секунд» → «около 3,5 минуты».
-- [x] precache: «около 13 МБ» → «110 файлов, около 13,5 МБ».
-- [x] Список сценариев 5.2 сделан сплошным; «сценарий 9 дополнен корзиной» внесено в
-      сам п. 9. Ссылка «п. 5.2, сценарий 2» корректна.
-- [x] Подписи таблиц 5.1–5.3. Стиль: «смоук-тесты», «моки», «упал», «таймаут»,
-      «деплой», «скриншоты».
+### Chapter 5
+- [x] The description of the `apps/web` tests was completed (it listed 4 topics out of 10 files).
+- [x] E2E run time: "about 70 seconds" → "about 3.5 minutes".
+- [x] Precache: "about 13 MB" → "110 files, about 13.5 MB".
+- [x] The list of scenarios in 5.2 made continuous; "scenario 9 extended with the trash" moved into item 9
+      itself. The reference "section 5.2, scenario 2" is correct.
+- [x] Captions for tables 5.1–5.3. Style: slang for smoke tests, mocks, failures, timeouts, deployment and
+      screenshots replaced.
 
-### Заключение
-- [x] Те же исправленные цифры (10,3 мс; 10–17 МБ; 2,2–2,3 раза).
-- [x] **Смысловая ошибка:** «далеко за порогом заметности» означало бы «выше порога» —
-      заменено на «значительно ниже порога заметности (порядка 100 мс)».
-- [x] Упомянут терминал; «офлайн из коробки», «сервера», «деплой» исправлены.
+### Conclusion
+- [x] The same corrected numbers (10.3 ms; 10–17 MB; 2.2–2.3 times).
+- [x] **Meaning error:** "far beyond the noticeable threshold" would mean "above the threshold"; replaced
+      with "well below the noticeable threshold (about 100 ms)".
+- [x] The terminal is mentioned; slang words were replaced.
 
-### Список источников (`07-references.md`)
-- [x] Оформлен по ГОСТ Р 7.0.100-2018: заголовок по первому автору для 1–3 авторов,
-      описание под заглавием для 4 авторов (Shapiro и др., Nicolaescu и др.), «//»,
-      области через «—», DOI; электронные ресурсы — «— URL: … (дата обращения:
-      05.10.2026). — Текст : электронный».
-- [x] Нумерация в порядке первого упоминания; каждый источник цитируется в тексте,
-      каждая ссылка в тексте есть в списке (10 из 10).
-- [x] Пункт «Документация Yjs, Hocuspocus, ShareDB» разбит на отдельные записи с URL;
-      добавлена документация типа `json0` (на неё опирается описание операций
-      `si`/`sd`/`oi`/`od`).
+### List of sources (`07-references.md`)
+- [x] Formatted to one style: authors, title, venue, pages, DOI; web resources with the URL and the access
+      date (5 October 2026).
+- [x] Numbered in the order of first mention; every source is cited in the text, and every citation in the
+      text is in the list (10 of 10).
+- [x] The item "Documentation of Yjs, Hocuspocus, ShareDB" was split into separate entries with URLs; the
+      documentation of the `json0` type was added (the description of the `si`/`sd`/`oi`/`od` operations
+      relies on it).
 
-## 3. Проверка источников
+## 3. Checking the sources
 
-| № | Источник | Итог |
+| No. | Source | Result |
 |---|---|---|
-| 1 | Sun, Ellis. CSCW '98, P. 59–68 | Существует, данные верны; DOI 10.1145/289444.289469 |
-| 2 | Ellis, Gibbs. SIGMOD '89, P. 399–407 | Существует, данные верны. Опубликован в трудах SIGMOD '89 (они же — SIGMOD Record, vol. 18, № 2); DOI трудов — 10.1145/67544.66963 |
-| 5 | Shapiro, Preguiça, Baquero, Zawirski. SSS 2011, LNCS 6976, P. 386–400 | Существует, данные верны; DOI 10.1007/978-3-642-24550-3_29 |
-| 6 | Nicolaescu, Jahns, Derntl, Klamma. GROUP '16, P. 39–49 | Существует, данные верны; DOI 10.1145/2957276.2957310 |
-| 7 | Lamport. CACM 21(7), P. 558–565, 1978 | Существует, данные верны; DOI 10.1145/359545.359563 |
-| 9 | Kleppmann, Beresford. IEEE TPDS 28(10), P. 2733–2746, 2017 | Существует, данные верны; DOI 10.1109/TPDS.2017.2697382 |
-| 3, 4, 8, 10 | Документация ShareDB, json0, Yjs, Hocuspocus | Страницы доступны 05.10.2026. Hocuspocus переехал на tiptap.dev — указан актуальный адрес |
+| 1 | Sun, Ellis. CSCW '98, pp. 59–68 | Exists, data correct; DOI 10.1145/289444.289469 |
+| 2 | Ellis, Gibbs. SIGMOD '89, pp. 399–407 | Exists, data correct. Published in the SIGMOD '89 proceedings (also SIGMOD Record, vol. 18, no. 2); proceedings DOI 10.1145/67544.66963 |
+| 5 | Shapiro, Preguiça, Baquero, Zawirski. SSS 2011, LNCS 6976, pp. 386–400 | Exists, data correct; DOI 10.1007/978-3-642-24550-3_29 |
+| 6 | Nicolaescu, Jahns, Derntl, Klamma. GROUP '16, pp. 39–49 | Exists, data correct; DOI 10.1145/2957276.2957310 |
+| 7 | Lamport. CACM 21(7), pp. 558–565, 1978 | Exists, data correct; DOI 10.1145/359545.359563 |
+| 9 | Kleppmann, Beresford. IEEE TPDS 28(10), pp. 2733–2746, 2017 | Exists, data correct; DOI 10.1109/TPDS.2017.2697382 |
+| 3, 4, 8, 10 | Documentation of ShareDB, json0, Yjs, Hocuspocus | Pages available on 5 October 2026. Hocuspocus moved to tiptap.dev; the current address is given |
 
-Выдуманных или искажённых источников не найдено. Исходная пометка «написано по
-памяти» снята: все данные подтверждены.
+No invented or distorted sources were found. The earlier note "written from memory" was removed: all data
+is confirmed.
 
-**Рекомендую добавить источники** (в тексте есть утверждения без ссылок). Перед
-добавлением сверьте данные — ниже указано то, что я помню, но не проверял по
-оригиналу:
-- модель CCI в п. 1.3 — первоисточник: Sun C., Jia X., Zhang Y., Yang Y., Chen D.
-  Achieving convergence, causality preservation, and intention preservation in
-  real-time cooperative editing systems // ACM TOCHI. 1998. Vol. 5, № 1 (сейчас
-  ссылка дана на [1], где модель тоже обсуждается);
-- утверждение о том, что многие функции преобразования не удовлетворяют TP2 (п. 1.4) —
-  например, работы A. Imine и соавторов (ECSCW 2003);
-- алгоритмы WOOT, Logoot, RGA (п. 1.5.1) — оригинальные статьи (Oster и др., 2006;
-  Weiss, Urso, Molli, 2009; Roh и др., 2011);
-- Google Docs на OT и Figma с LWW-регистрами на уровне свойства (п. 1.2) — публичные
-  технические статьи в блогах Google Drive (2010) и Figma (2019);
-- сравнение с VS Code Live Share, Replit, CodeSandbox (таблица 1.1) — официальная
-  документация продуктов (в тексте сказано «оценки основаны на публичной
-  документации», но ссылок нет).
+**Sources worth adding** (some claims in the text have no reference). Check the data before adding; the
+details below were not checked against the originals:
+- the CCI model in section 1.3: the original source is Sun C., Jia X., Zhang Y., Yang Y., Chen D.
+  "Achieving convergence, causality preservation, and intention preservation in real-time cooperative
+  editing systems", ACM TOCHI, 1998, vol. 5, no. 1 (now the text refers to [1], which also discusses the
+  model);
+- the claim that many transformation functions do not satisfy TP2 (section 1.4): for example, the work of
+  A. Imine and co-authors (ECSCW 2003);
+- the WOOT, Logoot and RGA algorithms (section 1.5.1): the original papers (Oster et al., 2006; Weiss,
+  Urso, Molli, 2009; Roh et al., 2011);
+- Google Docs on OT and Figma with per-property LWW registers (section 1.2): public technical posts on the
+  Google Drive blog (2010) and the Figma blog (2019);
+- the comparison with VS Code Live Share, Replit and CodeSandbox (table 1.1): the official product
+  documentation (the text says "the assessment is based on public documentation" but gives no
+  references).
 
-## 4. Что не удалось проверить или вызывает сомнения
+## 4. What could not be checked or is doubtful
 
-- **Таблица 1.1** (Live Share, Replit, CodeSandbox): без источников; оценки вроде
-  «Свой сервер — Нет» и «Вход без регистрации» нужно сверить с актуальной
-  документацией.
-- **Длительность стенда** «≈ 30 минут» / «≈ 2 минуты» (п. 4.6): полный стенд не
-  перезапускался.
-- **Пробные запуски при 2 правках/с** (п. 4.3.7): данные не сохранены (это сказано и
-  в тексте) — проверить нельзя.
-- **История нестабильного теста чата** (п. 5.2: 20 одиночных, 4 полных, 24 повтора в
-  6 потоках): в репозитории следов нет; в нашем прогоне тест прошёл.
-- **Исторические ошибки** из п. 3.12 и п. 5.6 (Content-Type у пустых запросов,
-  генерация Prisma для runner): описаны правдоподобно и соответствуют текущему
-  коду, но как историю их не проверить.
-- **Сборка Docker-образов** (п. 5.6) в ходе рецензии не повторялась.
-- **Доступность** (п. 2.5: `aria-label`, Escape, рамка фокуса) проверена только
-  выборочно по коду.
-- **Диаграммы устарели:** `architecture.*` не показывает сервер терминалов в `runner`
-  и связь с GitHub; `er.*` не показывает поля, добавленные в миграциях 3–5
-  (оговорено в тексте, но лучше перерисовать). Исходники — SVG в `diagrams/`, PNG
-  пересобираются `pnpm --filter @collab/e2e exec node tools/render-diagrams.mjs`.
-- **Версии библиотек в тексте почти не указаны.** Если кафедра требует, добавьте
-  таблицу. Фактически установленные по `pnpm-lock.yaml`: Node.js 22, TypeScript
-  5.9.3, Yjs 13.6.33, Hocuspocus 2.15.3, ShareDB 5.2.2, ot-json0 1.1.0, Fastify
-  5.12.5, React 18.3.1, Monaco 0.52.2, react-konva 18.2.16, @xterm/xterm 6.0.0,
-  Prisma 5.22.0, BullMQ 5.81.5, Zod 3.25.76, Tailwind CSS 3.4.19, vite-plugin-pwa
-  0.20.5, Vitest 2.1.9, Playwright 1.63.0, PostgreSQL 16, Redis 7.
+- **Table 1.1** (Live Share, Replit, CodeSandbox): no sources; claims like "Own server: No" and "Joining
+  without an account" should be checked against current documentation.
+- **Bench duration** "≈ 30 minutes" / "≈ 2 minutes" (section 4.6): the full bench was not re-run.
+- **Trial runs at 2 edits/s** (section 4.3.7): the data was not saved (the text says so too), so it cannot
+  be checked.
+- **History of the flaky chat test** (section 5.2: 20 single runs, 4 full runs, 24 repeats in 6 workers):
+  no traces in the repository; in this run the test passed.
+- **Past bugs** from sections 3.12 and 5.6 (Content-Type on empty requests, Prisma generation for the
+  runner): described plausibly and consistent with the current code, but they cannot be checked as
+  history.
+- **Building the Docker images** (section 5.6) was not repeated during the review.
+- **Accessibility** (section 2.5: `aria-label`, Escape, focus outline) was checked only selectively in the
+  code.
+- **The diagrams are out of date:** `architecture.*` does not show the terminal server in `runner` or the
+  GitHub link; `er.*` does not show the columns added in migrations 3–5 (the text says so, but redrawing is
+  better). The sources are SVG files in `diagrams/`; the PNGs are rebuilt with
+  `pnpm --filter @collab/e2e exec node tools/render-diagrams.mjs`.
+- **Library versions are hardly given in the text.** If the department requires it, add a table. The
+  versions installed according to `pnpm-lock.yaml`: Node.js 22, TypeScript 5.9.3, Yjs 13.6.33,
+  Hocuspocus 2.15.3, ShareDB 5.2.2, ot-json0 1.1.0, Fastify 5.12.5, React 18.3.1, Monaco 0.52.2,
+  react-konva 18.2.16, @xterm/xterm 6.0.0, Prisma 5.22.0, BullMQ 5.81.5, Zod 3.25.76, Tailwind CSS
+  3.4.19, vite-plugin-pwa 0.20.5, Vitest 2.1.9, Playwright 1.63.0, PostgreSQL 16, Redis 7.
 
-## 5. Что сделать вручную в Word
+## 5. What to do by hand in Word
 
-- [ ] Титульный лист, задание на ВКР, календарный план (по формам кафедры).
-- [ ] **Реферат**: объём, количество рисунков (22), таблиц (12), источников (10),
-      ключевые слова (5–15 слов прописными), текст реферата.
-- [ ] **Содержание** (автоматическое оглавление).
-- [ ] **Введение — его нет.** По ГОСТ 7.32 это обязательный структурный элемент:
-      актуальность, цель, задачи, объект и предмет, методы, практическая
-      значимость. Сейчас цель сформулирована в п. 1.1 — её можно перенести.
-- [ ] Перечень сокращений и обозначений (CRDT, OT, CCI, TP1/TP2, LWW, CvRDT/CmRDT,
-      SEC, JWT, PWA, SPA, ADR, RSS, CPU, SSRF, TTY, E2E и т. д.), если терминов
-      больше пяти — а их больше.
-- [ ] Приложения (по желанию): ADR, описание WebSocket-протокола, фрагменты кода,
-      полные таблицы из `REPORT.md`. Блок кода из п. 4.6 лучше перенести в
-      приложение.
-- [ ] Поля: левое 30 мм, правое 15 мм, верхнее и нижнее 20 мм; шрифт Times New Roman
-      (кегль по требованиям кафедры, обычно 14), межстрочный интервал 1,5, абзацный
-      отступ 1,25 см, выравнивание по ширине.
-- [ ] Нумерация страниц арабскими цифрами внизу по центру, титульный лист
-      учитывается, но номер не ставится.
-- [ ] Каждый раздел (глава) — с новой страницы; «ВВЕДЕНИЕ», «ЗАКЛЮЧЕНИЕ», «СПИСОК
-      ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ», «ПРИЛОЖЕНИЕ А» — прописными, по центру, без номера.
-      Точки в конце заголовков не ставятся (в Markdown уже убраны).
-- [ ] Подписи: «Таблица X.Y — …» над таблицей слева; «Рисунок X.Y — …» под рисунком
-      по центру. Длинные таблицы при переносе — «Продолжение таблицы X.Y».
-- [ ] Рисунки главы 4 вставлены как SVG по относительным путям
-      (`../../bench/results/charts/*.svg`) — для Word экспортировать в PNG/EMF и
-      проверить читаемость подписей осей.
-- [ ] Перечисления: по ГОСТ 7.32 — с дефисом, а вложенные/нумерованные — «а)», «б)»
-      или «1)», «2)» (в Markdown нумерация «1.»).
-- [ ] Формулы условий TP1 и свойств слияния (п. 1.4, 1.5) — при желании оформить
-      нумерованными формулами (1), (2)…
-- [ ] Типографика: неразрывный пробел перед «%» и единицами («5 %», «10 мс»),
-      единообразные разделители разрядов («1000» и «1 000» сейчас смешаны),
-      «№ 1»; в списке источников — тот вид тире, который требует кафедра (сейчас
-      «—» везде).
-- [ ] Перед сдачей обновить даты обращения к электронным ресурсам [3], [4], [8], [10].
+- [ ] Title page, thesis assignment, schedule (on the department's forms).
+- [ ] **Abstract**: size, number of figures (22), tables (12), sources (10), keywords (5–15 words in
+      capitals), the abstract text.
+- [ ] **Table of contents** (automatic).
+- [ ] **There is no introduction.** It is a required part: relevance, goal, tasks, object and subject,
+      methods, practical value. The goal is now stated in section 1.1 and can be moved there.
+- [ ] A list of abbreviations (CRDT, OT, CCI, TP1/TP2, LWW, CvRDT/CmRDT, SEC, JWT, PWA, SPA, ADR, RSS, CPU,
+      SSRF, TTY, E2E and so on), since there are more than five terms.
+- [ ] Appendices (optional): ADRs, the WebSocket protocol description, code fragments, the full tables from
+      `REPORT.md`. The code block in section 4.6 is better moved to an appendix.
+- [ ] Margins, font, line spacing, indents and alignment as the department requires.
+- [ ] Page numbers at the bottom centre; the title page is counted but not numbered.
+- [ ] Each chapter starts on a new page; "INTRODUCTION", "CONCLUSION", "REFERENCES", "APPENDIX A" in
+      capitals, centred, without a number. No full stop at the end of headings (already removed in
+      Markdown).
+- [ ] Captions: "Table X.Y. …" above the table on the left; "Figure X.Y. …" under the figure, centred. Long
+      tables continued on the next page get "Table X.Y (continued)".
+- [ ] The chapter 4 figures are included as SVG through relative paths (`../../bench/results/charts/*.svg`);
+      for Word, export them to PNG/EMF and check that the axis labels are readable.
+- [ ] Lists: dashes for simple lists, and "a)", "b)" or "1)", "2)" for nested or numbered ones (Markdown
+      uses "1.").
+- [ ] The TP1 condition and the merge properties (sections 1.4, 1.5) can be set as numbered formulas (1),
+      (2)…
+- [ ] Typography: a non-breaking space before "%" and units, one style of thousands separator, one dash
+      style in the list of sources.
+- [ ] Before submitting, update the access dates of the web resources [3], [4], [8], [10].
 
-## 6. Вопросы к автору и руководителю
+## 6. Questions for the author and the supervisor
 
-1. Нужен ли отдельный раздел «Введение» в формате кафедры (по ГОСТ — нужен)?
-   Переносить ли туда цель из п. 1.1?
-2. Таблица 2.1 («Соответствие критериям сложности») — названия критериев
-   на английском (Back-end, Adaptive UI, Cloud…) взяты из требований кафедры?
-   Если нет, лучше перевести.
-3. Критерий «Cloud: AWS» засчитывается, если развёртывание в AWS описано, но не
-   выполнено (п. 5.5, Заключение)?
-4. Согласны ли вы с добавленным п. 8 функциональных требований (терминал, GitHub,
-   ветки) — или эти функции нужно явно отметить как выходящие за исходный план?
-5. Допустимы ли подзаголовки внутри «Заключения» («Что сделано», «Ограничения»…)?
-   Многие кафедры требуют сплошной текст.
-6. Нужны ли «Выводы по главе» в главах 2–5 (сейчас они есть только в главе 1)?
-7. Уместна ли аналогия с Discord (п. 2.3, 2.5) в академическом тексте, или
-   заменить нейтральным описанием?
-8. Разделы по экономике и охране труда (вопрос из README) — по-прежнему открыт.
-9. Если защита будет на другой машине — перезапустить стенд и обновить главу 4 и
-   эту рецензию.
+1. Is a separate "Introduction" section in the department's format needed? Should the goal from section
+   1.1 move there?
+2. Table 2.1 ("Complexity criteria"): are the criterion names (Back-end, Adaptive UI, Cloud…) taken from the
+   department's requirements?
+3. Does the "Cloud: AWS" criterion count if the AWS deployment is described but not done (section 5.5,
+   Conclusion)?
+4. Do you agree with the added item 8 of the functional requirements (terminal, GitHub, branches), or should
+   these features be marked as going beyond the original plan?
+5. Are subheadings inside the "Conclusion" ("What was done", "Limitations"…) allowed? Many departments
+   require continuous text.
+6. Are "Conclusions of the chapter" needed in chapters 2–5 (now only chapter 1 has them)?
+7. Is the Discord analogy (sections 2.3, 2.5) suitable for an academic text, or should it be replaced with
+   a neutral description?
+8. Sections on economics and occupational safety: still an open question.
+9. If the defence is on another machine, re-run the bench and update chapter 4 and this review.

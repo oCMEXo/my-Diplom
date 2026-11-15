@@ -1,39 +1,22 @@
-# Текст диплома
+# Thesis text
 
-Черновик пояснительной записки в Markdown. Главы написаны по реальному
-состоянию репозитория; цифры главы 4 взяты из `bench/results/latest.json`.
+Draft of the explanatory note in Markdown. The chapters describe the repository as it is; the numbers in
+chapter 4 come from `bench/results/latest.json`.
 
-| Файл | Раздел |
+| File | Section |
 |---|---|
-| [01-analytics.md](01-analytics.md) | 1 Аналитическая часть: проблема, аналоги, OT, CRDT |
-| [02-design.md](02-design.md) | 2 Проектирование: требования, архитектура, данные |
-| [03-implementation.md](03-implementation.md) | 3 Реализация |
-| [04-research.md](04-research.md) | 4 Исследование: CRDT против OT |
-| [05-testing.md](05-testing.md) | 5 Тестирование и безопасность |
-| [06-conclusion.md](06-conclusion.md) | Заключение |
-| [07-references.md](07-references.md) | Список использованных источников |
-| [REVIEW.md](REVIEW.md) | Замечания рецензирования текста (не входит в записку) |
+| [01-analytics.md](01-analytics.md) | 1 Analysis: the problem, analogues, OT, CRDT |
+| [02-design.md](02-design.md) | 2 Design: requirements, architecture, data |
+| [03-implementation.md](03-implementation.md) | 3 Implementation |
+| [04-research.md](04-research.md) | 4 Research: CRDT vs OT |
+| [05-testing.md](05-testing.md) | 5 Testing and security |
+| [06-conclusion.md](06-conclusion.md) | Conclusion |
+| [07-references.md](07-references.md) | References |
+| [REVIEW.md](REVIEW.md) | Review notes on the text (not part of the note) |
 
-Связанные материалы: [ADR](../adr), [WebSocket-протокол](../websocket-protocol.md),
-[развёртывание в AWS](../deploy-aws.md), [результаты стенда](../../bench/results/REPORT.md),
-Swagger — `/docs` у запущенного API.
+Related materials: [ADRs](../adr), [WebSocket protocol](../websocket-protocol.md),
+[database](../db), [bench results](../../bench/results/REPORT.md), Swagger at `/docs` on a running API.
 
-## Что осталось сделать перед сдачей
-
-- [ ] Титульный лист, реферат, содержание, нумерация и оформление по ГОСТ /
-      требованиям кафедры (в Markdown этого нет).
-- [x] Список источников сверен с оригиналами (авторы, годы, страницы, DOI),
-      вынесен в `07-references.md` и оформлен по ГОСТ Р 7.0.100-2018; ссылки
-      `[n]` расставлены в тексте. Что осталось — см. `REVIEW.md`.
-- [x] Скриншоты интерфейса сделаны автоматически — `docs/thesis/screenshots/`
-      (вставлены в п. 2.5); при желании переснять на своих данных.
-- [x] Диаграммы (архитектура, ER, два sequence) сделаны — `docs/thesis/diagrams/`
-      (SVG и PNG, вставлены в главу 2). Перерисовать PNG:
-      `pnpm --filter @collab/e2e exec node tools/render-diagrams.mjs`.
-- [ ] Перепрогнать исследование (`pnpm --filter @collab/bench bench`), если
-      будет другая машина: в главе 4 указаны характеристики именно этого
-      компьютера.
-- [ ] Если планируется защита с «живым» деплоем — реально развернуть по
-      `docs/deploy-aws.md` и поправить документ по итогам (сейчас не проверено).
-- [ ] Согласовать с руководителем, нужен ли в тексте раздел про экономику /
-      охрану труда и т. п. (в плане их нет).
+The interface screenshots in `screenshots/` are taken automatically
+(`SCREENSHOTS=1 pnpm --filter @collab/e2e e2e -- screenshots`). The diagrams in `diagrams/` are SVG; the
+PNG copies are made with `pnpm --filter @collab/e2e exec node tools/render-diagrams.mjs`.

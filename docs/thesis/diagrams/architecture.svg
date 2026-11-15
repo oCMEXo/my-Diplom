@@ -19,62 +19,62 @@
 
   <!-- client -->
   <rect class="client" x="20" y="60" width="250" height="470" rx="12"/>
-  <text class="t" x="145" y="88" text-anchor="middle">Браузер (web, PWA)</text>
+  <text class="t" x="145" y="88" text-anchor="middle">Browser (web, PWA)</text>
   <rect class="box" x="40" y="106" width="210" height="64" rx="8"/>
   <text class="t" x="145" y="130" text-anchor="middle" style="font-size:13.5px">React SPA</text>
-  <text class="s" x="145" y="150" text-anchor="middle">Monaco · доска (Konva) · чат</text>
+  <text class="s" x="145" y="150" text-anchor="middle">Monaco · board (Konva) · chat</text>
   <rect class="box" x="40" y="186" width="210" height="64" rx="8"/>
-  <text class="t" x="145" y="210" text-anchor="middle" style="font-size:13.5px">Yjs-документ</text>
+  <text class="t" x="145" y="210" text-anchor="middle" style="font-size:13.5px">Yjs document</text>
   <text class="s" x="145" y="230" text-anchor="middle">Hocuspocus provider · awareness</text>
   <rect class="box" x="40" y="266" width="210" height="64" rx="8"/>
   <text class="t" x="145" y="290" text-anchor="middle" style="font-size:13.5px">IndexedDB</text>
-  <text class="s" x="145" y="310" text-anchor="middle">локальная копия документов</text>
+  <text class="s" x="145" y="310" text-anchor="middle">local copy of documents</text>
   <rect class="box" x="40" y="346" width="210" height="64" rx="8"/>
   <text class="t" x="145" y="370" text-anchor="middle" style="font-size:13.5px">Service Worker</text>
-  <text class="s" x="145" y="390" text-anchor="middle">кэш приложения (офлайн)</text>
+  <text class="s" x="145" y="390" text-anchor="middle">app cache (offline)</text>
   <rect class="box" x="40" y="426" width="210" height="84" rx="8"/>
   <text class="t" x="145" y="450" text-anchor="middle" style="font-size:13.5px">TanStack Query</text>
-  <text class="s" x="145" y="470" text-anchor="middle">кэш REST-ответов</text>
-  <text class="s" x="145" y="488" text-anchor="middle">(localStorage, 7 дней)</text>
+  <text class="s" x="145" y="470" text-anchor="middle">REST answer cache</text>
+  <text class="s" x="145" y="488" text-anchor="middle">(localStorage, 7 days)</text>
 
   <!-- services -->
-  <text class="t" x="520" y="40" text-anchor="middle" style="fill:#15803d">Серверные процессы (Node.js, TypeScript)</text>
+  <text class="t" x="520" y="40" text-anchor="middle" style="fill:#15803d">Server processes (Node.js, TypeScript)</text>
   <rect class="svc" x="400" y="60" width="240" height="120" rx="12"/>
   <text class="t" x="520" y="86" text-anchor="middle">api</text>
   <text class="s" x="520" y="108" text-anchor="middle">Fastify · REST · Swagger</text>
-  <text class="s" x="520" y="126" text-anchor="middle">авторизация · проекты · файлы</text>
-  <text class="s" x="520" y="144" text-anchor="middle">чат · приглашения · запуск</text>
-  <text class="s" x="520" y="162" text-anchor="middle">WebSocket /ws (события)</text>
+  <text class="s" x="520" y="126" text-anchor="middle">auth · projects · files</text>
+  <text class="s" x="520" y="144" text-anchor="middle">chat · invitations · runs</text>
+  <text class="s" x="520" y="162" text-anchor="middle">WebSocket /ws (events)</text>
 
   <rect class="svc" x="400" y="226" width="240" height="104" rx="12"/>
   <text class="t" x="520" y="252" text-anchor="middle">collab</text>
   <text class="s" x="520" y="274" text-anchor="middle">Hocuspocus · Yjs</text>
-  <text class="s" x="520" y="292" text-anchor="middle">проверка JWT и роли при</text>
-  <text class="s" x="520" y="310" text-anchor="middle">подключении · read-only</text>
+  <text class="s" x="520" y="292" text-anchor="middle">checks JWT and role on</text>
+  <text class="s" x="520" y="310" text-anchor="middle">connect · read-only</text>
 
   <rect class="svc" x="400" y="376" width="240" height="104" rx="12"/>
   <text class="t" x="520" y="402" text-anchor="middle">runner</text>
-  <text class="s" x="520" y="424" text-anchor="middle">воркер очереди BullMQ</text>
-  <text class="s" x="520" y="442" text-anchor="middle">запускает контейнер,</text>
-  <text class="s" x="520" y="460" text-anchor="middle">публикует вывод</text>
+  <text class="s" x="520" y="424" text-anchor="middle">BullMQ queue worker</text>
+  <text class="s" x="520" y="442" text-anchor="middle">starts a container,</text>
+  <text class="s" x="520" y="460" text-anchor="middle">publishes output</text>
 
   <!-- stores -->
   <rect class="store" x="780" y="80" width="230" height="210" rx="12"/>
   <text class="t" x="895" y="108" text-anchor="middle">PostgreSQL</text>
   <text class="s" x="895" y="132" text-anchor="middle">users · refresh_tokens</text>
   <text class="s" x="895" y="150" text-anchor="middle">projects · project_members</text>
-  <text class="s" x="895" y="168" text-anchor="middle">files (снимки Yjs) · messages</text>
-  <text class="s" x="895" y="214" text-anchor="middle">доступ через Prisma</text>
+  <text class="s" x="895" y="168" text-anchor="middle">files (Yjs snapshots) · messages</text>
+  <text class="s" x="895" y="214" text-anchor="middle">access through Prisma</text>
 
   <rect class="store" x="780" y="330" width="230" height="100" rx="12"/>
   <text class="t" x="895" y="358" text-anchor="middle">Redis</text>
-  <text class="s" x="895" y="382" text-anchor="middle">очередь code-runs (BullMQ)</text>
-  <text class="s" x="895" y="400" text-anchor="middle">канал run-events (pub/sub)</text>
+  <text class="s" x="895" y="382" text-anchor="middle">code-runs queue (BullMQ)</text>
+  <text class="s" x="895" y="400" text-anchor="middle">run-events channel (pub/sub)</text>
 
   <rect class="sandbox" x="780" y="440" width="230" height="110" rx="12"/>
-  <text class="t" x="895" y="466" text-anchor="middle" style="fill:#b91c1c">Docker-песочница</text>
-  <text class="s" x="895" y="488" text-anchor="middle">без сети · read-only · 128 МБ</text>
-  <text class="s" x="895" y="506" text-anchor="middle">0,5 CPU · 64 процесса · 10 с</text>
+  <text class="t" x="895" y="466" text-anchor="middle" style="fill:#b91c1c">Docker sandbox</text>
+  <text class="s" x="895" y="488" text-anchor="middle">no network · read-only · 128 MB</text>
+  <text class="s" x="895" y="506" text-anchor="middle">0.5 CPU · 64 processes · 10 s</text>
   <text class="s" x="895" y="524" text-anchor="middle">node:22 · python:3.12</text>
 
   <!-- client <-> services -->
@@ -87,16 +87,16 @@
   <path class="arr" d="M640 100 H780"/>
   <text class="l" x="710" y="92" text-anchor="middle">SQL</text>
   <path class="arr" d="M640 270 H780"/>
-  <text class="l" x="660" y="262" text-anchor="middle">снимки</text>
+  <text class="l" x="660" y="262" text-anchor="middle">snapshots</text>
   <path class="arr" d="M640 135 H700 V350 H780"/>
-  <text class="l" x="670" y="127" text-anchor="middle">задача</text>
+  <text class="l" x="670" y="127" text-anchor="middle">job</text>
   <path class="arr2" d="M780 380 H740 V172 H640"/>
-  <text class="l" x="690" y="164" text-anchor="middle">события</text>
+  <text class="l" x="690" y="164" text-anchor="middle">events</text>
   <path class="arr" d="M640 410 H780" style="marker-start:url(#a)"/>
   <text class="l" x="710" y="402" text-anchor="middle" style="display:none">x</text>
   <path class="arr" d="M640 455 H780"/>
   <text class="l" x="710" y="447" text-anchor="middle">docker run</text>
 
-  <text class="s" x="520" y="585" text-anchor="middle">Пунктир — события вывода: runner публикует run.started / run.output / run.finished в Redis,</text>
-  <text class="s" x="520" y="603" text-anchor="middle">api пересылает их всем участникам проекта по WebSocket /ws.</text>
+  <text class="s" x="520" y="585" text-anchor="middle">Dashed lines are output events: runner publishes run.started / run.output / run.finished to Redis,</text>
+  <text class="s" x="520" y="603" text-anchor="middle">and api forwards them to all project members over WebSocket /ws.</text>
 </svg>

@@ -1,85 +1,73 @@
-# Заключение
+# Conclusion
 
-## Что сделано
+## What was done
 
-Разработана веб-платформа совместной работы над проектами в реальном времени.
-Проект — постоянное общее пространство: в него заходят по ссылке-приглашению
-(в том числе гостем, без регистрации), и участники одновременно правят файлы,
-видят курсоры друг друга, переписываются в чате и видят, кто сейчас в сети.
-Существующий проект можно принести, вставив ссылку на репозиторий GitHub, и
-отправить правки обратно коммитом.
-Поддерживаются три типа файлов: код (Monaco), документ Markdown с живым
-предпросмотром и доска дизайна (react-konva); запуск кода и терминал —
-небольшие вспомогательные функции в изолированных Docker-песочницах. Приложение работает
-как PWA: документы и данные кэшируются локально, правки, сделанные без связи,
-синхронизируются при возвращении.
+A web platform for working on projects together in real time was built. A project is a lasting shared
+space: people join it by an invite link (also as a guest, without an account), and the members edit files
+at the same time, see each other's cursors, write in the chat and see who is online. An existing project
+can be brought in by pasting a link to a GitHub repository, and edits can be pushed back as a commit.
+There are three file types: code (Monaco), a Markdown document with a live preview and a design board
+(react-konva); running code and the terminal are small helper features in isolated Docker sandboxes. The
+app works as a PWA: documents and data are cached locally, and edits made offline sync when the connection
+is back.
 
-Основа продукта — CRDT (Yjs) с сервером синхронизации Hocuspocus, один Yjs-документ
-на файл; сервер проверяет права на уровне соединения (роли `owner`, `editor`,
-`viewer`). REST API (Fastify, Swagger) обслуживает аккаунты, проекты, приглашения,
-файлы, чат и запуск кода; PostgreSQL хранит данные и снимки документов, Redis и
-BullMQ — очередь запусков и канал событий.
+The core of the product is a CRDT (Yjs) with the Hocuspocus sync server, one Yjs document per file; the
+server checks rights at the connection level (roles `owner`, `editor`, `viewer`). The REST API (Fastify,
+Swagger) handles accounts, projects, invitations, files, chat and running code; PostgreSQL stores the data
+and the document snapshots, and Redis with BullMQ carries the run queue and the event channel.
 
-Проведено исследование CRDT и OT на собственном стенде (Yjs и ShareDB,
-138 прогонов): корректность, задержка, нагрузка на сервер, трафик, размер
-документа, слияние после офлайна, перемещение фигур на доске.
+CRDT and OT were studied on an own bench (Yjs and ShareDB, 138 runs): correctness, latency, server load,
+traffic, document size, merging after offline work, and moving shapes on a board.
 
-## Основные выводы исследования
+## Main findings of the research
 
-1. **Корректность.** Обе системы сошлись во всех прогонах, правки не терялись,
-   включая режим максимального числа конфликтов и слияние после офлайна.
-2. **Задержка.** До 50 пользователей у обоих подходов — единицы миллисекунд
-   (p95 не выше 10,3 мс); при 100 пользователях Yjs примерно вдвое медленнее ShareDB
-   (p95 28,7 против 13,4 мс), что остаётся значительно ниже порога заметности
-   (порядка 100 мс).
-3. **Трафик.** Yjs передаёт в 2,2–2,9 раза меньше байт на правку (при правках
-   в разных местах документа).
-4. **Память сервера.** У Yjs выше на 11–22% (10–17 МБ).
-5. **Офлайн.** Исходная гипотеза о преимуществе CRDT по скорости слияния не
-   подтвердилась: ShareDB сливает быстрее (15–16 мс против 39–260 мс) и с
-   меньшим трафиком. Преимущество CRDT — архитектурное: слияние не требует
-   арбитра и работает в любой топологии.
-6. **Размер документа.** Чтобы открыть документ, Yjs требует в 14–19 раз больше
-   байт, чем снимок ShareDB, и этот объём растёт с историей правок (метки
-   удаления), а не с размером текста; суммарно же Yjs хранит в 2,2–2,3 раза
-   меньше, чем ShareDB со снимком и журналом.
-7. **Доска.** Для перемещения фигур различий между подходами нет.
+1. **Correctness.** Both systems converged in all runs and no edits were lost, including the mode with the
+   most conflicts and merging after offline work.
+2. **Latency.** Up to 50 users both approaches have a few milliseconds (p95 at most 10.3 ms); at 100 users
+   Yjs is about twice as slow as ShareDB (p95 of 28.7 against 13.4 ms), which stays well below the
+   threshold people notice (about 100 ms).
+3. **Traffic.** Yjs sends 2.2–2.9 times fewer bytes per edit (with edits in different places of the
+   document).
+4. **Server memory.** 11–22% higher for Yjs (10–17 MB).
+5. **Offline.** The starting hypothesis that a CRDT merges faster was not confirmed: ShareDB merges faster
+   (15–16 ms against 39–260 ms) and with less traffic. The advantage of a CRDT is architectural: merging
+   needs no arbiter and works in any topology.
+6. **Document size.** To open a document, Yjs needs 14–19 times more bytes than a ShareDB snapshot, and
+   this amount grows with the edit history (tombstones), not with the size of the text; in total, though,
+   Yjs stores 2.2–2.3 times less than ShareDB with its snapshot and log.
+7. **Board.** For moving shapes there is no difference between the approaches.
 
-Практический вывод для платформы: выбор CRDT оправдан не скоростью, а
-простотой архитектуры (нет сервера-арбитра, офлайн-режим не требует
-отдельных механизмов, меньше трафика); платой за это служат больший объём состояния при открытии документа
-и необходимость сжатия/сборки мусора для долгоживущих документов.
+The practical conclusion for the platform: choosing a CRDT is justified not by speed but by a simpler
+architecture (no arbiter server, offline mode needs no separate mechanisms, less traffic); the price is a
+larger state when a document is opened and the need for compaction or garbage collection for long-lived
+documents.
 
-## Ограничения
+## Limitations
 
-- Исследование проведено на одной машине по loopback, клиенты — процессы
-  Node.js, а не браузеры; серверы без базы данных (подробно — п. 4.5).
-- Реализация OT — одна (`json0`/`text0`); объяснение разницы в слиянии после
-  офлайна — предположение, не проверенное отдельным экспериментом.
-- Развёртывание в AWS описано (ADR-004, `docs/deploy-aws.md`), но не проверено на
-  реальном аккаунте; контейнеры собираются и запускаются локально.
-- Офлайн-запуск самого приложения (service worker) не покрыт автотестом.
-- Запуск кода защищён на уровне контейнера, но делит ядро с хостом; для
-  публичного запуска недоверенного кода нужна более сильная изоляция.
-- На доске нет картинок (загрузка файлов не реализована).
-- Импорт работает только для публичных репозиториев GitHub. Отправка изменений
-  в GitHub не удаляет и не переименовывает файлы в репозитории и не подтягивает
-  чужие изменения обратно; проверена на имитации GitHub в тестах, на настоящем
-  репозитории с живым токеном не проверялась.
-- Голос, видео и демонстрация экрана сознательно не реализованы: они вне
-  объёма работы.
-- Один экземпляр API: хаб WebSocket хранится в памяти процесса; для
-  горизонтального масштабирования его нужно вынести в Redis pub/sub.
+- The research was done on one machine over loopback, the clients were Node.js processes, not browsers,
+  and the servers ran without a database (details in section 4.5).
+- There is one OT implementation (`json0`/`text0`); the explanation of the difference in merging after
+  offline work is an assumption not checked by a separate experiment.
+- The AWS deployment is described (ADR-004, `docs/deploy-aws.md`) but not checked on a real account; the
+  live site runs on Google Cloud, and the containers build and run locally.
+- Starting the app itself offline (service worker) is not covered by an automated test.
+- Running code is protected at the container level but shares the kernel with the host; running untrusted
+  code in public needs stronger isolation.
+- The board has no pictures (file upload is not built).
+- Import works only for public GitHub repositories. Pushing to GitHub does not delete or rename files in the
+  repository and does not pull other people's changes back; it was checked against a fake GitHub in the
+  tests, not against a real repository with a live token.
+- Voice, video and screen sharing are deliberately not built: they are out of scope.
+- One API instance: the WebSocket hub lives in the process memory; to scale horizontally it has to move to
+  Redis pub/sub.
 
-## Направления развития
+## Directions for further work
 
-- Проверка пары «CRDT и OT» на других реализациях (Automerge, `ot-text`,
-  `rich-text`), в реальной сети и с браузерными клиентами.
-- Сборка мусора и сжатие истории Yjs (`gc`, периодические снимки) и
-  измерение их влияния на размер состояния.
-- Загрузка изображений и вложений (S3), комментарии к документам, история версий.
-- Усиленная изоляция запуска кода (gVisor или Firecracker), больше языков.
-- Горизонтальное масштабирование: Redis-расширение Hocuspocus, рассылка событий
-  через Redis pub/sub.
-- Голосовые каналы и демонстрация экрана (WebRTC) — как отдельный этап вне
-  данной работы.
+- Checking the "CRDT vs OT" pair on other implementations (Automerge, `ot-text`, `rich-text`), on a real
+  network and with browser clients.
+- Garbage collection and compaction of the Yjs history (`gc`, periodic snapshots) and measuring their
+  effect on the state size.
+- Uploading images and attachments (S3), comments on documents.
+- Stronger isolation for running code (gVisor or Firecracker), more languages.
+- Horizontal scaling: the Redis extension of Hocuspocus, sending events through Redis pub/sub.
+- Voice channels and screen sharing (WebRTC), as a separate stage outside this work.

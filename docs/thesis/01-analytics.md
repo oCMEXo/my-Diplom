@@ -1,206 +1,168 @@
-# 1 Аналитическая часть
+# 1 Analysis
 
-## 1.1 Постановка проблемы
+## 1.1 The problem
 
-Когда несколько человек работают над одним фрагментом кода, привычные способы
-совместной работы плохо подходят для коротких, живых сценариев: занятий,
-консультаций, парного программирования, разбора ошибки «вместе у одного экрана».
-Файлы пересылают в мессенджерах, и каждый работает с собственной копией;
-демонстрация экрана оставляет остальных наблюдателями, а не соавторами; работа
-через Git рассчитана на асинхронные изменения и требует установки окружения,
-ветвления и слияния, что несоразмерно разовой совместной правке.
+When several people work on the same piece of code, the usual ways of working together fit short, live
+situations badly: classes, consultations, pair programming, looking at a bug "together at one screen".
+Files are sent in messengers, and everyone works on their own copy; screen sharing leaves the others as
+watchers, not co-authors; Git is made for asynchronous changes and needs an installed environment,
+branches and merges, which is too much for a one-off shared edit.
 
-Существующие инструменты закрывают часть этих сценариев, но с ограничениями.
-Типичные из них — необходимость установки клиентского приложения, зависимость
-сессии от одного участника-хозяина (после его выхода сессия заканчивается) и
-потеря или конфликт правок, сделанных при нестабильной связи. Последнее особенно
-чувствительно: участник, потерявший соединение на несколько минут, должен иметь
-возможность продолжить работу и затем влить свои изменения без ручного
-разрешения конфликтов.
+Existing tools cover part of these situations, but with limits. Typical ones are the need to install a
+client application, a session that depends on one host (when the host leaves, the session ends), and
+lost or conflicting edits when the connection is unstable. The last one hurts most: a participant who
+loses the connection for a few minutes should be able to keep working and then merge their changes
+without resolving conflicts by hand.
 
-Цель работы — разработать веб-платформу, в которой участники открывают общий
-проект по ссылке, одновременно редактируют файлы (код, документы, доски дизайна),
-видят присутствие и курсоры друг друга, общаются в чате и могут работать без
-соединения с последующим автоматическим слиянием, а затем на измерениях этой
-платформы сравнить два семейства алгоритмов синхронизации — Operational
-Transformation (OT) и Conflict-free Replicated Data Types (CRDT).
+The goal of the work is to build a web platform where participants open a shared project by a link, edit
+files (code, documents, design boards) at the same time, see each other's presence and cursors, talk in a
+chat and can work offline with automatic merging later; and then, using measurements on this platform, to
+compare two families of sync algorithms: Operational Transformation (OT) and Conflict-free Replicated
+Data Types (CRDT).
 
-## 1.2 Обзор существующих решений
+## 1.2 Existing solutions
 
-Сравнение выполнено по свойствам, существенным для поставленной задачи. Оценки
-основаны на публичной документации продуктов; перед защитой их необходимо
-сверить с актуальными версиями, так как продукты развиваются. Результаты
-сравнения приведены в таблице 1.1.
+The comparison uses the properties that matter for this task. The assessment is based on the public
+documentation of the products; it should be checked against current versions, because the products keep
+changing. The results are in table 1.1.
 
-Таблица 1.1 — Сравнение платформы с существующими решениями
+Table 1.1. The platform compared with existing solutions
 
-| Свойство | Разработанная платформа | VS Code Live Share | Replit / CodeSandbox |
+| Property | This platform | VS Code Live Share | Replit / CodeSandbox |
 |---|---|---|---|
-| Установка | Не нужна, браузер | Нужен VS Code (у хозяина сессии) | Не нужна, браузер |
-| Работа без сети | Да, с автоматическим слиянием | Нет | Нет |
-| Зависимость от хозяина | Нет | Сессия существует, пока хозяин в сети | Нет |
-| Свой сервер | Можно развернуть | Нет | Нет |
-| Вход без регистрации | Да (гостевой вход по ссылке) | Зависит от провайдера входа | Как правило, нужна учётная запись |
-| Типы файлов | Код, документ Markdown, доска | Код | Код |
+| Installation | Not needed, a browser | VS Code needed (for the host) | Not needed, a browser |
+| Working offline | Yes, with automatic merging | No | No |
+| Depends on a host | No | The session lives while the host is online | No |
+| Own server | Can be deployed | No | No |
+| Joining without an account | Yes (guest entry by link) | Depends on the sign-in provider | An account is usually needed |
+| File types | Code, Markdown document, board | Code | Code |
 
-Отдельно стоит отметить продукты, у которых нет задачи редактирования кода, но
-есть тот же класс технических проблем: Google Docs (исторически построен на OT)
-и Figma (объекты доски хранятся как набор свойств с разрешением конфликтов по
-принципу «последняя запись выигрывает» на уровне свойства). Их опыт показывает,
-что для текста нужны алгоритмы, сохраняющие намерение пользователя при
-конкурентных вставках, а для объектов с независимыми свойствами достаточно
-значительно более простых регистров.
+Products that do not edit code but have the same class of technical problems are also worth noting:
+Google Docs (historically built on OT) and Figma (board objects are stored as sets of properties, and
+conflicts are resolved by "last write wins" per property). Their experience shows that text needs
+algorithms that preserve the user's intention under concurrent inserts, while objects with independent
+properties need only much simpler registers.
 
-Платформа задумана не как площадка для проведения собеседований или
-разовый черновик для кода, а как постоянное пространство проекта: проект живёт, у
-него есть состав участников, история чата и набор файлов разных типов. Запуск
-кода в нём — вспомогательная функция, а не центральная.
+The platform is not meant as a place for interviews or a one-off scratch pad for code, but as a lasting
+project space: a project lives on, it has members, a chat history and a set of files of different types.
+Running code is a helper feature in it, not the centre.
 
-## 1.3 Модель согласованности совместного редактирования
+## 1.3 Consistency model of collaborative editing
 
-Система совместного редактирования реплицирует документ на устройства всех
-участников. Каждый участник правит свою копию немедленно, не дожидаясь сервера
-(иначе набор текста ощущался бы с задержкой в десятки и сотни миллисекунд), а
-правки затем рассылаются остальным. Из-за этого правки разных участников
-неизбежно оказываются **конкурентными**: ни одна не «знала» о другой в момент
-создания. От алгоритма требуется выполнение трёх свойств (модель CCI) [1]:
+A collaborative editing system replicates the document to the devices of all participants. Each
+participant edits their copy at once, without waiting for the server (otherwise typing would feel tens
+or hundreds of milliseconds late), and the edits are then sent to the others. Because of this, edits by
+different participants are inevitably **concurrent**: none of them "knew" about the other when it was
+made. The algorithm must provide three properties (the CCI model) [1]:
 
-- **сходимость** (convergence) — после доставки всех правок все копии
-  документа одинаковы;
-- **сохранение причинности** (causality preservation) — если правка B
-  сделана с учётом правки A, то у всех A применяется раньше B;
-- **сохранение намерения** (intention preservation) — результат применения
-  правки у любого участника соответствует тому, что хотел сделать автор в своём
-  состоянии документа, даже если к моменту применения документ изменился.
+- **convergence**: after all edits are delivered, all copies of the document are the same;
+- **causality preservation**: if edit B was made with edit A in view, then everyone applies A before B;
+- **intention preservation**: applying an edit at any participant gives what the author meant in their
+  state of the document, even if the document has changed by the time it is applied.
 
-Нетривиальность задачи видна на простом примере. Документ содержит «ab»; один
-участник вставляет «X» перед «b» (позиция 1), другой одновременно удаляет «a»
-(позиция 0). Если применить правку другого участника к своему документу «как есть»,
-вставка получит позицию, уже не соответствующую исходному замыслу. Два
-семейства алгоритмов решают это по-разному: OT **преобразует** операцию с учётом
-конкурентных, CRDT **устраняет саму зависимость от позиции**, присваивая
-элементам неизменяемые идентификаторы.
+A simple example shows why this is not trivial. The document holds "ab"; one participant inserts "X"
+before "b" (position 1), and another deletes "a" (position 0) at the same time. If you apply the other
+person's edit to your document "as it is", the insert gets a position that no longer matches the
+original intention. The two families of algorithms solve this differently: OT **transforms** an
+operation against the concurrent ones, while a CRDT **removes the dependence on positions** altogether
+by giving elements immutable identifiers.
 
 ## 1.4 Operational Transformation
 
-Идея OT (Эллис и Гиббс, 1989) [2] состоит в том, что операция над документом
-(`insert(pos, text)`, `delete(pos, len)`) перед применением к состоянию,
-изменившемуся конкурентной операцией, **преобразуется функцией преобразования**
-`T(a, b)`, которая возвращает операцию `a'`, эквивалентную `a` при условии, что
-перед ней уже применена `b`. Корректность требует выполнения условия
-преобразования **TP1**: для конкурентных операций `a` и `b` результат
-применения `a` затем `T(b, a)` совпадает с результатом применения `b` затем
+The idea of OT (Ellis and Gibbs, 1989) [2] is that an operation on the document (`insert(pos, text)`,
+`delete(pos, len)`), before it is applied to a state changed by a concurrent operation, is **transformed
+by a transformation function** `T(a, b)`, which returns an operation `a'` equivalent to `a` given that `b`
+has already been applied. Correctness requires the transformation property **TP1**: for concurrent
+operations `a` and `b`, applying `a` and then `T(b, a)` gives the same result as applying `b` and then
 `T(a, b)` [1].
 
-Для децентрализованной (одноранговой, peer-to-peer) работы нужно ещё условие
-**TP2** (независимость результата от порядка преобразований трёх и более
-конкурентных операций), которое, как показала практика, чрезвычайно трудно
-выполнить: многие опубликованные функции преобразования ему не удовлетворяют. Поэтому
-промышленные системы (в том числе ShareDB [3] и Google Docs) используют **центральный
-сервер**, который задаёт единый порядок операций: клиент отправляет операцию
-вместе с номером версии документа, которую он видел, а сервер преобразует её
-относительно всех операций, принятых после этой версии, и рассылает результат.
-При таком устройстве достаточно TP1, а сложность переносится в сервер.
+Decentralised (peer-to-peer) operation also needs **TP2** (the result does not depend on the order of
+transforming three or more concurrent operations), which in practice is extremely hard to satisfy: many
+published transformation functions do not. So industrial systems (ShareDB [3] and Google Docs among them)
+use a **central server** that sets one order of operations: the client sends an operation together with
+the version number of the document it saw, and the server transforms it against all operations accepted
+after that version and sends out the result. With this design TP1 is enough, and the complexity moves to
+the server.
 
-Следствия для сравнения с CRDT:
+Consequences for the comparison with CRDTs:
 
-- сервер **обязателен** и является точкой сериализации: без него клиенты не
-  могут обменяться правками; у клиента в каждый момент не более одной
-  отправленной, но ещё не подтверждённой сервером операции (остальные ждут в
-  очереди);
-- журнал операций документа растёт со временем и хранится на сервере;
-  из журнала можно восстановить любую версию документа;
-- работа офлайн возможна лишь как накопление очереди операций, которая
-  при подключении преобразуется сервером относительно всего, что произошло
-  за время отсутствия.
+- the server is **required** and is the point of serialisation: without it clients cannot exchange
+  edits; a client has at most one operation sent but not yet confirmed by the server at any moment (the
+  rest wait in a queue);
+- the operation log of a document grows over time and is kept on the server; any version of the
+  document can be rebuilt from it;
+- offline work is possible only as a growing queue of operations, which the server transforms on
+  reconnect against everything that happened in the meantime.
 
-В экспериментальной части в качестве OT-реализации используется ShareDB с типом
-`json0`, в котором текст поддерживается подтипом `text0` (операции `si` — вставка
-строки, `sd` — удаление строки), а значения объектов — операциями `oi`/`od`
-(вставка и удаление значения по ключу) [3, 4].
+In the experimental part, the OT implementation is ShareDB with the `json0` type, in which text is
+handled by the `text0` subtype (operations `si`, insert a string, and `sd`, delete a string), and object
+values by the operations `oi`/`od` (insert and delete a value by key) [3, 4].
 
 ## 1.5 Conflict-free Replicated Data Types
 
-CRDT (Шапиро и др., 2011) [5] — это типы данных, разработанные так, чтобы
-конкурентные изменения **сходились автоматически, без координации**. Различают
-две формы:
+CRDTs (Shapiro et al., 2011) [5] are data types designed so that concurrent changes **converge
+automatically, without coordination**. There are two forms:
 
-- **основанные на состоянии** (state-based, CvRDT): реплики обмениваются состояниями; состояния образуют
-  **верхнюю полурешётку**, а слияние — операция взятия наименьшей верхней грани
-  (`join`). Слияние должно быть **коммутативным** (`a ⊔ b = b ⊔ a`),
-  **ассоциативным** (`(a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)`) и **идемпотентным**
-  (`a ⊔ a = a`). Эти три свойства означают, что порядок, группировка и
-  повторная доставка обновлений не влияют на результат, поэтому сети не нужны
-  ни упорядоченность, ни надёжность «ровно один раз» — достаточно «хотя бы
-  один раз, в любом порядке»;
-- **основанные на операциях** (operation-based, CmRDT): реплики обмениваются операциями, которые
-  коммутируют при условии причинно-упорядоченной доставки.
+- **state-based** (CvRDT): replicas exchange states; the states form a **join semilattice**, and merging
+  is taking the least upper bound (`join`). Merging must be **commutative** (`a ⊔ b = b ⊔ a`),
+  **associative** (`(a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)`) and **idempotent** (`a ⊔ a = a`). These three properties
+  mean that the order, grouping and repeated delivery of updates do not change the result, so the
+  network needs neither ordering nor "exactly once" delivery: "at least once, in any order" is enough;
+- **operation-based** (CmRDT): replicas exchange operations that commute, given causally ordered
+  delivery.
 
-Гарантия, которую получают такие типы, называется **сильной итоговой
-согласованностью** (strong eventual consistency): реплики, получившие один и
-тот же набор обновлений, находятся в одном состоянии независимо от порядка
-получения.
+The guarantee these types give is called **strong eventual consistency**: replicas that have received the
+same set of updates are in the same state, whatever the order in which they received them.
 
-### 1.5.1 Последовательные CRDT для текста
+### 1.5.1 Sequence CRDTs for text
 
-Для последовательностей (текста) известно несколько алгоритмов: WOOT, Logoot,
-RGA, YATA и другие. Общая идея — каждый вставленный символ (или блок символов)
-получает **глобально уникальный неизменяемый идентификатор** и ссылку на
-соседей, между которыми он был вставлен; позиция в тексте вычисляется из этих
-ссылок, а не хранится числом. Тогда «вставить после символа с идентификатором
-`x`» остаётся осмысленным при любых конкурентных правках.
+There are several algorithms for sequences (text): WOOT, Logoot, RGA, YATA and others. The common idea is
+that each inserted character (or block of characters) gets a **globally unique immutable identifier** and
+references to the neighbours it was inserted between; the position in the text is computed from these
+references instead of being stored as a number. Then "insert after the character with identifier `x`"
+stays meaningful whatever concurrent edits happen.
 
-**YATA** (Николаеску и др., 2016) [6], на котором основан Yjs, хранит для каждого
-элемента идентификатор `(clientID, clock)`, где `clock` — счётчик элементов,
-вставленных этим клиентом (по сути, логические часы Лэмпорта [7] в пределах одного источника), левый `origin`
-(соседа слева на момент вставки) и `rightOrigin`. При интеграции элемента,
-вставленного конкурентно с другими в то же место, элементы упорядочиваются
-по `origin` и затем по `clientID`, что даёт одинаковый порядок на всех репликах.
-Удаление не стирает элемент, а снабжает его меткой удаления (**tombstone**),
-потому что на него могут ссылаться чужие конкурентные правки. Yjs уменьшает
-стоимость меток удаления: подряд идущие элементы одного клиента объединяются в один блок, а
-содержимое удалённых элементов отбрасывается, оставляя лишь длину.
+**YATA** (Nicolaescu et al., 2016) [6], which Yjs is based on, stores for each element an identifier
+`(clientID, clock)`, where `clock` counts the elements inserted by this client (in effect Lamport's
+logical clock [7] within one source), a left `origin` (the left neighbour at the time of the insert) and
+a `rightOrigin`. When an element inserted concurrently with others at the same place is integrated, the
+elements are ordered by `origin` and then by `clientID`, which gives the same order on all replicas. A
+delete does not erase the element; it marks it as deleted (a **tombstone**), because other people's
+concurrent edits may refer to it. Yjs makes tombstones cheaper: consecutive elements of one client are
+merged into one block, and the content of deleted elements is dropped, leaving only the length.
 
-Синхронизация в Yjs [8] устроена через **вектор состояний** (state vector) —
-отображение `clientID → следующий ожидаемый clock`. При подключении (или
-переподключении после офлайна) две стороны обмениваются векторами и пересылают
-друг другу только недостающие элементы. Благодаря этому работа офлайн не требует
-специального режима: накопленные локально правки просто попадают в разность
-состояний и сливаются при ближайшей синхронизации.
+Sync in Yjs [8] works through a **state vector**, a map `clientID → next expected clock`. On connect (or
+on reconnect after offline work) the two sides exchange vectors and send each other only the missing
+elements. Thanks to this, offline work needs no special mode: edits collected locally simply end up in the
+state difference and merge at the next sync.
 
-Следствия для сравнения с OT:
+Consequences for the comparison with OT:
 
-- центральный сервер **не обязателен для корректности** (клиенты могут
-  обмениваться правками напрямую); в платформе он нужен как точка
-  подключения, проверки прав и хранения, а не как арбитр порядка;
-- каждый символ несёт служебные данные, поэтому состояние документа
-  **больше**, чем чистый текст, и растёт с числом правок и удалений;
-- слияние после офлайна — это обычный обмен разностью состояний.
+- a central server is **not needed for correctness** (clients could exchange edits directly); in the
+  platform it is needed as a connection point, for access checks and storage, not as an arbiter of order;
+- each character carries extra data, so the document state is **bigger** than the plain text and grows
+  with the number of edits and deletes;
+- merging after offline work is an ordinary exchange of the state difference.
 
-### 1.5.2 Нетекстовые данные: карта регистров
+### 1.5.2 Non-text data: a map of registers
 
-Для объектов доски (фигура — набор свойств: координаты, размер, цвет, текст)
-последовательный CRDT не нужен: подходит **карта** `Y.Map`, в которой каждое
-свойство хранится как регистр по принципу «выживает одна запись» (на практике —
-LWW, last-writer-wins): при конкурентной записи одного и того же свойства
-остаётся ровно одна из записей, причём выбор детерминирован (опирается на
-идентификаторы клиентов) и **одинаков на всех репликах**, а запись разных
-свойств не конфликтует. Порядок
-слоёв хранится как `Y.Array` идентификаторов фигур. Такая модель проще и дешевле
-текстовой, но не сохраняет «намерение» при конфликте значений одного свойства:
-побеждает одна из двух правок целиком. Для перемещения фигуры это приемлемо. Более общая
-модель CRDT для вложенных карт и списков (JSON-документов) описана в [9].
+Board objects (a shape is a set of properties: position, size, colour, text) do not need a sequence CRDT:
+a `Y.Map` **map** fits, where each property is stored as a register in which "one write survives" (in
+practice LWW, last-writer-wins): when the same property is written concurrently, exactly one of the
+writes remains, the choice is deterministic (it relies on client identifiers) and **the same on all
+replicas**, and writes to different properties do not conflict. The layer order is stored as a `Y.Array`
+of shape identifiers. This model is simpler and cheaper than the text one, but it does not preserve
+"intention" when two values of one property conflict: one of the two edits wins as a whole. For moving a
+shape this is acceptable. A more general CRDT model for nested maps and lists (JSON documents) is
+described in [9].
 
-## 1.6 Выводы по главе
+## 1.6 Conclusions of the chapter
 
-1. Задача требует мгновенной локальной правки и автоматического слияния, в том
-   числе после работы без связи; ручное разрешение конфликтов неприемлемо.
-2. OT опирается на центральный сервер как арбитр порядка и хранит журнал
-   операций; CRDT позволяет сливать состояния без арбитра ценой служебных
-   данных в самом документе.
-3. Для платформы выбран **Yjs** (реализация YATA) с сервером синхронизации
-   **Hocuspocus** [10], а для исследовательской части в качестве OT-реализации —
-   **ShareDB** (`json0`/`text0`).
-4. Основная гипотеза работы, проверяемая измерениями: CRDT даёт сопоставимую
-   задержку при небольшом числе пользователей и выигрывает в сценариях с работой
-   офлайн, но проигрывает по размеру документа и использованию памяти.
+1. The task needs instant local edits and automatic merging, including after offline work; resolving
+   conflicts by hand is not acceptable.
+2. OT relies on a central server as the arbiter of order and keeps an operation log; a CRDT can merge
+   states without an arbiter at the cost of extra data in the document itself.
+3. The platform uses **Yjs** (an implementation of YATA) with the **Hocuspocus** sync server [10], and the
+   research part uses **ShareDB** (`json0`/`text0`) as the OT implementation.
+4. The main hypothesis of the work, tested by measurements: a CRDT gives a comparable delay with a small
+   number of users and wins in offline scenarios, but loses on document size and memory use.
