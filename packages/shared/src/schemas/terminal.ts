@@ -49,7 +49,11 @@ export type TerminalServerMessage = z.infer<typeof terminalServerMessageSchema>;
 export const runModeSchema = z.enum(["open", "code", "off"]);
 export type RunMode = z.infer<typeof runModeSchema>;
 
-export const featuresSchema = z.object({ run: runModeSchema });
+export const featuresSchema = z.object({
+  run: runModeSchema,
+  /** Password reset by email works here (an SMTP server is set up, or this is a development server). */
+  passwordReset: z.boolean(),
+});
 export type Features = z.infer<typeof featuresSchema>;
 
 export const runAccessSchema = z.object({ code: z.string().trim().min(1).max(200) });

@@ -3,6 +3,8 @@ export interface StoredUser {
   email: string;
   name: string;
   isGuest: boolean;
+  /** Missing in sessions saved before email confirmation existed. */
+  emailVerified?: boolean;
 }
 
 export interface AuthTokens {

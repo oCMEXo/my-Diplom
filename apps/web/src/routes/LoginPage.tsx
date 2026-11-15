@@ -6,12 +6,15 @@ import { ApiError } from "../lib/api";
 import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
+import { useFeatures } from "../lib/features";
 
 export function LoginPage() {
   const { login, continueAsGuest } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
+  const justReset = searchParams.get("reset") === "1";
+  const features = useFeatures();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +52,11 @@ export function LoginPage() {
   return (
     <AuthShell title="Welcome back" subtitle="Sign in to continue working on your projects.">
       <form onSubmit={onSubmit} className="space-y-4">
+        {justReset && !error && (
+          <p role="status" className="rounded-xl bg-ok/10 px-4 py-3 text-base text-ok">
+            Your password is changed. Sign in with the new one.
+          </p>
+        )}
         {error && <ErrorNote>{error}</ErrorNote>}
         <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Field
@@ -59,6 +67,13 @@ export function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        {features?.passwordReset && (
+          <p className="-mt-2 text-right text-sm">
+            <Link to="/forgot-password" className="text-muted hover:text-fg hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+        )}
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
           {loading ? "Signing in…" : "Sign in"}
         </Button>
