@@ -5,7 +5,6 @@ import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 
-/** A guest adds an e-mail and a password to the same account, so projects and the chat history stay. */
 export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
   const { upgradeGuest } = useAuth();
   const [email, setEmail] = useState("");

@@ -22,7 +22,6 @@ async function downloadRepoFiles(repo: RepoRef, fetchImpl: typeof fetch) {
   return extractRepoFiles(await downloadRepoZip(repo, fetchImpl));
 }
 
-/** Downloads a branch of a repository and adds its files to the project under `branch`. */
 export async function importRepoFiles(
   projectId: string,
   branch: string,
@@ -75,12 +74,11 @@ export async function importFromGithub(
   let branch = project.githubBranch ?? "";
   const defaultBranch = project.githubOwner ? null : (repo.ref ?? (await defaultBranchName(repo, fetchImpl)));
 
-  // Before anything is saved: a repository that cannot be downloaded must not become the project's link.
+  // Download first, so a broken repo never becomes the project's link.
   const downloaded = await downloadRepoFiles(repo, fetchImpl);
 
   if (!project.githubOwner) {
-    // The first repository becomes the project's link, and its branch gets a name, so that other
-    // branches can be opened later. Files created before the link join that branch.
+    // The first repo becomes the project's link; files created before join its default branch.
     const name = defaultBranch;
     branch = name ?? "";
     await prisma.$transaction([

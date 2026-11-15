@@ -8,11 +8,7 @@ import { enqueueRun } from "../../lib/queue.js";
 import { publishRunStop } from "../../lib/run-stop.js";
 import { yjsStateToText } from "../../lib/yjs-text.js";
 
-/**
- * The project's text files on a branch (except one, the file being run), so a program can import its
- * neighbours and a terminal shows the whole project. Shallow files come first when the limits cut the
- * list; installed dependencies are never sent.
- */
+/** The project's other text files for a run or a terminal: shallow files first when limits apply, no node_modules. */
 export async function projectTextFiles(projectId: string, branch: string, exceptId?: string) {
   const rows = await prisma.file.findMany({
     where: {
@@ -40,7 +36,7 @@ export async function projectTextFiles(projectId: string, branch: string, except
   return files;
 }
 
-/** With Redis away the queue waits for it for ever, and the person's request would wait too. */
+/** With Redis down the queue waits forever, so give up after `ms`. */
 const ENQUEUE_TIMEOUT_MS = 5000;
 
 function failAfter(ms: number) {
@@ -49,7 +45,6 @@ function failAfter(ms: number) {
   });
 }
 
-/** Those who may run code in the project may also stop a run there. */
 export async function requestStop(
   userId: string,
   projectId: string,

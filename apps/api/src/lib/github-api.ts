@@ -3,12 +3,10 @@ import { AppError } from "./errors.js";
 const API_BASE = "https://api.github.com";
 
 /**
- * A minimal GitHub REST client for one request flow. The token lives only in this object: it is
- * sent to api.github.com and never stored or logged. GitHub's status codes are mapped to ours, with
- * 401 deliberately turned into 400 so the web client does not mistake it for an expired session.
+ * Minimal GitHub REST client. The token is only sent to api.github.com, never stored or logged.
+ * 401 is mapped to 400 so the web app doesn't take it for an expired session.
  */
 export class GithubApi {
-  /** An empty token makes anonymous requests: enough to read public repositories. */
   constructor(
     private readonly token: string,
     private readonly fetchImpl: typeof fetch = fetch,
@@ -18,7 +16,7 @@ export class GithubApi {
     return this.request<T>("GET", path);
   }
 
-  /** Like `get`, but a 404 answers `null` instead of failing (used to probe for a branch). */
+  /** Like get(), but 404 returns null. */
   async getOrNull<T>(path: string): Promise<T | null> {
     try {
       return await this.request<T>("GET", path);

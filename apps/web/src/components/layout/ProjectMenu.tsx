@@ -34,10 +34,7 @@ function Item({
   );
 }
 
-/**
- * The project's name opens its actions, as a server's name does in Discord: the things done now and
- * then are here rather than on screen all the time.
- */
+/** Project actions, opened from the project name (like a server name in Discord). */
 export function ProjectMenu({
   project,
   canEdit,

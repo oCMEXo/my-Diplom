@@ -47,7 +47,6 @@ export function SyncPill({ status }: { status: SyncStatus }) {
 
 const MAX_AVATARS = 4;
 
-/** Who is here now; a click on somebody else starts or stops following them. */
 function OnlineAvatars() {
   const online = useOnlineUsers();
   const { user } = useAuth();

@@ -40,7 +40,6 @@ const NAV_WIDE = "(min-width: 1024px)";
 /** Wide enough for the chat, the search and an editor between them. */
 const ROOM_FOR_BOTH = "(min-width: 1536px)";
 
-/** When somebody opens another branch, everybody's file list follows. */
 function BranchWatcher({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -55,7 +54,6 @@ function BranchWatcher({ projectId }: { projectId: string }) {
   return null;
 }
 
-/** A role changed or somebody left: refresh the member list and my own rights in the project. */
 function MembersWatcher({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
   useRealtimeEvents((event) => {
@@ -64,7 +62,6 @@ function MembersWatcher({ projectId }: { projectId: string }) {
   return null;
 }
 
-/** Somebody created, renamed or deleted a file: everybody's tree and trash stay current. */
 function FilesWatcher({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
   useRealtimeEvents((event) => {
@@ -75,7 +72,6 @@ function FilesWatcher({ projectId }: { projectId: string }) {
   return null;
 }
 
-/** What the projects page says after the server took the open project away. */
 function revokedNotice(reason: AccessChangeReason, projectName: string) {
   if (reason === "deleted") return `The owner deleted the project “${projectName}”.`;
   if (reason === "left") return `You left the project “${projectName}”.`;

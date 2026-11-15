@@ -24,8 +24,7 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
     if (run?.status === "running") setOpen(true);
   }, [run?.runId, run?.status]);
 
-  // While the program runs, follow the newest output. When it has failed, show the beginning:
-  // the actual error message comes first and the stack trace below it is the less useful part.
+  // Follow new output while running. After a failure show the top, where the error message is.
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;

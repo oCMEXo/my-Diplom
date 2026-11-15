@@ -5,7 +5,7 @@ import type { RunJob } from "@collab/shared";
 import { env } from "../env.js";
 import { AppError } from "./errors.js";
 
-/** With this many runs waiting, the sandbox is not keeping up and another one would only wait in vain. */
+/** Above this many waiting runs, new ones are rejected instead of queued. */
 export const MAX_WAITING_RUNS = 100;
 
 let connection: Redis | null = null;

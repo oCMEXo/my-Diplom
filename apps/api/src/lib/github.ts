@@ -12,11 +12,7 @@ const OWNER = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 const REPO = /^[A-Za-z0-9._-]{1,100}$/;
 const REF = /^[A-Za-z0-9._/-]{1,200}$/;
 
-/**
- * Accepts the forms people actually paste: https://github.com/o/r, .../r.git, .../r/tree/branch,
- * github.com/o/r, git@github.com:o/r.git and the short `o/r`. Anything else is rejected, so only
- * well-formed owner/repo names ever reach the download URL.
- */
+/** Accepts https://github.com/o/r, .git, /tree/<branch>, github.com/o/r, git@github.com:o/r.git and o/r. */
 export function parseGithubUrl(input: string): RepoRef | null {
   let value = input.trim().replace(/[?#].*$/, "");
   const ssh = value.match(/^git@github\.com:(.+)$/i);
@@ -54,7 +50,7 @@ function tooBig() {
   );
 }
 
-/** Downloads the repository archive from GitHub, following only redirects that stay on GitHub. */
+/** Downloads the zip, following redirects only within GitHub. */
 export async function downloadRepoZip(
   repo: RepoRef,
   fetchImpl: typeof fetch = fetch,

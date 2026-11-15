@@ -43,11 +43,7 @@ function findMatches(text: string, pattern: RegExp, limit: number): { matches: S
   return { matches, more: false };
 }
 
-/**
- * "Find in project": a case-insensitive plain-text search over the text files of the active branch.
- * Contents live only as Yjs state, so every file is decoded here; dependencies (node_modules) are
- * skipped because they would drown the project's own code.
- */
+/** Case-insensitive plain-text search in the active branch. Files are stored as Yjs state, so each one is decoded. */
 export async function searchProject(userId: string, projectId: string, rawQuery: string): Promise<SearchResult> {
   await requireProjectRole(projectId, userId, "viewer");
   const query = rawQuery.trim();

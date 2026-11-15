@@ -6,10 +6,7 @@ import { activeBranch } from "../../lib/branch.js";
 import { storeTerminalTicket } from "../../lib/terminal-tickets.js";
 import { projectTextFiles } from "../runs/runs.service.js";
 
-/**
- * Prepares a terminal for the project: the runner gets the files of the active branch as they are
- * now, through a ticket that only the browser asking for it knows.
- */
+/** Leaves a one-time ticket with the current files of the active branch for the runner. */
 export async function openTerminal(
   userId: string,
   projectId: string,

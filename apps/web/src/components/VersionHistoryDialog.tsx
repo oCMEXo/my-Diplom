@@ -13,14 +13,12 @@ import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Spinner } from "./ui/Spinner";
 
-/** The text open in the editor, kept up to date while anyone types. */
 function useCurrentText(controller: EditorController | null) {
   const [text, setText] = useState(() => controller?.getCode() ?? "");
   useEffect(() => controller?.subscribe(setText), [controller]);
   return text;
 }
 
-/** Earlier versions of a code or Markdown file, compared with the current text; editors can put one back. */
 export function VersionHistoryDialog({
   projectId,
   file,

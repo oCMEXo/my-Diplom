@@ -57,10 +57,7 @@ export async function listTrash(userId: string, projectId: string) {
   }));
 }
 
-/**
- * Deletes for good what has been in the trash longer than `days` (every project, every branch).
- * Goes in batches so one pass never holds a huge `IN (...)` or a long lock; returns how many went.
- */
+/** Purges trash older than `days`, in batches to avoid huge IN lists and long locks. Returns the count. */
 export async function purgeExpiredTrash(now = new Date(), days = env.TRASH_RETENTION_DAYS, batchSize = 500) {
   const cutoff = new Date(now.getTime() - days * DAY_MS);
   let purged = 0;
@@ -154,7 +151,7 @@ export async function updateFile(
   }
 }
 
-/** Deleting moves the file to the trash, so a slip of the mouse (or a guest) cannot destroy work. */
+/** Soft delete: the file goes to the trash. */
 export async function deleteFile(userId: string, projectId: string, fileId: string) {
   await requireProjectRole(projectId, userId, "editor");
   const file = await findOwnedFile(projectId, fileId);
@@ -183,7 +180,7 @@ export async function restoreFile(userId: string, projectId: string, fileId: str
   }
 }
 
-/** Removing from the trash is final, so only the project's owner can do it. */
+/** Permanent delete, owner only. */
 export async function purgeFile(userId: string, projectId: string, fileId: string) {
   await requireProjectRole(projectId, userId, "owner");
   await findTrashedFile(projectId, fileId);

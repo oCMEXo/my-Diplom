@@ -22,7 +22,6 @@ export function runInSandbox(
   job: Pick<RunJob, "runId" | "language" | "code"> & Partial<Pick<RunJob, "entry" | "files">>,
   onOutput: OutputHandler,
   timeoutMs = RUN_TIMEOUT_MS,
-  /** Aborted when somebody presses Stop. */
   signal?: AbortSignal,
 ): Promise<ExecutionResult> {
   return new Promise((resolve) => {

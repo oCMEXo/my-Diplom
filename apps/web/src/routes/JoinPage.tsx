@@ -41,7 +41,6 @@ function Failure({ message }: { message: string }) {
   );
 }
 
-/** What a person sees when they open an invite link without being signed in. */
 function InviteLanding({ code, preview }: { code: string; preview: InvitePreview }) {
   const { continueAsGuest } = useAuth();
   const [name, setName] = useState("");

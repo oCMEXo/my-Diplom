@@ -92,7 +92,6 @@ export function FileEditorPage() {
 
   const kind = FILE_KINDS[file.type];
   const languageInfo = file.type === "code" ? describeLanguage(file.path, file.language ?? inferLanguage(file.path)) : null;
-  // Says which language the editor took the file for, and opens the list of all of them.
   const languageChip = languageInfo && (
     <>
       <button

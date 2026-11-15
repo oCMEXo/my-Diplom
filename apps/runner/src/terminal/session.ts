@@ -46,7 +46,7 @@ export function terminalContainerConfig(name: string, userName: string, maxMs: n
   return {
     name,
     Image: TERMINAL_IMAGE,
-    // Sleeping is the container's whole life: shells come and go as `exec`s; when it ends, all of it ends.
+    // The container only sleeps; shells are execs inside it.
     Cmd: ["sleep", String(Math.ceil(maxMs / 1000))],
     User: "65534:65534",
     WorkingDir: TERMINAL_WORKDIR,
@@ -81,7 +81,7 @@ async function waitForExec(exec: Docker.Exec, timeoutMs = 10_000) {
   }
 }
 
-/** Unpacks the project into the container's tmpfs through the exec's stdin; nothing touches the host disk. */
+/** Unpacks the project into the container's tmpfs via stdin. */
 async function copyFiles(container: Docker.Container, files: TarFile[]) {
   if (files.length === 0) return;
   const exec = await container.exec({
@@ -99,10 +99,7 @@ async function copyFiles(container: Docker.Container, files: TarFile[]) {
   if (code !== 0) throw new Error(`copying files failed (${code})`);
 }
 
-/**
- * Starts a sandbox container with the project's files and a bash attached to a real terminal (TTY),
- * so colours, line editing, Ctrl+C and full-screen programs behave as in Git Bash.
- */
+/** Starts a sandbox container with the project files and bash on a TTY, so colours, line editing and Ctrl+C work. */
 export async function openTerminalSession(docker: Docker, options: TerminalSessionOptions): Promise<TerminalSession> {
   const container = await docker.createContainer(
     terminalContainerConfig(`collab-term-${randomUUID()}`, options.userName, options.maxMs),

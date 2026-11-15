@@ -9,17 +9,13 @@ import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Spinner } from "./ui/Spinner";
 
-/**
- * Reloads what depends on the active branch. Resolves once the new file list is in: opening the
- * project before that would pick its start file from the old branch's list.
- */
+/** Refetches everything that depends on the branch. Resolves once the new file list is loaded. */
 export async function refreshProjectFiles(queryClient: ReturnType<typeof useQueryClient>, projectId: string) {
   await Promise.all(
     ["project", "files", "trash", "branches"].map((key) => queryClient.invalidateQueries({ queryKey: [key, projectId] })),
   );
 }
 
-/** Lists the repository's branches; picking one switches the whole project to it. */
 export function BranchDialog({
   project,
   canEdit,

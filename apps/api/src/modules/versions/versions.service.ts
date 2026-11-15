@@ -57,10 +57,7 @@ export async function getVersion(userId: string, projectId: string, fileId: stri
   return { ...toVersionDto(version), content: version.content };
 }
 
-/**
- * The text is replaced by the sync server inside the live document (see lib/collab.ts); it also
- * keeps the replaced text as a version, so a restore can be undone from the same history.
- */
+/** Collab replaces the text in the live doc and saves the old text as a version, so a restore can be undone. */
 export async function restoreVersion(
   userId: string,
   projectId: string,

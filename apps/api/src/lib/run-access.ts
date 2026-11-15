@@ -10,7 +10,7 @@ export function runMode(enabled: boolean, accessCode: string | undefined): RunMo
 
 const digest = (value: string) => createHash("sha256").update(value).digest();
 
-/** Compares in constant time, so the answer's timing says nothing about how much of the code was right. */
+/** Constant-time compare. */
 export function codeMatches(expected: string, given: unknown): boolean {
   return typeof given === "string" && timingSafeEqual(digest(expected), digest(given.trim()));
 }

@@ -14,8 +14,8 @@ export interface RepoFile {
 
 export type SkipCounts = ImportResult["skipped"];
 
-// A repository is imported as it is. Only what can never be useful (git internals, installed
-// dependencies, OS litter) is left out; binaries and oversized files are skipped by the size checks.
+// Skip only what is never useful (.git, node_modules, OS junk). Binaries and big files
+// are caught by the size checks.
 const IGNORED_DIRS = new Set([".git", "node_modules"]);
 const IGNORED_FILES = new Set([".DS_Store", "Thumbs.db"]);
 const MAX_PATH_LENGTH = 500;
@@ -59,10 +59,7 @@ function stripRoot(name: string) {
   return index === -1 ? name : name.slice(index + 1);
 }
 
-/**
- * Picks the text files worth importing from a repository archive: no build output, lockfiles or
- * binaries, nothing above the size limits. Shallow files win when the file limit is reached.
- */
+/** Picks the importable text files from the archive. Shallow files win when the file limit is hit. */
 export function extractRepoFiles(zip: Uint8Array): {
   files: RepoFile[];
   skipped: Omit<SkipCounts, "existing">;
@@ -73,7 +70,7 @@ export function extractRepoFiles(zip: Uint8Array): {
   const candidates: { entry: string; path: string; size: number }[] = [];
 
   try {
-    // First pass only reads the archive's file list; no entry is decompressed.
+    // First pass reads only the file list, nothing is decompressed.
     unzipSync(zip, {
       filter(file) {
         if (file.name.endsWith("/")) return false;

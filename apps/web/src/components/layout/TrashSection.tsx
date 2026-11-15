@@ -14,10 +14,6 @@ function daysLeft(purgeAt: string) {
   return Math.max(1, Math.ceil((new Date(purgeAt).getTime() - Date.now()) / DAY_MS));
 }
 
-/**
- * Deleted files wait here until someone restores them or the retention period runs out; only the
- * owner can remove them for good earlier.
- */
 export function TrashSection({ projectId, canEdit, isOwner }: { projectId: string; canEdit: boolean; isOwner: boolean }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);

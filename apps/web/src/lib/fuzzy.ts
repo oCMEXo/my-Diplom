@@ -16,11 +16,7 @@ function match(needle: string, haystack: string, nameStart: number): number | nu
   return score;
 }
 
-/**
- * Matches `query` against a file path the way editors' "go to file" does: every typed character
- * must appear in order. A match inside the file name beats one spread over the folders, and shorter
- * paths win ties. Returns `null` when the query does not match; a higher number is a better match.
- */
+/** Go-to-file matching: characters in order, matches in the file name rank higher, shorter paths win ties. */
 export function fuzzyScore(query: string, path: string): number | null {
   const needle = query.trim().toLowerCase();
   if (!needle) return 0;

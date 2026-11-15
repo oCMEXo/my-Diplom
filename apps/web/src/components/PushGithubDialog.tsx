@@ -9,7 +9,7 @@ import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 
 const TOKEN_KEY = "collab.github-token";
-/** The sync server writes edits to the database within 3 s; wait a little longer before reading them. */
+/** Collab saves edits to the DB within 3 s; wait a bit longer before reading them. */
 const SYNC_WAIT_MS = 3500;
 const LOOKUP_DELAY_MS = 600;
 
@@ -68,8 +68,8 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
   const tokenReady = token.trim().length >= 10;
   const repoReady = !!linked || repoUrl.trim().length > 3;
 
-  // Once the token (and repository) are filled in, ask GitHub which branches there are. The token
-  // is only ever sent in the request body; nothing here goes into the persisted query cache.
+  // Load the branches once token and repo are filled in. The token only goes in the request body,
+  // never into the persisted query cache.
   useEffect(() => {
     if (!tokenReady || !repoReady) {
       setLookup({ state: "idle" });
@@ -98,7 +98,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
 
   const branch = target === "new" ? newBranch.trim() : existingBranch;
 
-  // Show what would be sent for the chosen branch, so nothing is a surprise after pressing the button.
+  // Preview the push for the selected branch.
   const lookupReady = lookup.state === "ready" && lookup.data.canPush;
   useEffect(() => {
     if (!lookupReady || !branch) {
