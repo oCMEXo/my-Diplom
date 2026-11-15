@@ -25,14 +25,14 @@ enum EmailTokenKind {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  passwordHash String   @map("password_hash")
-  isGuest      Boolean  @default(false) @map("is_guest")
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String
+  passwordHash    String    @map("password_hash")
+  isGuest         Boolean   @default(false) @map("is_guest")
   // Set once the person opened the link from the confirmation email (or reset the password by email).
   emailVerifiedAt DateTime? @map("email_verified_at")
-  createdAt    DateTime @default(now()) @map("created_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
 
   refreshTokens RefreshToken[]
   emailTokens   EmailToken[]
@@ -40,6 +40,7 @@ model User {
   memberships   ProjectMember[]
   messages      Message[]
   fileVersions  FileVersion[]
+  classes       Classroom[]
 
   @@map("users")
 }
@@ -85,13 +86,36 @@ model Project {
   githubOwner  String? @map("github_owner")
   githubRepo   String? @map("github_repo")
   githubBranch String? @map("github_branch")
+  // A student's own copy of a class task; null for ordinary projects.
+  classId      String? @map("class_id")
 
-  owner    User            @relation("ProjectOwner", fields: [ownerId], references: [id])
-  members  ProjectMember[]
-  files    File[]
-  messages Message[]
+  owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members      ProjectMember[]
+  files        File[]
+  messages     Message[]
+  classroom    Classroom?      @relation("ClassCopies", fields: [classId], references: [id], onDelete: SetNull)
+  taughtAsTask Classroom?      @relation("ClassTask")
 
+  @@index([classId])
   @@map("projects")
+}
+
+// A class: students open its link and each gets an own copy of the teacher's task project, with the
+// teacher added as an editor. Deleting the class keeps the students' copies.
+model Classroom {
+  id            String   @id @default(uuid())
+  name          String
+  teacherId     String   @map("teacher_id")
+  taskProjectId String   @unique @map("task_project_id")
+  joinCode      String   @unique @map("join_code")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  teacher User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  task    Project   @relation("ClassTask", fields: [taskProjectId], references: [id], onDelete: Cascade)
+  copies  Project[] @relation("ClassCopies")
+
+  @@index([teacherId])
+  @@map("classes")
 }
 
 model ProjectMember {

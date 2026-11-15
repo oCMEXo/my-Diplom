@@ -29,6 +29,7 @@ import { terminalRoutes } from "./modules/terminal/terminal.routes.js";
 import { exportRoutes } from "./modules/export/export.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
 import { previewRoutes } from "./modules/preview/preview.routes.js";
+import { classesRoutes } from "./modules/classes/classes.routes.js";
 import { closeTerminalTickets } from "./lib/terminal-tickets.js";
 import { codeMatches, runMode } from "./lib/run-access.js";
 import { featuresSchema, runAccessSchema } from "@collab/shared";
@@ -157,6 +158,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(filesRoutes, { prefix: "/projects" });
   await app.register(versionsRoutes, { prefix: "/projects" });
   await app.register(inviteRoutes);
+  await app.register(classesRoutes);
   await app.register(searchRoutes, { prefix: "/projects" });
   await app.register(messagesRoutes, { prefix: "/projects" });
   if (runEnabled) {

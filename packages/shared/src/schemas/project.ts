@@ -39,6 +39,8 @@ export const projectSchema = z.object({
   inviteCode: z.string().nullable(),
   inviteRole: inviteRoleSchema,
   github: githubLinkSchema.nullable(),
+  /** Set when this is a student's copy of a class task. */
+  classId: z.string().uuid().nullable(),
 });
 export type Project = z.infer<typeof projectSchema>;
 

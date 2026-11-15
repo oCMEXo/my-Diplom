@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, Download, FolderDown, GitBranch, LoaderCircle, TextSearch, Upload, UserPlus } from "lucide-react";
-import type { ProjectWithMembers } from "@collab/shared";
+import { ChevronDown, Download, FolderDown, GitBranch, GraduationCap, LoaderCircle, TextSearch, Upload, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import type { Classroom, ProjectWithMembers } from "@collab/shared";
 import { api, ApiError } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { saveBlob } from "../../lib/save-blob";
@@ -56,6 +57,7 @@ export function ProjectMenu({
   onFindInFiles: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -115,6 +117,20 @@ export function ProjectMenu({
           {onInvite && (
             <Item icon={<UserPlus size={18} />} onClick={choose(onInvite)}>
               Invite people
+            </Item>
+          )}
+          {project.myRole === "owner" && !project.classId && (
+            <Item
+              icon={<GraduationCap size={18} />}
+              onClick={() => {
+                setError(null);
+                api
+                  .post<Classroom>(`/projects/${project.id}/class`, {})
+                  .then((classroom) => navigate(`/classes/${classroom.id}`))
+                  .catch((err) => setError(err instanceof ApiError ? err.message : "Could not open the class"));
+              }}
+            >
+              Class for students
             </Item>
           )}
           {project.github && (

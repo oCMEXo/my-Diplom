@@ -12,6 +12,8 @@ import { JoinPage } from "./routes/JoinPage";
 import { PrivacyPage } from "./routes/PrivacyPage";
 import { TermsPage } from "./routes/TermsPage";
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./routes/PasswordPages";
+import { ClassPage } from "./routes/ClassPage";
+import { ClassJoinPage } from "./routes/ClassJoinPage";
 import { ProjectsPage } from "./routes/ProjectsPage";
 import { ProjectPage } from "./routes/ProjectPage";
 import { FileEditorPage } from "./routes/FileEditorPage";
@@ -49,6 +51,7 @@ export function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/join/:code" element={<JoinPage />} />
+              <Route path="/class/:code" element={<ClassJoinPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -56,6 +59,7 @@ export function App() {
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<ProjectsPage />} />
+                <Route path="/classes/:classId" element={<ClassPage />} />
                 <Route path="/projects/:projectId" element={<ProjectPage />}>
                   <Route index element={<EmptyProjectView />} />
                   <Route path="files/:fileId" element={<FileEditorPage />} />
