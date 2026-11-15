@@ -5,6 +5,7 @@ import { requireProjectRole } from "../../lib/authorization.js";
 import { activeBranch } from "../../lib/branch.js";
 import { storeTerminalTicket } from "../../lib/terminal-tickets.js";
 import { projectTextFiles } from "../runs/runs.service.js";
+import { takeRunSlot } from "../../lib/limits.js";
 
 /** Leaves a one-time ticket with the current files of the active branch for the runner. */
 export async function openTerminal(
@@ -13,6 +14,7 @@ export async function openTerminal(
   store: (ticket: string, data: TerminalTicketData) => Promise<void> = storeTerminalTicket,
 ): Promise<TerminalTicket> {
   await requireProjectRole(projectId, userId, "editor");
+  takeRunSlot(userId);
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true } });
   const files = await projectTextFiles(projectId, await activeBranch(projectId));
 

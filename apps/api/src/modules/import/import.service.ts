@@ -7,6 +7,7 @@ import { downloadRepoZip, parseGithubUrl, type RepoRef } from "../../lib/github.
 import { GithubApi } from "../../lib/github-api.js";
 import { extractRepoFiles } from "../../lib/repo-files.js";
 import { textToYjsState } from "../../lib/yjs-text.js";
+import { filesRoomLeft } from "../../lib/limits.js";
 
 /** The name of a public repository's default branch, or `null` when GitHub cannot be asked. */
 export async function defaultBranchName(repo: RepoRef, fetchImpl: typeof fetch = fetch): Promise<string | null> {
@@ -39,7 +40,9 @@ async function saveRepoFiles(
   const existing = new Set(
     (await prisma.file.findMany({ where: { projectId, branch }, select: { path: true } })).map((file) => file.path),
   );
-  const fresh = files.filter((file) => !existing.has(file.path));
+  const room = await filesRoomLeft(projectId);
+  const unique = files.filter((file) => !existing.has(file.path));
+  const fresh = unique.slice(0, room);
 
   const created = await prisma.file.createMany({
     data: fresh.map((file) => ({
@@ -54,7 +57,12 @@ async function saveRepoFiles(
     skipDuplicates: true,
   });
 
-  return { imported: created.count, skipped: { ...skipped, existing: files.length - created.count }, skippedPaths };
+  const overLimit = unique.length - fresh.length;
+  return {
+    imported: created.count,
+    skipped: { ...skipped, overLimit: skipped.overLimit + overLimit, existing: files.length - unique.length + (fresh.length - created.count) },
+    skippedPaths,
+  };
 }
 
 export async function importFromGithub(
