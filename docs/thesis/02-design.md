@@ -1,285 +1,265 @@
-# 2 Проектирование
+# 2 Design
 
-## 2.1 Требования
+## 2.1 Requirements
 
-### 2.1.1 Функциональные требования
+### 2.1.1 Functional requirements
 
-1. Одновременное редактирование одного файла несколькими пользователями с
-   подсветкой синтаксиса и видимыми курсорами участников.
-2. Проекты, дерево файлов, приглашение участников — по ссылке (в том числе
-   гостем без регистрации) и по email.
-3. Три типа файлов: код (редактор Monaco), документ Markdown с предпросмотром и
-   доска дизайна (фигуры, текст, стрелки, курсоры участников, экспорт в PNG и
-   SVG). Совместная работа и офлайн-режим — для всех трёх типов.
-4. Чат проекта и индикатор присутствия участников.
-5. Роли в проекте: владелец (`owner`), редактор (`editor`), наблюдатель
-   (`viewer`); права проверяются на сервере.
-6. Работа без соединения: правки накапливаются локально и автоматически
-   сливаются при подключении.
-7. Запуск JavaScript и Python на сервере с общим для участников выводом и
-   подсветкой строки ошибки — как вспомогательная функция.
-8. Вспомогательные функции, добавленные в ходе реализации: терминал в
-   изолированном контейнере (п. 3.6), импорт публичного репозитория GitHub и
-   отправка изменений в него коммитом, переключение веток репозитория (п. 3.8).
+1. Several users edit one file at the same time, with syntax highlighting and visible cursors of the
+   participants.
+2. Projects, a file tree, and inviting participants by a link (also as a guest without an account) and by
+   email.
+3. Three file types: code (the Monaco editor), a Markdown document with a preview, and a design board
+   (shapes, text, arrows, participants' cursors, export to PNG and SVG). Collaboration and offline mode
+   work for all three types.
+4. A project chat and a presence indicator.
+5. Project roles: owner (`owner`), editor (`editor`), viewer (`viewer`); rights are checked on the server.
+6. Working without a connection: edits are kept locally and merge automatically on reconnect.
+7. Running JavaScript and Python on the server, with output shared by all participants and the error line
+   highlighted, as a helper feature.
+8. Helper features added during implementation: a terminal in an isolated container (section 3.6),
+   importing a public GitHub repository and pushing changes to it as a commit, switching repository
+   branches (section 3.8).
 
-### 2.1.2 Нефункциональные требования
+### 2.1.2 Non-functional requirements
 
-- адаптивный интерфейс от телефона до десктопа;
-- изоляция запускаемого кода (сеть, файловая система, привилегии, ресурсы);
-- документированный REST API (OpenAPI/Swagger) и описанный WebSocket-протокол;
-- развёртывание в облаке (AWS), воспроизводимая сборка и CI.
+- a responsive interface from a phone to a desktop;
+- isolation of the code that runs (network, file system, privileges, resources);
+- a documented REST API (OpenAPI/Swagger) and a described WebSocket protocol;
+- deployment in the cloud, a reproducible build and CI.
 
-### 2.1.3 Что сознательно не входит в объём работы
+### 2.1.3 What is deliberately out of scope
 
-Пошаговый отладчик, полноценный Git-клиент (слияние, получение чужих изменений
-из репозитория, удаление и переименование файлов в нём), голосовые и видеозвонки,
-сложные инструменты дизайна (перо, компоненты, авто-раскладка,
-прототипирование). Голос и видео исключены потому, что это отдельная большая
-подсистема (WebRTC, сигнальный сервер, STUN/TURN), не связанная с
-исследовательским вопросом работы и не укладывающаяся в сроки её выполнения.
+A step-by-step debugger, a full Git client (merging, pulling other people's changes from the repository,
+deleting and renaming files there), voice and video calls, advanced design tools (pen, components,
+auto-layout, prototyping). Voice and video are left out because they are a separate large subsystem
+(WebRTC, a signalling server, STUN/TURN) that has nothing to do with the research question and does not
+fit into the time for the work.
 
-### 2.1.4 Соответствие критериям сложности
+### 2.1.4 Complexity criteria
 
-Соответствие работы критериям сложности показано в таблице 2.1.
+Table 2.1 shows how the work meets the complexity criteria.
 
-Таблица 2.1 — Соответствие критериям сложности
+Table 2.1. Complexity criteria
 
-| Критерий | Чем закрыт |
+| Criterion | Covered by |
 |---|---|
-| Back-end / Front-end | Node.js: REST API, сервер синхронизации, обработчик очереди запусков; React SPA |
-| Adaptive UI | Вёрстка на Tailwind от телефона до десктопа, предпросмотр Markdown, доска |
-| Database | PostgreSQL (RDS), Prisma-миграции |
-| Cloud | AWS: EC2, RDS, S3, CloudFront |
-| API documentation | OpenAPI/Swagger для REST, описание WebSocket-протоколов в `docs/` |
+| Back-end / Front-end | Node.js: REST API, sync server, run queue worker; React SPA |
+| Adaptive UI | Tailwind layout from phone to desktop, Markdown preview, board |
+| Database | PostgreSQL, Prisma migrations (see `docs/db`) |
+| Cloud | Google Cloud (Compute Engine) in practice; an AWS design (EC2, RDS, S3, CloudFront) is described |
+| API documentation | OpenAPI/Swagger for REST, WebSocket protocols described in `docs/` |
 
-## 2.2 Архитектура
+## 2.2 Architecture
 
-Система состоит из клиентского приложения, трёх серверных сервисов на Node.js
-и двух хранилищ (таблица 2.2); связи между ними показаны на рисунке 2.1.
+The system consists of a client application, three server services on Node.js and two stores
+(table 2.2); figure 2.1 shows how they are connected.
 
-Таблица 2.2 — Компоненты системы
+Table 2.2. System components
 
-| Компонент | Назначение |
+| Component | Purpose |
 |---|---|
-| `web` | React SPA: редакторы (Monaco, доска на Konva), чат, управление проектами; PWA |
-| `api` | REST (Fastify), авторизация, проекты, файлы, чат, приглашения; WebSocket `/ws` для событий проекта |
-| `collab` | WebSocket-сервер синхронизации документов (Hocuspocus/Yjs), проверка прав, хранение снимков |
-| `runner` | Обработчик очереди (BullMQ): исполнение кода в изолированных Docker-контейнерах; сервер терминалов (WebSocket) |
-| PostgreSQL | Пользователи, проекты, участники, файлы (снимки Yjs), сообщения |
-| Redis | Очередь задач запуска и канал событий вывода |
+| `web` | React SPA: editors (Monaco, board on Konva), chat, project management; PWA |
+| `api` | REST (Fastify), auth, projects, files, chat, invitations; WebSocket `/ws` for project events |
+| `collab` | WebSocket server for document sync (Hocuspocus/Yjs), access checks, storing snapshots |
+| `runner` | Queue worker (BullMQ): runs code in isolated Docker containers; terminal server (WebSocket) |
+| PostgreSQL | Users, projects, members, files (Yjs snapshots), file versions, messages |
+| Redis | Run job queue and the output event channel |
 
-![Архитектура системы](diagrams/architecture.png)
+![System architecture](diagrams/architecture.png)
 
-Рисунок 2.1 — Компоненты системы и связи между ними
+Figure 2.1. System components and how they are connected
 
-Потоки данных (последовательность обмена при открытии файла и при запуске кода
-показана на рисунках 2.2 и 2.3):
+Data flows (figures 2.2 and 2.3 show the exchange when a file is opened and when code is run):
 
-- **Метаданные** (проекты, список файлов, роли) идут через REST и кэшируются на
-  клиенте (TanStack Query с сохранением в localStorage).
-- **Содержимое файлов** идёт по WebSocket в `collab`: один документ Yjs на файл.
-  Клиент хранит локальную копию в IndexedDB, поэтому ранее открывавшиеся файлы
-  доступны без сети.
-- **Чат** — не CRDT: сообщения пишутся в PostgreSQL через REST и рассылаются
-  событием по WebSocket `/ws`. Историю нужно листать страницами, а в Yjs она
-  росла бы без предела.
-- **Запуск кода**: `api` ставит задачу в очередь, `runner` исполняет её в
-  контейнере и публикует вывод в Redis, `api` пересылает события участникам
-  проекта по `/ws`.
+- **Metadata** (projects, file list, roles) goes through REST and is cached on the client (TanStack Query,
+  saved to localStorage).
+- **File content** goes over WebSocket to `collab`: one Yjs document per file. The client keeps a local
+  copy in IndexedDB, so files opened before are available offline.
+- **Chat** is not a CRDT: messages are written to PostgreSQL through REST and sent out as an event over
+  the `/ws` WebSocket. The history has to be paged, and in Yjs it would grow without limit.
+- **Running code**: `api` puts a job into the queue, `runner` runs it in a container and publishes the
+  output to Redis, and `api` forwards the events to the project members over `/ws`.
 
-![Открытие файла и совместное редактирование](diagrams/sync-sequence.png)
+![Opening a file and editing together](diagrams/sync-sequence.png)
 
-Рисунок 2.2 — Подключение к документу: проверка прав, загрузка снимка, обмен правками и курсорами
+Figure 2.2. Connecting to a document: access check, loading the snapshot, exchanging edits and cursors
 
-![Запуск кода](diagrams/run-sequence.png)
+![Running code](diagrams/run-sequence.png)
 
-Рисунок 2.3 — Запуск кода: очередь, песочница и доставка вывода всем участникам проекта
+Figure 2.3. Running code: the queue, the sandbox and delivering the output to all project members
 
-Принятые архитектурные решения оформлены как ADR (каталог `docs/adr`):
+The architecture decisions are recorded as ADRs (folder `docs/adr`):
 
-- **ADR-001** — один Yjs-документ на файл; дерево файлов хранится в PostgreSQL.
-  Следствие: офлайн доступны файлы, уже открывавшиеся на этом устройстве, а
-  переименование и удаление файлов офлайн не синхронизируются.
-- **ADR-002** — синхронизация через Hocuspocus отдельным сервисом (готовые хуки
-  авторизации и хранения вместо собственного протокола, разработка которого
-  заняла бы несколько недель).
-- **ADR-003** — запуск кода в Docker через очередь; значения ограничений
-  подобраны на этапе реализации (см. п. 3.6).
-- **ADR-004** — один экземпляр EC2 с Docker Compose, база в RDS, клиентское
-  приложение в S3 за CloudFront; путь расширения — ECS.
+- **ADR-001**: one Yjs document per file; the file tree is stored in PostgreSQL. As a result, files opened
+  on this device before are available offline, and renaming and deleting files offline is not synced.
+- **ADR-002**: sync through Hocuspocus as a separate service (ready-made hooks for auth and storage
+  instead of an own protocol, which would take several weeks).
+- **ADR-003**: running code in Docker through a queue; the limit values were chosen during
+  implementation (see section 3.6).
+- **ADR-004**: one EC2 instance with Docker Compose, the database in RDS, the client app in S3 behind
+  CloudFront; ECS as the way to grow. In practice the live site runs on one Google Cloud VM with the
+  same Docker Compose approach.
+- **ADR-005**: a CRDT rather than OT, because offline editing is built in.
 
-## 2.3 Модель данных
+## 2.3 Data model
 
-Данные хранятся в шести таблицах PostgreSQL (таблица 2.3); содержимое файла
-хранится не текстом, а бинарным снимком Yjs. Связи между таблицами показаны на
-рисунке 2.4; на рисунке приведены не все поля: у `users` нет `created_at`, у
-`refresh_tokens` — `created_at`, у `projects` — полей связи с GitHub, у `files` —
-полей `branch`, `source_sha`, `deleted_at`, `trashed_path`.
+The data is stored in seven PostgreSQL tables (table 2.3); file content is stored not as text but as a
+binary Yjs snapshot. Figure 2.4 shows the relations between the main tables; it does not show every
+column: `users` has no `created_at` there, `refresh_tokens` has no `created_at`, `projects` has no GitHub
+columns, `files` has no `branch`, `source_sha`, `deleted_at`, `trashed_path`, and the `file_versions`
+table is left out. The full diagram and the data dictionary are in `docs/db`.
 
-Таблица 2.3 — Таблицы базы данных
+Table 2.3. Database tables
 
-| Таблица | Ключевые поля | Связи |
+| Table | Key columns | Relations |
 |---|---|---|
 | `users` | id, email, name, password_hash, **is_guest**, created_at | — |
 | `refresh_tokens` | id, user_id, token_hash, expires_at, created_at | → users |
 | `projects` | id, name, owner_id, **invite_code**, **invite_role**, **github_owner**, **github_repo**, **github_branch**, created_at | → users |
 | `project_members` | project_id, user_id, role (owner / editor / viewer) | → projects, users |
 | `files` | id, project_id, **branch**, path, type (code / doc / board), language, yjs_state (bytea), **source_sha**, updated_at, **deleted_at**, **trashed_path** | → projects |
+| **`file_versions`** | id, file_id, content, size, author_id, created_at | → files, users |
 | `messages` | id, project_id, author_id, body, created_at | → projects, users |
 
-![Схема базы данных](diagrams/er.png)
+![Database schema](diagrams/er.png)
 
-Рисунок 2.4 — Таблицы PostgreSQL и связи между ними
+Figure 2.4. PostgreSQL tables and their relations
 
-Поля, выделенные в таблице полужирным, добавлены в ходе реализации. Поля
-`is_guest`, `invite_code` и `invite_role` обслуживают приглашения:
-ссылка-приглашение работает как «invite-ссылка в сервер Discord» — любой, у кого
-она есть, попадает в проект с заданной ролью, а гостевой вход создаёт
-одноразовую учётную запись без настоящего email и пароля (служебный адрес вида
-`guest-…@guest.local` и случайный пароль, который никому не сообщается). Поля
-`github_*`, `branch` и `source_sha` нужны для связи с GitHub и веток (п. 3.8),
-`deleted_at` и `trashed_path` — для корзины (п. 3.9); уникальность пути файла
-проверяется в тройке «проект — ветка — путь». Результаты запусков кода не
-хранятся: они живут в Redis до завершения задачи и рассылаются подписчикам.
+The columns in bold were added during implementation. `is_guest`, `invite_code` and `invite_role` serve
+invitations: an invite link works like an invite link to a Discord server: anyone who has it gets into
+the project with the given role, and guest entry creates a throwaway account without a real email or
+password (a technical address like `guest-…@guest.local` and a random password that nobody is told). The
+`github_*`, `branch` and `source_sha` columns are needed for the GitHub link and branches (section 3.8),
+`deleted_at` and `trashed_path` for the trash (section 3.9), and `file_versions` for the version history;
+the uniqueness of a file path is checked within the triple "project, branch, path". Code run results are
+not stored: they live in Redis until the job ends and are sent to subscribers.
 
-### 2.3.1 Авторизация и права
+### 2.3.1 Auth and rights
 
-Вход выдаёт пару токенов: короткоживущий access-токен (JWT) и refresh-токен —
-непрозрачную случайную строку, от которой в БД хранится только хеш; при
-обновлении refresh-токен ротируется. Пароли хешируются argon2id. Права
-проверяются на сервере при каждом обращении: пользователь, не состоящий в
-проекте, получает ответ «не найдено» (а не «запрещено»), чтобы не раскрывать
-существование проекта. В `collab` те же проверки выполняются при подключении к
-документу, а для роли `viewer` соединение помечается как read-only — сервер не
-принимает и не сохраняет правки с него.
+Signing in gives a pair of tokens: a short-lived access token (JWT) and a refresh token, an opaque random
+string of which the database stores only a hash; the refresh token is rotated on every refresh. Passwords
+are hashed with argon2id. Rights are checked on the server for every request: a user who is not in a
+project gets "not found" (not "forbidden"), so the existence of the project is not revealed. `collab` runs
+the same checks when a document is connected, and for the `viewer` role the connection is marked
+read-only: the server does not accept or save edits from it.
 
-## 2.4 Офлайн-режим
+## 2.4 Offline mode
 
-Офлайн опирается на две вещи: service worker кэширует само приложение (вместе с
-редактором Monaco), а `y-indexeddb` хранит локальную копию каждого открытого
-файла. При открытии файла документ сначала загружается из IndexedDB, затем
-синхронизируется с сервером. Без сети правки пишутся только локально, индикатор
-показывает «офлайн». При подключении клиент и сервер обмениваются векторами
-состояний и пересылают только недостающее; CRDT сливает правки без конфликтов.
+Offline work relies on two things: the service worker caches the app itself (with the Monaco editor), and
+`y-indexeddb` keeps a local copy of each open file. When a file opens, the document is first loaded from
+IndexedDB and then synced with the server. Without a network, edits are written only locally and the
+indicator shows "offline". On reconnect, the client and the server exchange state vectors and send only
+what is missing; the CRDT merges the edits without conflicts.
 
-Офлайн **не** работают: чат, запуск кода, создание и переименование файлов,
-файлы, ни разу не открывавшиеся на этом устройстве.
+What does **not** work offline: the chat, running code, creating and renaming files, and files never
+opened on this device.
 
-## 2.5 Интерфейс
+## 2.5 Interface
 
-**Принципы.** Интерфейс построен по привычной модели Discord: проект — это
-«сервер», файлы — «каналы». Слева узкая колонка проектов (быстрое переключение),
-рядом список файлов; в центре рабочая область; справа вкладки «Чат» и «Участники».
-Редкие действия не занимают экран: как меню сервера в Discord, их открывает имя проекта
-(пригласить, ветка, поиск по тексту, импорт и отправка в GitHub, архив ZIP, своя роль), а
-внизу списка файлов — карточка пользователя. Шапка рабочей области — имя файла со
-значком синхронизации, значки действий (ссылка на строку, история, терминал), одна
-кнопка с подписью «Запустить», которая на время работы программы становится
-«Остановить», и аватары тех, кто сейчас в проекте. Вывод запуска — сворачиваемая панель,
-общая для всех участников. Роль `viewer` видит редактор в режиме «только чтение» с
-пометкой в шапке. Доской можно пользоваться и без мыши: кнопка инструмента, нажатая
-с клавиатуры, добавляет фигуру, стрелки её двигают, квадратные скобки выбирают.
+**Principles.** The interface follows the familiar Discord model: a project is a "server", files are
+"channels". On the left there is a narrow column of projects (quick switching) and the file list next to
+it; the work area is in the middle; the "Chat" and "Members" tabs are on the right. Rare actions don't take
+screen space: like the server menu in Discord, the project name opens them (invite people, branch, search
+text, import and push to GitHub, ZIP archive, your role), and at the bottom of the file list there is the
+user card. The header of the work area shows the file name with a sync icon, action icons (mention a line,
+history, terminal), one labelled "Run" button that becomes "Stop" while the program runs, and the avatars
+of the people in the project now. The run output is a collapsible panel shared by all participants. A
+`viewer` sees the editor in read-only mode with a mark in the header. The board can be used without a
+mouse: a tool button pressed from the keyboard adds a shape, the arrows move it, and square brackets
+select shapes.
 
-**Визуальный язык.** Тёмная тема по умолчанию и светлая по выбору (выбор
-запоминается; до первой отрисовки тема применяется скриптом в `index.html`, чтобы
-при загрузке страница не мигала другой темой). Цвета заданы токенами (CSS-переменные), на которых строятся и
-Tailwind-классы, и темы редактора Monaco; шрифты (Inter и JetBrains Mono)
-поставляются вместе с приложением и работают офлайн. Цвет участника един во всём
-интерфейсе: аватар, курсор в редакторе и на доске выбираются по идентификатору
-пользователя одной функцией.
+**Visual language.** The dark theme by default and a light one on request (the choice is remembered;
+before the first paint a script in `index.html` applies the theme, so the page does not flash the other
+theme while loading). Colours are tokens (CSS variables) used both by Tailwind classes and by the Monaco
+editor themes; the fonts (Inter and JetBrains Mono) ship with the app and work offline. A participant's
+colour is the same everywhere: the avatar and the cursor in the editor and on the board are chosen from
+the user id by one function.
 
-**Размеры.** Ориентир — Discord: интерфейс построен по его модели, а первая версия с
-текстом 14 и 10–12 px оказалась мелкой для работы. Теперь 16 px — то, что читают (имена
-файлов, сообщения, поля ввода, основные кнопки), 14 px — то, что это сопровождает (подсказки,
-кнопки панелей), 12 px — метки и время; мельче текста нет (сценарий 40 в п. 5.2). Строка
-списка файлов 34 px, кнопки 32, 40 и 44 px в высоту, колонка проектов 72 px, аватары в чате
-и списке участников 32 px. Код в редакторе и терминале набран в 15 px. Шрифт остался Inter:
-шрифт Discord (gg sans) не распространяется свободно. Шапка рабочей области выбирает, какие
-подписи показать, по своей ширине, а не по ширине окна (CSS container queries): рядом с
-открытыми панелями она узкая и на большом экране.
+**Sizes.** Discord is the reference: the interface follows its model, and the first version with 14 and
+10–12 px text turned out too small to work with. Now 16 px is for what people read (file names, messages,
+inputs, main buttons), 14 px for what goes with it (hints, panel buttons), 12 px for labels and times; no
+text is smaller (scenario 40 in section 5.2). A file list row is 34 px, buttons are 32, 40 and 44 px high,
+the project column is 72 px, and avatars in the chat and the member list are 32 px. Code in the editor and
+the terminal is 15 px. The font stayed Inter: Discord's font (gg sans) is not freely licensed. The header
+of the work area chooses which labels to show by its own width, not the window's (CSS container queries):
+next to open panels it is narrow even on a big screen.
 
-**Сценарии.** Вход: слева витрина продукта, справа форма; «Продолжить как
-гость» — вторая по значимости кнопка. Главная: карточки проектов и поле
-«вставьте ссылку-приглашение». Импорт: репозиторий GitHub вставляется ссылкой — в пустой проект или при
-создании нового (п. 3.8). Новый файл — диалог с выбором типа (код, документ,
-доска) и проверкой имени. Приглашение — диалог со ссылкой, выбором роли по
-ссылке и приглашением по email. Пустой проект — подсказка с тремя быстрыми
-действиями.
+**Scenarios.** Sign-in: a product showcase on the left, the form on the right; "Continue as guest" is the
+second most important button. Home: project cards and a "paste an invite link" field. Import: a GitHub
+repository is pasted as a link, into an empty project or when creating a new one (section 3.8). New file:
+a dialog with a choice of type (code, document, board) and a name check. Invitation: a dialog with the
+link, the role for the link and invitation by email. Empty project: a hint with three quick actions.
 
-**Приглашённый пользователь.** Ссылка-приглашение открывает не форму входа, а страницу
-«Артём приглашает вас в проект „…“» с ролью, которую он получит; гость вводит имя и
-заходит одной кнопкой, а для владельца аккаунта рядом ссылки «Войти» и «Создать». Имя
-можно изменить позже в меню профиля. Сообщения об ошибках сервера написаны по-русски, а
-несуществующий или недоступный проект показывает отдельную страницу с объяснением вместо
-бесконечной загрузки.
+**Invited user.** An invite link opens not the sign-in form but a page "Artem invites you to the project
+'…'" with the role the person will get; a guest enters a name and joins with one button, and for people
+with an account there are "Sign in" and "create one" links next to it. The name can be changed later in
+the profile menu. Server error messages are written in plain language, and a project that does not exist
+or is not available shows a separate page with an explanation instead of endless loading.
 
-**Работа с файлами.** Файлы показаны деревом папок; Ctrl+P (или кнопка «Найти файл»)
-открывает быстрый переход по части имени, файл можно переименовать или переместить в
-папку. Удаление переносит файл в корзину проекта, откуда его восстанавливает любой
-редактор, а навсегда удаляет только владелец. Открытые файлы остаются вкладками.
-Перед отправкой в GitHub показывается список изменений. Проект с файлами
-открывается сразу на последнем открытом файле (или README), в заголовке вкладки
-браузера — имя файла. Владелец меняет роли участников и исключает их из проекта.
+**Working with files.** Files are shown as a folder tree; Ctrl+P (or the "Find a file" button) opens quick
+navigation by part of the name, and a file can be renamed or moved into a folder. Deleting moves a file to
+the project trash, from where any editor can restore it, and only the owner can delete it for good. Open
+files stay as tabs. Before pushing to GitHub, a list of changes is shown. A project with files opens right
+away on the last opened file (or the README), and the browser tab title shows the file name. The owner
+changes members' roles and removes them from the project.
 
-**Адаптивность.** На экранах шириной менее 1024 px колонки проектов и файлов
-уходят в выдвижное меню, менее 1280 px — чат и участники открываются поверх
-рабочей области; документ Markdown на узком экране показывает редактор и предпросмотр
-друг под другом. Анимации отключаются при `prefers-reduced-motion`.
+**Responsive layout.** On screens narrower than 1024 px the project and file columns move into a sliding
+menu; below 1280 px the chat and members open over the work area; a Markdown document on a narrow screen
+shows the editor and the preview one under the other. Animations are turned off with
+`prefers-reduced-motion`.
 
-**Доступность.** Элементы управления имеют текстовые подписи (`aria-label`),
-диалоги закрываются по Escape и возвращают фокус, видимая рамка фокуса задана
-для всех интерактивных элементов. Контраст не проверялся специальными
-инструментами.
+**Accessibility.** Controls have text labels (`aria-label`), dialogs close with Escape and return the
+focus, and a visible focus outline is set for all interactive elements. Contrast was not checked with
+special tools.
 
-Основные экраны интерфейса показаны на рисунках 2.5–2.14.
+The main screens are shown in figures 2.5–2.14.
 
-![Редактор кода: курсор другого участника, чат и присутствие](screenshots/03-editor.png)
+![Code editor: another participant's cursor, chat and presence](screenshots/03-editor.png)
 
-Рисунок 2.5 — Редактор кода: курсор другого участника, чат и присутствие
+Figure 2.5. Code editor: another participant's cursor, chat and presence
 
-![Документ Markdown с предпросмотром](screenshots/04-markdown.png)
+![Markdown document with a preview](screenshots/04-markdown.png)
 
-Рисунок 2.6 — Документ Markdown с предпросмотром
+Figure 2.6. Markdown document with a preview
 
-![Доска дизайна](screenshots/05-board.png)
+![Design board](screenshots/05-board.png)
 
-Рисунок 2.7 — Доска дизайна
+Figure 2.7. Design board
 
-![Диалог приглашения в проект](screenshots/06-invite.png)
+![Invite dialog](screenshots/06-invite.png)
 
-Рисунок 2.8 — Диалог приглашения в проект
+Figure 2.8. Invite dialog
 
-![Страница, открываемая по ссылке-приглашению](screenshots/10-invite-landing.png)
+![The page an invite link opens](screenshots/10-invite-landing.png)
 
-Рисунок 2.9 — Страница, открываемая по ссылке-приглашению
+Figure 2.9. The page an invite link opens
 
-![Импорт проекта из GitHub](screenshots/09-import-github.png)
+![Importing a project from GitHub](screenshots/09-import-github.png)
 
-Рисунок 2.10 — Импорт проекта из GitHub
+Figure 2.10. Importing a project from GitHub
 
-![Светлая тема интерфейса](screenshots/07-light-theme.png)
+![Light theme](screenshots/07-light-theme.png)
 
-Рисунок 2.11 — Светлая тема интерфейса
+Figure 2.11. Light theme
 
-![Главная страница со списком проектов](screenshots/02-projects.png)
+![Home page with the project list](screenshots/02-projects.png)
 
-Рисунок 2.12 — Главная страница со списком проектов
+Figure 2.12. Home page with the project list
 
-![Страница входа](screenshots/01-login.png)
+![Sign-in page](screenshots/01-login.png)
 
-Рисунок 2.13 — Страница входа
+Figure 2.13. Sign-in page
 
-![Интерфейс на экране телефона](screenshots/08-mobile.png)
+![The interface on a phone screen](screenshots/08-mobile.png)
 
-Рисунок 2.14 — Интерфейс на экране телефона
+Figure 2.14. The interface on a phone screen
 
-Снимки экрана создаются автоматически сквозным тестом
-(`SCREENSHOTS=1 pnpm --filter @collab/e2e e2e screenshots`), поэтому их можно
-обновить после любого изменения интерфейса.
+The screenshots are made automatically by an end-to-end test
+(`SCREENSHOTS=1 pnpm --filter @collab/e2e e2e screenshots`), so they can be refreshed after any change to
+the interface.
 
-## 2.6 Структура репозитория
+## 2.6 Repository structure
 
-Монорепозиторий на pnpm workspaces: `apps/{web,api,collab,runner}`,
-`packages/{shared,db}`, `bench/` (стенд исследования), `infra/`, `docs/`. Общие
-типы и схемы валидации (Zod) лежат в `packages/shared` и используются и
-сервером, и клиентом, поэтому контракт между ними проверяется компилятором.
+A pnpm workspaces monorepo: `apps/{web,api,collab,runner}`, `packages/{shared,db}`, `bench/` (the research
+bench), `infra/`, `docs/`. Shared types and validation schemas (Zod) live in `packages/shared` and are used
+by both the server and the client, so the contract between them is checked by the compiler.
