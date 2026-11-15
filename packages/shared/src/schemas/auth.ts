@@ -75,5 +75,8 @@ export const resetPasswordSchema = z.object({
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
+export const githubExchangeSchema = z.object({ code: z.string().min(20).max(200) });
+export type GithubExchangeInput = z.infer<typeof githubExchangeSchema>;
+
 export const verifyEmailSchema = z.object({ token: z.string().min(20).max(200) });
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

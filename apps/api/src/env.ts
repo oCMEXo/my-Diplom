@@ -46,13 +46,23 @@ const envSchema = z.object({
   /** smtp://user:password@host:587 (or smtps://…:465). Without it, emails are only written to the log in development. */
   SMTP_URL: z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional()),
   MAIL_FROM: z.string().default("Collab <no-reply@localhost>"),
+  /** A GitHub OAuth app for "Continue with GitHub"; without both values the button is hidden. */
+  GITHUB_CLIENT_ID: z.preprocess((value) => (value === "" ? undefined : value), z.string().optional()),
+  GITHUB_CLIENT_SECRET: z.preprocess((value) => (value === "" ? undefined : value), z.string().optional()),
+  /** The API's address as browsers see it, for the GitHub callback. Defaults to APP_URL + API_PATH_PREFIX, or localhost:PORT. */
+  API_PUBLIC_URL: z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional()),
   /** Address of the web app, for links in emails. Defaults to the first CORS origin. */
   APP_URL: z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional()),
 });
 
 const parsed = envSchema.parse(process.env);
 
+const appUrl = (parsed.APP_URL ?? parsed.CORS_ORIGIN.split(",")[0]!.trim()).replace(/\/+$/, "");
+
 export const env = {
   ...parsed,
-  APP_URL: (parsed.APP_URL ?? parsed.CORS_ORIGIN.split(",")[0]!.trim()).replace(/\/+$/, ""),
+  APP_URL: appUrl,
+  API_PUBLIC_URL: (
+    parsed.API_PUBLIC_URL ?? (parsed.API_PATH_PREFIX ? `${appUrl}${parsed.API_PATH_PREFIX}` : `http://localhost:${parsed.PORT}`)
+  ).replace(/\/+$/, ""),
 };
