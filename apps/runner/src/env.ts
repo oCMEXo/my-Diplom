@@ -9,6 +9,8 @@ const envSchema = z.object({
   TERMINAL_HOST: z.string().default("0.0.0.0"),
   TERMINAL_MAX_PER_USER: z.coerce.number().int().min(1).default(2),
   TERMINAL_MAX_TOTAL: z.coerce.number().int().min(1).default(8),
+  /** "runsc" runs programs and terminals under gVisor (it must be installed in Docker first). */
+  SANDBOX_RUNTIME: z.preprocess((value) => (value === "" ? undefined : value), z.string().regex(/^[\w.-]+$/).optional()),
 });
 
 export const env = envSchema.parse(process.env);

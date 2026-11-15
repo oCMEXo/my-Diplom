@@ -42,7 +42,12 @@ export function promptName(name: string) {
 }
 
 /** The container settings: no network, a read-only system, small memory, and nothing to escalate. */
-export function terminalContainerConfig(name: string, userName: string, maxMs: number): Docker.ContainerCreateOptions {
+export function terminalContainerConfig(
+  name: string,
+  userName: string,
+  maxMs: number,
+  runtime?: string,
+): Docker.ContainerCreateOptions {
   return {
     name,
     Image: TERMINAL_IMAGE,
@@ -54,6 +59,7 @@ export function terminalContainerConfig(name: string, userName: string, maxMs: n
     Labels: { [TERMINAL_LABEL]: "1" },
     HostConfig: {
       AutoRemove: true,
+      ...(runtime ? { Runtime: runtime } : {}),
       Init: true,
       NetworkMode: "none",
       ReadonlyRootfs: true,
@@ -100,9 +106,13 @@ async function copyFiles(container: Docker.Container, files: TarFile[]) {
 }
 
 /** Starts a sandbox container with the project files and bash on a TTY, so colours, line editing and Ctrl+C work. */
-export async function openTerminalSession(docker: Docker, options: TerminalSessionOptions): Promise<TerminalSession> {
+export async function openTerminalSession(
+  docker: Docker,
+  options: TerminalSessionOptions,
+  runtime?: string,
+): Promise<TerminalSession> {
   const container = await docker.createContainer(
-    terminalContainerConfig(`collab-term-${randomUUID()}`, options.userName, options.maxMs),
+    terminalContainerConfig(`collab-term-${randomUUID()}`, options.userName, options.maxMs, runtime),
   );
   let closed = false;
   let shell: Duplex | null = null;

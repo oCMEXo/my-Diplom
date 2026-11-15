@@ -3,11 +3,14 @@ import type Docker from "dockerode";
 import { buildTar } from "../tar.js";
 
 /** Bump the tag whenever the Dockerfile below changes, so runners build the new image. */
-export const TERMINAL_IMAGE = "collab-terminal:1";
+export const TERMINAL_IMAGE = "collab-terminal:2";
 
-/** Node and Python in one image, with bash, so `node main.js` and `python app.py` both work. */
+/**
+ * Node, Python, gcc/g++ and a JDK in one image, with bash: the terminal uses it, and so do C, C++ and
+ * Java runs.
+ */
 const DOCKERFILE = `FROM node:22-alpine
-RUN apk add --no-cache bash python3 coreutils ncurses less \\
+RUN apk add --no-cache bash python3 coreutils ncurses less build-base openjdk21-jdk \\
  && ln -sf /usr/bin/python3 /usr/local/bin/python
 COPY bashrc /etc/collab.bashrc
 ENV TERM=xterm-256color LANG=C.UTF-8 HOME=/project HISTFILE=/tmp/.bash_history \\

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prisma } from "@collab/db";
-import { MAX_RUN_FILES, MAX_RUN_FILES_BYTES, inferLanguage, toRunnableLanguage } from "@collab/shared";
+import { MAX_RUN_FILES, MAX_RUN_FILES_BYTES, inferLanguage, runnableLanguageList, toRunnableLanguage } from "@collab/shared";
 import type { RunJob } from "@collab/shared";
 import { AppError } from "../../lib/errors.js";
 import { requireProjectRole } from "../../lib/authorization.js";
@@ -77,7 +77,7 @@ export async function requestRun(
 
   const language = toRunnableLanguage(file.language ?? inferLanguage(file.path));
   if (!language) {
-    throw new AppError("Only JavaScript and Python files can run", 400);
+    throw new AppError(`Only ${runnableLanguageList()} files can run`, 400);
   }
 
   const user = await prisma.user.findUniqueOrThrow({

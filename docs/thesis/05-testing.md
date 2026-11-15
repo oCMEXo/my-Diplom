@@ -140,7 +140,7 @@ Table 5.2. Isolation measures for running code
 | Time | 10 seconds, then the container is killed (`docker kill`) |
 | Output | at most 64 KB, the rest is dropped |
 | The host is not touched | the project goes in as a tar archive on stdin and is unpacked into the container's tmpfs; the file name is passed in an environment variable |
-| Only allowed languages | JavaScript and Python; other values are rejected before running |
+| Only allowed languages | JavaScript, Python, C, C++ and Java; other values are rejected before running |
 | Rights | only a project member with the `editor` role or higher can run code |
 
 The tests with real Docker check: no network, no writing to the root file system, running as an

@@ -14,7 +14,7 @@
 4. A project chat and a presence indicator.
 5. Project roles: owner (`owner`), editor (`editor`), viewer (`viewer`); rights are checked on the server.
 6. Working without a connection: edits are kept locally and merge automatically on reconnect.
-7. Running JavaScript and Python on the server, with output shared by all participants and the error line
+7. Running JavaScript, Python, C, C++ and Java on the server, with output shared by all participants and the error line
    highlighted, as a helper feature.
 8. Helper features added during implementation: a terminal in an isolated container (section 3.6),
    importing a public GitHub repository and pushing changes to it as a commit, switching repository

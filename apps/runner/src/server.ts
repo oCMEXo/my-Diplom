@@ -76,7 +76,7 @@ const terminals =
         },
         openSession: async (options) => {
           await ensureTerminalImage(docker);
-          return openTerminalSession(docker, options);
+          return openTerminalSession(docker, options, env.SANDBOX_RUNTIME);
         },
         maxMs: TERMINAL_MAX_MINUTES * 60_000,
         maxPerUser: env.TERMINAL_MAX_PER_USER,
@@ -99,9 +99,9 @@ if (terminals) {
   terminals.listen(env.TERMINAL_PORT, env.TERMINAL_HOST, () => {
     console.log(`terminals on ws://${env.TERMINAL_HOST}:${env.TERMINAL_PORT}`);
   });
-  // Build the terminal image in advance.
-  ensureTerminalImage(docker).catch((error) => console.error("terminal image:", error.message));
 }
+// The terminal image also runs C, C++ and Java programs, so it is built in advance either way.
+ensureTerminalImage(docker).catch((error) => console.error("toolchain image:", error.message));
 
 async function shutdown() {
   terminals?.close();

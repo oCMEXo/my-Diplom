@@ -441,7 +441,7 @@ test("the new-file dialog tells what happens to each language, and lists them al
   await name.fill("main.py");
   await expect(hint).toContainText("Python: highlighting and running");
   await name.fill("main.go");
-  await expect(hint).toContainText("Go: highlighting. Only JavaScript and Python can run");
+  await expect(hint).toContainText("Go: highlighting. Only JavaScript, Python, C, C++ and Java can run");
   await name.fill("notes.xyz");
   await expect(hint).toContainText("The extension .xyz is unknown");
   await dialog.getByRole("button", { name: "Which languages are supported?" }).click();

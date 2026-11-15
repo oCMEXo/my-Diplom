@@ -45,6 +45,34 @@ describe("buildDockerArgs", () => {
   });
 });
 
+describe("compiled languages and gVisor", () => {
+  it("compiles C in the toolchain image, with more memory and an executable /tmp", () => {
+    const args = buildDockerArgs("c", "x");
+    const joined = args.join(" ");
+    expect(args).toContain("collab-terminal:2");
+    expect(joined).toContain("--tmpfs /tmp:rw,exec,size=16m");
+    expect(joined).toContain("--memory 256m");
+    expect(args.at(-1)).toContain(`gcc -std=c17 -O1 -o /tmp/program "./$ENTRY" -lm && exec /tmp/program`);
+    expect(args).toContain("ENTRY=main.c");
+  });
+
+  it("keeps /tmp non-executable for interpreted languages", () => {
+    expect(buildDockerArgs("python", "x").join(" ")).toContain("--tmpfs /tmp:rw,size=16m");
+  });
+
+  it("runs Java from source with a small heap", () => {
+    const args = buildDockerArgs("java", "x");
+    expect(args).toContain("ENTRY=Main.java");
+    expect(args.at(-1)).toContain('-Xmx128m "./$ENTRY"');
+    expect(args.join(" ")).toContain("--pids-limit 128");
+  });
+
+  it("asks Docker for another runtime only when one is set", () => {
+    expect(buildDockerArgs("python", "x")).not.toContain("--runtime");
+    expect(buildDockerArgs("python", "x", undefined, { runtime: "runsc" }).join(" ")).toContain("--runtime runsc");
+  });
+});
+
 describe("parseErrorLine", () => {
   it("reads the failing line from a node stack trace", () => {
     const stderr = [
@@ -92,5 +120,21 @@ describe("parseErrorLine", () => {
   it("returns null when there is no location", () => {
     expect(parseErrorLine("python", "something went wrong")).toBeNull();
     expect(parseErrorLine("javascript", "")).toBeNull();
+  });
+
+  it("reads the line of a gcc error in the entry file only", () => {
+    const stderr = [
+      "./main.c: In function 'main':",
+      "./main.c:7:3: error: expected ';' before '}' token",
+      "./util.h:2:1: error: x",
+    ].join("\n");
+    expect(parseErrorLine("c", stderr)).toBe(7);
+    expect(parseErrorLine("cpp", "./src/app.cpp:12:5: fatal error: missing.h: No such file", "src/app.cpp")).toBe(12);
+  });
+
+  it("reads java compile errors and stack traces", () => {
+    expect(parseErrorLine("java", "./Main.java:5: error: ';' expected")).toBe(5);
+    const trace = ['Exception in thread "main" java.lang.ArithmeticException', "\tat Main.main(Main.java:9)"].join("\n");
+    expect(parseErrorLine("java", trace)).toBe(9);
   });
 });
