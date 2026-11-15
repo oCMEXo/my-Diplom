@@ -5,6 +5,7 @@ import { ApiError } from "../lib/api";
 import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
+import { GithubSignInButton } from "./GithubSignIn";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -52,6 +53,7 @@ export function RegisterPage() {
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
           {loading ? "Creating…" : "Create account"}
         </Button>
+        <GithubSignInButton redirectTo={redirectTo} />
         <p className="text-center text-sm text-faint">
           By creating an account, you accept the{" "}
           <Link to="/terms" className="underline hover:text-fg">

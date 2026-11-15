@@ -77,3 +77,11 @@ test("a visitor sees the landing page and can try the app as a guest in one clic
   await page.getByRole("button", { name: "Try it now as a guest" }).click();
   await expect(page.getByRole("heading", { name: /^Hi, Guest \d{4}$/ })).toBeVisible();
 });
+
+test("a cancelled GitHub sign-in explains itself and leads back to the sign-in page", async ({ page }) => {
+  await page.goto("/auth/github#error=GitHub%20sign-in%20was%20cancelled.");
+  await expect(page.getByRole("alert")).toContainText("GitHub sign-in was cancelled.");
+  await expect(page).toHaveURL(/\/auth\/github$/);
+  await page.getByRole("link", { name: "Back to sign-in" }).click();
+  await expect(page).toHaveURL(/\/login/);
+});

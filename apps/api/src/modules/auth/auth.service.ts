@@ -37,7 +37,7 @@ export function toAuthUser(user: UserLike) {
   };
 }
 
-async function issueTokens(user: { id: string; email: string }) {
+export async function issueTokens(user: { id: string; email: string }) {
   const accessToken = signAccessToken({ sub: user.id, email: user.email });
   const refreshToken = generateRefreshToken();
 

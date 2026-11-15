@@ -32,6 +32,8 @@ model User {
   isGuest         Boolean   @default(false) @map("is_guest")
   // Set once the person opened the link from the confirmation email (or reset the password by email).
   emailVerifiedAt DateTime? @map("email_verified_at")
+  // The GitHub account this user signs in with, if any.
+  githubId        String?   @unique @map("github_id")
   createdAt       DateTime  @default(now()) @map("created_at")
 
   refreshTokens RefreshToken[]

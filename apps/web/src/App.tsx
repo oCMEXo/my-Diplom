@@ -16,6 +16,7 @@ import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./routes
 import { ClassPage } from "./routes/ClassPage";
 import { ClassJoinPage } from "./routes/ClassJoinPage";
 import { LandingPage } from "./routes/LandingPage";
+import { GithubCallbackPage } from "./routes/GithubSignIn";
 import { ProjectsPage } from "./routes/ProjectsPage";
 import { ProjectPage } from "./routes/ProjectPage";
 import { FileEditorPage } from "./routes/FileEditorPage";
@@ -73,6 +74,7 @@ export function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/auth/github" element={<GithubCallbackPage />} />
               <Route path="/" element={<Home />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/classes/:classId" element={<ClassPage />} />

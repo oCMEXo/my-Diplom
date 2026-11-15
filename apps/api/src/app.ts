@@ -36,6 +36,7 @@ import { featuresSchema, runAccessSchema } from "@collab/shared";
 import { closeRunQueue } from "./lib/queue.js";
 import { closeAccessChanges } from "./lib/access-changes.js";
 import { mailConfigured } from "./lib/mailer.js";
+import { githubSignInEnabled } from "./modules/auth/github-signin.service.js";
 import { closeHealthChecks, readiness } from "./lib/health.js";
 import { clientErrorsRoutes } from "./modules/client-errors/client-errors.routes.js";
 
@@ -60,6 +61,7 @@ const AUTH_LIMITED_URLS = new Set([
   "/auth/reset-password",
   "/auth/verify-email",
   "/auth/resend-verification",
+  "/auth/github/exchange",
   // Reveals whether an email is registered, so it is limited like login.
   "/projects/:projectId/members",
   "/run-access",
@@ -144,7 +146,7 @@ export async function buildApp(options: AppOptions = {}) {
   app.get(
     "/features",
     { schema: { tags: ["runs"], response: { 200: featuresSchema } } },
-    async () => ({ run: runMode(runEnabled, runAccessCode), passwordReset: mailConfigured() }),
+    async () => ({ run: runMode(runEnabled, runAccessCode), passwordReset: mailConfigured(), githubSignIn: githubSignInEnabled() }),
   );
   // Limited like login, so the code can't be brute-forced.
   app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema } }, async (request, reply) => {

@@ -7,6 +7,7 @@ import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
 import { useFeatures } from "../lib/features";
+import { GithubSignInButton } from "./GithubSignIn";
 
 export function LoginPage() {
   const { login, continueAsGuest } = useAuth();
@@ -88,6 +89,7 @@ export function LoginPage() {
           <Sparkles size={18} className="text-accent-ink" />
           Continue as guest
         </Button>
+        <GithubSignInButton redirectTo={redirectTo} />
         <p className="text-center text-sm text-faint">
           A guest needs no email and no password. By signing in, you accept the{" "}
           <Link to="/terms" className="underline hover:text-fg">

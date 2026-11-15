@@ -190,7 +190,7 @@ describe("HTTP behaviour a person sees", { timeout: 30_000 }, () => {
       const app = await buildApp(options);
       try {
         const response = await app.inject({ method: "GET", url: "/features" });
-        expect(response.json()).toEqual({ run, passwordReset: true });
+        expect(response.json()).toEqual({ run, passwordReset: true, githubSignIn: false });
       } finally {
         await app.close();
       }

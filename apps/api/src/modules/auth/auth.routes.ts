@@ -6,6 +6,7 @@ import {
   deleteAccountSchema,
   errorResponseSchema,
   forgotPasswordSchema,
+  githubExchangeSchema,
   guestLoginSchema,
   loginSchema,
   refreshSchema,
@@ -27,6 +28,8 @@ import {
   upgradeGuest,
 } from "./auth.service.js";
 import { requestPasswordReset, resendVerification, resetPassword, verifyEmail } from "./email.service.js";
+import { completeGithubSignIn, exchangeGithubCode, githubAuthorizeUrl } from "./github-signin.service.js";
+import { env } from "../../env.js";
 
 export const authRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -194,5 +197,42 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
       await resendVerification(request.userId);
       return reply.code(204).send(null);
     },
+  );
+
+  app.get(
+    "/github/start",
+    { schema: { tags: ["auth"], querystring: z.object({ redirect: z.string().max(500).optional() }) } },
+    async (request, reply) => reply.redirect(githubAuthorizeUrl(request.query.redirect)),
+  );
+
+  // GitHub sends the person back here; the browser then goes on to the web app with a one-time code.
+  app.get(
+    "/github/callback",
+    {
+      schema: {
+        tags: ["auth"],
+        querystring: z.object({ code: z.string().max(200).optional(), state: z.string().max(200).optional(), error: z.string().optional() }),
+      },
+    },
+    async (request, reply) => {
+      const back = new URL(`${env.APP_URL}/auth/github`);
+      if (!request.query.code || !request.query.state) {
+        back.hash = new URLSearchParams({ error: "GitHub sign-in was cancelled." }).toString();
+        return reply.redirect(back.toString());
+      }
+      try {
+        const { exchange, redirect } = await completeGithubSignIn(request.query.code, request.query.state);
+        back.hash = new URLSearchParams({ code: exchange, redirect }).toString();
+      } catch (error) {
+        back.hash = new URLSearchParams({ error: (error as Error).message }).toString();
+      }
+      return reply.redirect(back.toString());
+    },
+  );
+
+  app.post(
+    "/github/exchange",
+    { schema: { tags: ["auth"], body: githubExchangeSchema, response: { 200: authResponseSchema, 400: errorResponseSchema } } },
+    async (request) => exchangeGithubCode(request.body.code),
   );
 };

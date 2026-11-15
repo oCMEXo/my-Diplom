@@ -53,6 +53,8 @@ export const featuresSchema = z.object({
   run: runModeSchema,
   /** Password reset by email works here (an SMTP server is set up, or this is a development server). */
   passwordReset: z.boolean(),
+  /** "Continue with GitHub" works here (a GitHub OAuth app is set up). */
+  githubSignIn: z.boolean(),
 });
 export type Features = z.infer<typeof featuresSchema>;
 
