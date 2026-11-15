@@ -1,51 +1,43 @@
 # @collab/web
 
-React SPA: Vite, Monaco Editor + y-monaco + y-indexeddb (offline cache),
-Hocuspocus provider for real-time sync, TanStack Query for REST, Tailwind.
+React SPA: Vite, Monaco Editor + y-monaco + y-indexeddb (offline cache), the Hocuspocus provider for
+real-time sync, TanStack Query for REST, Tailwind.
 
-## Что есть
+## What's in it
 
-- Регистрация / вход / **вход как гость без регистрации**
-- Ссылка-приглашение в проект (`/join/:code`, как invite-ссылка в Discord) —
-  владелец генерирует, может перевыпустить и выбрать роль (`editor`/`viewer`);
-  плюс точечное приглашение по email, если нужен конкретный человек
-- Колонка проектов (как серверы в Discord), файлы по типам, создание файла
-  через диалог (код / документ / доска)
-- Совместный Monaco-редактор поверх Yjs: правки синхронизируются в реальном
-  времени между всеми открывшими файл, с учётом роли (`viewer` → read-only
-  на сервере); цветные курсоры и выделения с именами участников
-- Документы Markdown: редактор и живой предпросмотр рядом (react-markdown)
-- Доска дизайна (react-konva поверх Yjs): прямоугольник, овал, текст, стрелка,
-  цвета, перемещение и изменение размера, undo/redo, курсоры участников,
-  экспорт в PNG и SVG
-- Чат проекта и список участников с индикатором «в сети» (WebSocket `/ws`)
-- Офлайн: PWA (service worker кэширует приложение вместе с Monaco, манифест
-  для установки), Yjs-документы в IndexedDB, кэш REST-запросов в localStorage;
-  правки, сделанные без связи, синхронизируются при возвращении
-- Запуск кода — небольшая кнопка в редакторе и общая сворачиваемая панель
-  «Вывод» (вывод видят все участники проекта)
+- Sign-up, sign-in and **guest entry without an account**
+- Invite links to a project (`/join/:code`, like a Discord invite): the owner creates one, can replace
+  it and choose the role (`editor`/`viewer`); plus invitation by email for a specific person
+- A column of projects (like Discord servers), files by type, a dialog to create a file (code /
+  document / board)
+- A shared Monaco editor on top of Yjs: edits sync in real time between everyone who has the file open,
+  with roles (`viewer` is read-only on the server); coloured cursors and selections with names
+- Markdown documents: the editor and a live preview side by side (react-markdown)
+- A design board (react-konva on top of Yjs): rectangle, ellipse, text, arrow, colours, moving and
+  resizing, undo/redo, other people's cursors, export to PNG and SVG
+- Project chat and a member list with an "online" dot (WebSocket `/ws`)
+- Offline: PWA (the service worker caches the app together with Monaco, a manifest for installing), Yjs
+  documents in IndexedDB, a cache of REST answers in localStorage; edits made offline sync when the
+  connection is back
+- Running code: a small button in the editor and a shared collapsible "Output" panel (everyone in the
+  project sees the output), plus a terminal
+- Dark and light themes (the choice is remembered), Inter and JetBrains Mono bundled with the app,
+  responsive layout (sliding panels on narrow screens)
+- Import of a public GitHub repository by link (into a project or when creating one) and pushing changes
+  back as a commit (needs a GitHub token with write access)
 
-- Тёмная и светлая темы (выбор запоминается), шрифты Inter и JetBrains Mono
-  встроены в сборку, адаптивная вёрстка (выдвижные панели на узких экранах)
+## Limitations
 
-- Импорт публичного репозитория GitHub по ссылке (в проект или при создании
-  проекта) и отправка изменений обратно коммитом (нужен токен GitHub с правом записи);
-  удаление файла из боковой панели
+- No pictures on the board (file upload is not built)
+- The build puts all of Monaco in one chunk (~4 MB, 1.1 MB gzipped) and the PWA precache is about 13 MB:
+  it works, but for production the set of languages should be trimmed
+- Service worker updates: a new version is picked up on the next page load
 
-## Ограничения
-
-- Картинки на доске не поддерживаются (загрузка файлов не реализована)
-- Сборка кладёт весь Monaco в один чанк (~4 МБ, 1,1 МБ в gzip) и precache PWA
-  весит около 13 МБ: работает, но для продакшена стоит ужать набор языков
-- Автообновление service worker: после выхода новой версии она подхватывается
-  при следующей загрузке страницы
-
-## Локальная разработка
+## Local development
 
 ```bash
 cp .env.example .env
 pnpm --filter @collab/web dev
 ```
 
-Нужны также запущенные `apps/api` (REST) и `apps/collab` (синхронизация) —
-см. корневой README.
+`apps/api` (REST) and `apps/collab` (sync) must be running too; see the root README.

@@ -1,19 +1,17 @@
-# ADR-002: синхронизация через Hocuspocus
+# ADR-002: sync through Hocuspocus
 
-## Решение
+## Decision
 
-Сервер синхронизации — Hocuspocus отдельным сервисом `collab`. При
-подключении он проверяет JWT и доступ к проекту, а снимки документов сохраняет
-в PostgreSQL.
+The sync server is Hocuspocus, as a separate service `collab`. On connect it checks the JWT and access to
+the project, and it saves document snapshots to PostgreSQL.
 
-| Вариант | Плюсы | Минусы |
+| Option | Pros | Cons |
 |---|---|---|
-| **Hocuspocus (выбран)** | Готовые хуки авторизации и хранения, расширение для Redis | Ещё одна библиотека в стеке |
-| y-websocket | Минимальный, эталонный сервер Yjs | Авторизацию и хранение пишем сами |
-| Свой протокол на Fastify | Полный контроль | Недели работы и риск ошибок синхронизации |
+| **Hocuspocus (chosen)** | Ready-made hooks for auth and storage, a Redis extension | One more library in the stack |
+| y-websocket | Minimal reference server for Yjs | Auth and storage have to be written by hand |
+| Own protocol on Fastify | Full control | Weeks of work and a risk of sync bugs |
 
-## Примечание
+## Note
 
-Чат идёт не через CRDT: сообщения пишутся в PostgreSQL через REST и
-рассылаются событием по WebSocket. Историю чата нужно листать страницами, а в
-Yjs она росла бы без предела.
+The chat does not use the CRDT: messages are written to PostgreSQL through REST and sent out as an event
+over WebSocket. Chat history has to be paged, and in Yjs it would grow without limit.

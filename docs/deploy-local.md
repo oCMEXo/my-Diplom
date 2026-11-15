@@ -1,73 +1,72 @@
-# Тестовый хостинг на своём компьютере
+# Test hosting on your own computer
 
-Нужен, чтобы показать сайт другим людям (руководителю, друзьям, комиссии) без AWS: он
-работает на вашем компьютере, а доступ снаружи даёт бесплатный туннель Cloudflare.
+This is for showing the site to other people (the supervisor, friends, the committee) without a cloud:
+it runs on your computer, and a free Cloudflare tunnel gives access from outside.
 
-## Запуск
+## Starting it
 
-Нужны: запущенный Docker Desktop с контейнерами разработки
-(`docker compose -f infra/docker-compose.dev.yml up -d`) и `pnpm install`.
+You need Docker Desktop running with the development containers
+(`docker compose -f infra/docker-compose.dev.yml up -d`) and `pnpm install`.
 
 ```bash
-pnpm host:test                  # собрать, запустить, открыть публичный адрес
-pnpm host:test -- --no-tunnel   # только http://127.0.0.1:8787, без туннеля
-pnpm host:test -- --skip-build  # не пересобирать сайт, если код не менялся
-pnpm host:test -- --port=8800   # другой порт
-pnpm host:test -- --no-run      # совсем без запуска кода и терминала
+pnpm host:test                  # build, start, open a public address
+pnpm host:test -- --no-tunnel   # only http://127.0.0.1:8787, no tunnel
+pnpm host:test -- --skip-build  # don't rebuild the site if the code did not change
+pnpm host:test -- --port=8800   # another port
+pnpm host:test -- --no-run      # no running code and no terminal at all
 ```
 
-В конце в окне появится адрес вида `https://что-то-там.trycloudflare.com`: его можно
-отправлять. **Адрес меняется при каждом запуске**, а остановить хостинг можно через
-Ctrl+C. Пока компьютер спит, выключен или окно закрыто, сайт недоступен. Последний
-адрес также записан в `infra/local-host/.state/public-url.txt`.
+At the end the window shows an address like `https://something.trycloudflare.com` that you can send to
+people. **The address changes on every start.** Stop the hosting with Ctrl+C. While the computer sleeps,
+is off, or the window is closed, the site is not available. The last address is also written to
+`infra/local-host/.state/public-url.txt`.
 
-При первом запуске скачивается `cloudflared` (около 30 МБ, с официальных релизов
-Cloudflare на GitHub) в `infra/local-host/bin/`. В Git он не попадает.
+On the first start `cloudflared` (about 30 MB, from Cloudflare's official releases on GitHub) is
+downloaded to `infra/local-host/bin/`. It is not committed to Git.
 
-## Что запускается
+## What starts
 
-| Часть | Где | Зачем |
+| Part | Where | Why |
 |---|---|---|
-| База `collab_host` | в контейнере Postgres из разработки | отдельно от данных разработки |
-| API | `127.0.0.1:9787` | REST и WebSocket событий |
-| Сервер синхронизации | `127.0.0.1:10787` | совместное редактирование |
-| Runner (песочница) | очередь в Redis №2, терминалы на `127.0.0.1:11787` | запуск кода и терминал |
-| Веб-приложение + прокси | `127.0.0.1:8787` | сайт, `/api`, `/collab` и `/terminal` на одном адресе |
-| Туннель Cloudflare | наружу → `127.0.0.1:8787` | публичный адрес |
+| Database `collab_host` | in the development Postgres container | apart from the development data |
+| API | `127.0.0.1:9787` | REST and the event WebSocket |
+| Sync server | `127.0.0.1:10787` | editing together |
+| Runner (sandbox) | queue in Redis database 2, terminals on `127.0.0.1:11787` | running code and the terminal |
+| Web app + proxy | `127.0.0.1:8787` | the site, `/api`, `/collab` and `/terminal` on one address |
+| Cloudflare tunnel | outside → `127.0.0.1:8787` | public address |
 
-Порты API и сервера синхронизации слушают только `127.0.0.1`, снаружи они недоступны:
-весь трафик идёт через один прокси.
+The API and the sync server listen only on `127.0.0.1` and cannot be reached from outside: all traffic
+goes through one proxy.
 
-## Что включено ради безопасности
+## What is turned on for security
 
-Публичный адрес открывает вашу машину всем, у кого есть ссылка, поэтому:
+A public address opens your machine to everyone who has the link, so:
 
-- **Запуск кода и терминал — только по коду доступа.** При первом запуске создаётся код
-  вида `K7PX-M2QD-9WRT`; он печатается в окне хостинга и хранится в
-  `infra/local-host/.state/secrets.json` (поле `runCode`; удалите его, чтобы получить
-  новый код). Посетители без кода редактируют и общаются, но кнопка «Запустить» и
-  терминал просят код, а сервер отвечает `403` на запросы без него. Подбор кода
-  ограничен 20 попытками в минуту. Если Redis или Docker не отвечают (или указан
-  `--no-run`), запуск и терминал выключаются полностью.
-- **Песочница**: программы и терминал работают в контейнерах без сети, с системой только
-  для чтения, от пользователя `nobody`, с лимитами памяти и времени (терминал — 256 МБ,
-  до 30 минут). Код с кодом доступа запускаете вы или те, кому вы его сказали.
-- **Ограничение частоты запросов**: 600 в минуту с адреса и 20 в минуту на вход,
-  регистрацию и гостевой вход (иначе любой мог бы завалить сервер хешированием паролей и
-  созданием гостей).
-- **Секреты** (подписи токенов) генерируются при первом запуске и лежат в
-  `infra/local-host/.state/secrets.json`; в Git они не попадают.
-- Данные тестового сайта в отдельной базе: её можно удалить
-  (`docker exec collab-dev-postgres-1 psql -U collab -d postgres -c "DROP DATABASE collab_host"`),
-  ничего не затронув в разработке.
+- **Running code and the terminal need an access code.** On the first start a code like
+  `K7PX-M2QD-9WRT` is created; it is printed in the hosting window and kept in
+  `infra/local-host/.state/secrets.json` (the `runCode` field; delete it to get a new code). Visitors
+  without the code can edit and chat, but the Run button and the terminal ask for the code, and the
+  server answers `403` to requests without it. Guessing the code is limited to 20 tries a minute. If
+  Redis or Docker does not answer (or `--no-run` is given), running code and the terminal are turned off
+  completely.
+- **Sandbox**: programs and the terminal run in containers without network, with a read-only system, as
+  the user `nobody`, with memory and time limits (the terminal gets 256 MB and up to 30 minutes). Code is
+  run with the access code by you or by the people you told it to.
+- **Rate limits**: 600 requests a minute per address, and 20 a minute for sign-in, sign-up and guest
+  entry (otherwise anyone could overload the server with password hashing and new guests).
+- **Secrets** (token signing keys) are created on the first start and kept in
+  `infra/local-host/.state/secrets.json`; they are not committed to Git.
+- The test site's data is in a separate database, which can be dropped
+  (`docker exec collab-dev-postgres-1 psql -U collab -d postgres -c "DROP DATABASE collab_host"`)
+  without touching development.
 
-## Что надо знать
+## Good to know
 
-- Регистрация открыта для всех, у кого есть адрес. Не публикуйте адрес там, где не хотите
-  лишних гостей, и не храните на тестовом сайте ничего секретного.
-- Туннель «быстрый» (без аккаунта): у Cloudflare для него нет гарантий доступности. Для
-  постоянного адреса понадобятся свой домен и именованный туннель либо деплой по
-  `docs/deploy-aws.md`.
-- Отправка в GitHub и импорт работают (компьютер выходит в интернет), но токен GitHub
-  пользователи вводят на публичном сайте: тестируйте с токеном, который не жалко отозвать.
-- Логи каждой части: `infra/local-host/.state/logs/`.
+- Sign-up is open to everyone who has the address. Don't post the address where you don't want extra
+  guests, and don't keep anything secret on the test site.
+- The tunnel is a "quick" one (no account): Cloudflare gives no uptime guarantees for it. For a permanent
+  address you need your own domain and a named tunnel, or a deployment like the one in
+  [deploy-gcp.md](deploy-gcp.md).
+- Pushing to GitHub and importing work (the computer has internet), but users type their GitHub token
+  on a public site: test with a token you don't mind revoking.
+- Logs of each part: `infra/local-host/.state/logs/`.

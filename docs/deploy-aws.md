@@ -1,99 +1,89 @@
-# Развёртывание в AWS
+# Deployment on AWS
 
-Реализация [ADR-004](adr/004-deploy-aws.md): один EC2 с Docker Compose
-(api, collab, runner, Redis, Caddy), PostgreSQL в RDS, фронтенд в S3 за
-CloudFront.
+The implementation of [ADR-004](adr/004-deploy-aws.md): one EC2 machine with Docker Compose (api,
+collab, runner, Redis, Caddy), PostgreSQL in RDS, the front end in S3 behind CloudFront.
 
-> **Статус проверки.** Docker-образы, `docker-compose.yml` и скрипты
-> описаны и использованы по тем же рецептам, что работают локально, но
-> **на реальном аккаунте AWS эта инструкция ещё не прогонялась** — у
-> разработки не было доступа к облаку. Перед защитой пройти её один раз
-> целиком и поправить то, что разойдётся с реальностью; актуальные цены и
-> условия free tier стоит проверить заранее.
+> **Status.** The Docker images, `docker-compose.yml` and the scripts follow the same recipes that work
+> locally and on Google Cloud, but **this guide has not been run on a real AWS account**: I had no
+> access to AWS during development. Run it once from start to end and fix whatever differs from
+> reality; check current prices and free tier terms first.
 
-## 1. База данных (RDS)
+## 1. Database (RDS)
 
-1. RDS → Create database → PostgreSQL 16, шаблон Free tier / `db.t4g.micro`.
-2. Имя БД `collab`, пользователь `collab`, сгенерированный пароль.
-3. Public access: **No**. Security group `collab-db` разрешает порт 5432
-   только из security group `collab-ec2` (см. ниже).
+1. RDS → Create database → PostgreSQL 16, template Free tier / `db.t4g.micro`.
+2. Database name `collab`, user `collab`, a generated password.
+3. Public access: **No**. The security group `collab-db` allows port 5432 only from the security group
+   `collab-ec2` (see below).
 
-## 2. Сервер (EC2)
+## 2. Server (EC2)
 
-1. EC2 → Launch instance: Ubuntu 24.04, `t3.small` (2 ГБ ОЗУ — собирать
-   образы на `t3.micro` тесно), диск 20 ГБ. Security group `collab-ec2`:
-   входящие 22 (только ваш IP), 80 и 443 (всем).
-2. Elastic IP — привязать к инстансу, чтобы адрес не менялся.
-3. Установить Docker и клонировать репозиторий:
+1. EC2 → Launch instance: Ubuntu 24.04, `t3.small` (2 GB RAM; building images on a `t3.micro` is
+   tight), 20 GB disk. Security group `collab-ec2`: incoming 22 (only your IP), 80 and 443 (everyone).
+2. Elastic IP: attach it to the instance so the address does not change.
+3. Install Docker and clone the repository:
 
    ```bash
    curl -fsSL https://get.docker.com | sudo sh
    sudo usermod -aG docker $USER && newgrp docker
-   git clone <url-репозитория> ~/collab-code-platform
+   git clone <repository-url> ~/collab-code-platform
    ```
 
-4. DNS: две записи A (`api.…` и `collab.…`) на Elastic IP. Без своего
-   домена подойдёт [sslip.io](https://sslip.io): для IP `203.0.113.10`
-   имена `api.203-0-113-10.sslip.io` и `collab.203-0-113-10.sslip.io` уже
-   резолвятся, Caddy выпустит для них сертификаты.
-5. Конфигурация:
+4. DNS: two A records (`api.…` and `collab.…`) pointing to the Elastic IP. Without your own domain,
+   [sslip.io](https://sslip.io) works: for the IP `203.0.113.10` the names `api.203-0-113-10.sslip.io`
+   and `collab.203-0-113-10.sslip.io` already resolve, and Caddy will get certificates for them.
+5. Configuration:
 
    ```bash
    cd ~/collab-code-platform
    cp infra/.env.prod.example infra/.env
-   nano infra/.env      # домены, DATABASE_URL (RDS), JWT-секреты, CORS_ORIGIN
+   nano infra/.env      # domains, DATABASE_URL (RDS), JWT secrets, CORS_ORIGIN
    ```
 
-6. Первый запуск: `./infra/deploy.sh` (подтягивает образы песочницы,
-   собирает сервисы, применяет миграции, поднимает стек).
+6. First start: `./infra/deploy.sh` (pulls the sandbox images, builds the services, applies the
+   migrations, starts the stack).
 
-Runner получает доступ к Docker-сокету хоста, чтобы запускать песочницы, —
-это осознанный компромисс ADR-004: компрометация runner равна доступу к
-Docker на этом хосте. Поэтому на машине нет ничего, кроме самого стека, а
-код пользователей исполняется только в контейнерах с ограничениями из
+The runner gets access to the host's Docker socket to start sandboxes. This is a conscious trade-off of
+ADR-004: if the runner is compromised, that means access to Docker on this host. So the machine runs
+nothing but the stack itself, and user code runs only in containers with the limits from
 [ADR-003](adr/003-code-execution-docker-queue.md).
 
-## 3. Фронтенд (S3 + CloudFront)
+## 3. Front end (S3 + CloudFront)
 
-1. S3: бакет без публичного доступа (Block all public access — включён).
-2. CloudFront: origin — бакет через Origin Access Control; Default root
-   object `index.html`; custom error responses 403 и 404 → `/index.html`
-   с кодом 200 (иначе прямые ссылки вида `/join/…` отдадут ошибку).
-3. Адрес CloudFront-дистрибутива (`https://dxxxx.cloudfront.net`) записать
-   в `CORS_ORIGIN` на сервере.
-4. Сборка и выкладка (то же делает workflow ниже):
+1. S3: a bucket without public access (Block all public access is on).
+2. CloudFront: the origin is the bucket through Origin Access Control; default root object
+   `index.html`; custom error responses 403 and 404 → `/index.html` with code 200 (otherwise direct
+   links like `/join/…` return an error).
+3. Put the CloudFront distribution address (`https://dxxxx.cloudfront.net`) into `CORS_ORIGIN` on the
+   server.
+4. Build and upload (the workflow below does the same):
 
    ```bash
-   VITE_API_URL=https://api.<домен> VITE_COLLAB_URL=wss://collab.<домен> \
+   VITE_API_URL=https://api.<domain> VITE_COLLAB_URL=wss://collab.<domain> \
      pnpm --filter @collab/web build
-   aws s3 sync apps/web/dist s3://<бакет> --delete
+   aws s3 sync apps/web/dist s3://<bucket> --delete
    aws cloudfront create-invalidation --distribution-id <ID> --paths "/*"
    ```
 
-## 4. Автоматический деплой (GitHub Actions)
+## 4. Automatic deployment (GitHub Actions)
 
-Workflow `.github/workflows/deploy.yml` запускается вручную (Actions → Deploy →
-Run workflow). Секреты репозитория: `AWS_ACCESS_KEY_ID`,
-`AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET`,
-`CLOUDFRONT_DISTRIBUTION_ID`, `VITE_API_URL`, `VITE_COLLAB_URL`,
-`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`. IAM-пользователю хватает прав на
-`s3:PutObject/DeleteObject/ListBucket` для бакета и
+The workflow `.github/workflows/deploy.yml` is started by hand (Actions → Deploy → Run workflow).
+Repository secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET`,
+`CLOUDFRONT_DISTRIBUTION_ID`, `VITE_API_URL`, `VITE_COLLAB_URL`, `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`.
+The IAM user needs only `s3:PutObject/DeleteObject/ListBucket` on the bucket and
 `cloudfront:CreateInvalidation`.
 
-## 5. Проверка после выкладки
+## 5. Check after deploying
 
 ```bash
-curl https://api.<домен>/health          # {"status":"ok"}
+curl https://api.<domain>/health          # {"status":"ok"}
 docker compose -f infra/docker-compose.yml --env-file infra/.env ps
 ```
 
-Затем в браузере: открыть адрес CloudFront, зайти гостем, создать проект и
-файл, открыть ссылку-приглашение во втором окне и убедиться, что правки и чат
-синхронизируются, а «Запустить» выдаёт вывод.
+Then in the browser: open the CloudFront address, join as a guest, create a project and a file, open the
+invite link in a second window, and check that edits and the chat sync and that Run shows output.
 
-## Путь расширения
+## How to grow
 
-При росте нагрузки сервисы переносятся на ECS с ALB (api и collab —
-Fargate), а runner остаётся на EC2 с Docker-демоном — см. сравнение в
-ADR-004. Рассылку событий проекта (`/ws`) при нескольких экземплярах api нужно
-перевести с in-memory хаба на Redis pub/sub.
+When the load grows, the services move to ECS with an ALB (api and collab on Fargate), and the runner
+stays on EC2 with a Docker daemon; see the comparison in ADR-004. With several api instances, the project
+events (`/ws`) have to move from the in-memory hub to Redis pub/sub.

@@ -76,40 +76,40 @@ export function buildCharts(run: BenchRun): Record<string, string> {
   const t = run.typing;
 
   charts["typing-latency-p95-spread.svg"] = lineChart({
-    title: "Задержка синхронизации p95 — правки в разных местах",
-    xLabel: "Число пользователей N",
-    yLabel: "мс",
+    title: "Sync latency p95: edits in different places",
+    xLabel: "Number of users N",
+    yLabel: "ms",
     series: typingSeries(t, "spread", (r) => r.latencyMs.p95),
   });
   charts["typing-latency-p95-same.svg"] = lineChart({
-    title: "Задержка синхронизации p95 — все правят одну позицию",
-    xLabel: "Число пользователей N",
-    yLabel: "мс",
+    title: "Sync latency p95: everyone edits the same position",
+    xLabel: "Number of users N",
+    yLabel: "ms",
     series: typingSeries(t, "samePosition", (r) => r.latencyMs.p95),
   });
   charts["server-cpu.svg"] = lineChart({
-    title: "Загрузка CPU сервера (одно ядро = 100%)",
-    xLabel: "Число пользователей N",
+    title: "Server CPU load (one core = 100%)",
+    xLabel: "Number of users N",
     yLabel: "%",
     series: typingSeries(t, "spread", (r) => r.serverCpuPercent),
   });
   charts["server-memory.svg"] = lineChart({
-    title: "Пиковая память процесса сервера (RSS)",
-    xLabel: "Число пользователей N",
-    yLabel: "МБ",
+    title: "Peak memory of the server process (RSS)",
+    xLabel: "Number of users N",
+    yLabel: "MB",
     series: typingSeries(t, "spread", (r) => r.serverPeakRssMb),
   });
   charts["traffic-per-edit.svg"] = lineChart({
-    title: "Трафик на одну правку (все клиенты, вход + выход)",
-    xLabel: "Число пользователей N",
-    yLabel: "байт",
+    title: "Traffic per edit (all clients, in + out)",
+    xLabel: "Number of users N",
+    yLabel: "bytes",
     series: typingSeries(t, "spread", (r) => r.bytesPerEdit),
   });
 
   charts["offline-merge.svg"] = lineChart({
-    title: "Время слияния после офлайна",
-    xLabel: "Правок у офлайн-клиента (и столько же у остальных)",
-    yLabel: "мс",
+    title: "Merge time after offline work",
+    xLabel: "Edits by the offline client (and as many by the others)",
+    yLabel: "ms",
     series: (Object.keys(COLORS) as SystemId[]).map((system) => {
       const byK = group(
         run.offline.filter((r) => r.system === system),
@@ -132,32 +132,32 @@ export function buildCharts(run: BenchRun): Record<string, string> {
         return { x, y: row ? f(row) : 0 };
       });
     charts[`document-size-del${Math.round(ratio * 100)}.svg`] = lineChart({
-      title: `Размер документа после N правок (удалений ${Math.round(ratio * 100)}%)`,
-      xLabel: "Число правок",
-      yLabel: "байт (лог. шкала)",
+      title: `Document size after N edits (${Math.round(ratio * 100)}% deletions)`,
+      xLabel: "Number of edits",
+      yLabel: "bytes (log scale)",
       logY: true,
       series: [
-        { name: "Yjs: состояние", color: COLORS.yjs, points: pick("yjs", (r) => r.docSize.snapshotBytes) },
+        { name: "Yjs: state", color: COLORS.yjs, points: pick("yjs", (r) => r.docSize.snapshotBytes) },
         {
-          name: "ShareDB: снимок",
+          name: "ShareDB: snapshot",
           color: COLORS.sharedb,
           dashed: true,
           points: pick("sharedb", (r) => r.docSize.snapshotBytes),
         },
         {
-          name: "ShareDB: снимок + журнал",
+          name: "ShareDB: snapshot + log",
           color: COLORS.sharedb,
           points: pick("sharedb", (r) => r.docSize.snapshotBytes + r.docSize.historyBytes),
         },
-        { name: "Чистый текст", color: "#64748b", dashed: true, points: pick("yjs", (r) => r.textBytes) },
+        { name: "Plain text", color: "#64748b", dashed: true, points: pick("yjs", (r) => r.textBytes) },
       ],
     });
   }
 
   charts["board-latency-p95.svg"] = lineChart({
-    title: "Доска: задержка p95 при перемещении фигур",
-    xLabel: "Число пользователей N",
-    yLabel: "мс",
+    title: "Board: p95 latency when moving shapes",
+    xLabel: "Number of users N",
+    yLabel: "ms",
     series: (["ownShape", "sameShape"] as const).flatMap((mode) =>
       (Object.keys(COLORS) as SystemId[]).map((system) => {
         const bySize = group(
@@ -165,7 +165,7 @@ export function buildCharts(run: BenchRun): Record<string, string> {
           (r) => String(r.clients),
         );
         return {
-          name: `${NAMES[system]}, ${mode === "ownShape" ? "свои фигуры" : "одна фигура"}`,
+          name: `${NAMES[system]}, ${mode === "ownShape" ? "own shapes" : "one shape"}`,
           color: COLORS[system],
           dashed: mode === "sameShape",
           points: numeric([...bySize.keys()]).map((x) => ({ x, y: avg(bySize.get(x)!, (r) => r.latencyMs.p95) })),
@@ -193,23 +193,23 @@ export function buildReport(run: BenchRun): string {
     editsPerSecondPerClient?: number;
   };
 
-  lines.push("# Результаты стенда: CRDT (Yjs) против OT (ShareDB)", "");
+  lines.push("# Bench results: CRDT (Yjs) vs OT (ShareDB)", "");
   lines.push(
-    `Запуск: ${run.meta.startedAt}. Node ${run.meta.node}, ${run.meta.platform}, ${run.meta.cpu} (${run.meta.cpuCount} потоков), ${run.meta.memoryGb} ГБ ОЗУ. ` +
-      `Повторов на точку: ${config.reps ?? "?"}; длительность набора: ${(config.typingDurationMs ?? 0) / 1000} с; ` +
-      `скорость набора: ${config.editsPerSecondPerClient ?? "?"} правок/с на пользователя.`,
+    `Run: ${run.meta.startedAt}. Node ${run.meta.node}, ${run.meta.platform}, ${run.meta.cpu} (${run.meta.cpuCount} threads), ${run.meta.memoryGb} GB RAM. ` +
+      `Repeats per point: ${config.reps ?? "?"}; typing time: ${(config.typingDurationMs ?? 0) / 1000} s; ` +
+      `typing speed: ${config.editsPerSecondPerClient ?? "?"} edits/s per user.`,
     "",
   );
   lines.push(
-    "Сервер каждой системы запускается отдельным процессом (чтобы честно измерить его CPU и память), а боты-клиенты работают в отдельных процессах (до 8, по 12 клиентов на процесс), чтобы генератор нагрузки не стал узким местом. Задержка измеряется от вызова вставки у автора до появления правки у другого клиента (общие часы машины). " +
-      "Серверы сравниваются без базы данных: Hocuspocus в памяти и ShareDB с in-memory хранилищем, то есть сравнивается сам алгоритм синхронизации, а не слой хранения.",
+    "The server of each system runs as a separate process (to measure its CPU and memory fairly), and the client bots run in separate processes (up to 8, with 12 clients each), so the load generator does not become the bottleneck. Latency is measured from the insert call at the author to the edit appearing at another client (the machine's shared clock). " +
+      "The servers are compared without a database: Hocuspocus in memory and ShareDB with in-memory storage, so the sync algorithm itself is compared, not the storage layer.",
     "",
   );
 
-  lines.push("## 1. Одновременный набор: задержка, корректность, нагрузка", "");
+  lines.push("## 1. Typing at the same time: latency, correctness, load", "");
   for (const [mode, title] of [
-    ["spread", "Правки в разных местах файла"],
-    ["samePosition", "Все вставляют в одну и ту же позицию (максимум конфликтов)"],
+    ["spread", "Edits in different places of the file"],
+    ["samePosition", "Everyone inserts at the same position (most conflicts)"],
   ] as const) {
     lines.push(`### ${title}`, "");
     const rows: string[][] = [];
@@ -232,36 +232,36 @@ export function buildReport(run: BenchRun): string {
           fmt(avg(runs, (r) => r.serverCpuPercent), 0),
           fmt(avg(runs, (r) => r.serverPeakRssMb), 0),
           fmt(avg(runs, (r) => r.bytesPerEdit), 0),
-          runs.every((r) => r.converged && r.allEditsPresent) ? "да" : "НЕТ",
-          runs.every((r) => r.clientEventLoopP99Ms < RIG_LAG_LIMIT_MS) ? "да" : "НЕТ (стенд упёрся)",
+          runs.every((r) => r.converged && r.allEditsPresent) ? "yes" : "NO",
+          runs.every((r) => r.clientEventLoopP99Ms < RIG_LAG_LIMIT_MS) ? "yes" : "NO (rig overloaded)",
         ]);
       }
     }
     lines.push(
       table(
-        ["N", "Система", "ср. мс", "p50", "p95", "p95, разброс повторов", "p99", "CPU сервера, %", "RSS, МБ", "байт/правку", "Сошлись, ничего не потеряно", "Стенд не перегружен"],
+        ["N", "System", "mean ms", "p50", "p95", "p95, repeat range", "p99", "Server CPU, %", "RSS, MB", "bytes/edit", "Converged, nothing lost", "Rig not overloaded"],
         rows,
       ),
       "",
     );
   }
   lines.push(
-    "![p95, разные места](charts/typing-latency-p95-spread.svg)",
-    "![p95, одна позиция](charts/typing-latency-p95-same.svg)",
+    "![p95, different places](charts/typing-latency-p95-spread.svg)",
+    "![p95, same position](charts/typing-latency-p95-same.svg)",
     "![CPU](charts/server-cpu.svg)",
-    "![Память](charts/server-memory.svg)",
-    "![Трафик](charts/traffic-per-edit.svg)",
+    "![Memory](charts/server-memory.svg)",
+    "![Traffic](charts/traffic-per-edit.svg)",
     "",
   );
 
   lines.push(
-    `Контроль измерения: колонка «Стенд не перегружен» — задержка цикла событий (p99) в процессах с ботами меньше ${RIG_LAG_LIMIT_MS} мс. ` +
-      "Если она превышена, измеренная задержка отражает перегрузку генератора нагрузки, а не сервера, и такую точку нельзя трактовать как свойство алгоритма. " +
-      "Фоновое значение на этой машине около 20–25 мс (гранулярность таймеров Windows).",
+    `Measurement check: the "Rig not overloaded" column means the event loop lag (p99) in the bot processes is under ${RIG_LAG_LIMIT_MS} ms. ` +
+      "If it is higher, the measured latency shows an overloaded load generator, not the server, and such a point cannot be read as a property of the algorithm. " +
+      "The background value on this machine is about 20–25 ms (Windows timer granularity).",
     "",
   );
 
-  lines.push("## 2. Работа офлайн", "");
+  lines.push("## 2. Offline work", "");
   const offlineRows: string[][] = [];
   const byK = group(run.offline, (r) => String(r.offlineEdits));
   for (const k of numeric([...byK.keys()])) {
@@ -274,33 +274,33 @@ export function buildReport(run: BenchRun): string {
         fmt(avg(runs, (r) => r.mergeMs), 0),
         spread(runs, (r) => r.mergeMs, 0),
         fmt(avg(runs, (r) => r.bytesDuringMerge / 1024), 1),
-        runs.every((r) => r.converged && r.allEditsPresent) ? "да" : "НЕТ",
+        runs.every((r) => r.converged && r.allEditsPresent) ? "yes" : "NO",
       ]);
     }
   }
   lines.push(
-    "Один клиент отключается, делает K правок локально, остальные в это время делают ещё K правок; затем клиент возвращается. Время отсчитывается от момента переподключения до совпадения текста у всех.",
+    "One client disconnects and makes K edits locally, while the others make another K edits; then the client comes back. The time is counted from the reconnect until everyone has the same text.",
     "",
-    table(["K", "Система", "Слияние, мс", "Разброс повторов, мс", "Трафик при слиянии, КБ", "Сошлись, ничего не потеряно"], offlineRows),
+    table(["K", "System", "Merge, ms", "Repeat range, ms", "Traffic during merge, KB", "Converged, nothing lost"], offlineRows),
     "",
-    "![Слияние после офлайна](charts/offline-merge.svg)",
+    "![Merge after offline work](charts/offline-merge.svg)",
     "",
   );
 
-  lines.push("## 3. Размер документа", "");
+  lines.push("## 3. Document size", "");
   lines.push(
-    "Пять клиентов делают заданное число правок (вставка одного символа или удаление 1–5 символов в случайном месте). " +
-      "«Чтобы открыть» — сколько байт должен получить клиент, подключающийся к документу (у Yjs это всё состояние, у ShareDB — снимок). " +
-      "«Хранится всего» — у ShareDB добавляется журнал операций, из которого можно восстановить любую версию; у Yjs истории версий нет, зато есть метки удалённого.",
+    "Five clients make the given number of edits (inserting one character or deleting 1–5 characters at a random place). " +
+      "\"To open\" is how many bytes a client joining the document has to receive (for Yjs the whole state, for ShareDB the snapshot). " +
+      "\"Stored in total\" adds the operation log for ShareDB, from which any version can be rebuilt; Yjs has no version history but keeps tombstones for deleted content.",
     "",
   );
   for (const ratio of [...new Set(run.growth.map((r) => r.deleteRatio))].sort()) {
     const rows = run.growth.filter((r) => r.deleteRatio === ratio);
     lines.push(
-      `### Доля удалений ${Math.round(ratio * 100)}%`,
+      `### ${Math.round(ratio * 100)}% deletions`,
       "",
       table(
-        ["Правок", "Система", "Чтобы открыть, байт", "Хранится всего, байт", "Всего на правку, байт", "Чистый текст, байт"],
+        ["Edits", "System", "To open, bytes", "Stored in total, bytes", "Total per edit, bytes", "Plain text, bytes"],
         rows.map((r) => {
           const total = r.docSize.snapshotBytes + r.docSize.historyBytes;
           return [
@@ -314,12 +314,12 @@ export function buildReport(run: BenchRun): string {
         }),
       ),
       "",
-      `![Размер документа, удалений ${Math.round(ratio * 100)}%](charts/document-size-del${Math.round(ratio * 100)}.svg)`,
+      `![Document size, ${Math.round(ratio * 100)}% deletions](charts/document-size-del${Math.round(ratio * 100)}.svg)`,
       "",
     );
   }
 
-  lines.push("## 4. Доска дизайна: перемещение фигур", "");
+  lines.push("## 4. Design board: moving shapes", "");
   const boardRows: string[][] = [];
   const boardGroups = group(run.board, (r) => `${r.mode}|${r.clients}`);
   const boardKeys = [...boardGroups.keys()].sort((a, b) => {
@@ -332,19 +332,19 @@ export function buildReport(run: BenchRun): string {
       const runs = boardGroups.get(key)!.filter((r) => r.system === system);
       if (runs.length === 0) continue;
       boardRows.push([
-        runs[0]!.mode === "ownShape" ? "каждый двигает свою" : "все двигают одну",
+        runs[0]!.mode === "ownShape" ? "each moves their own" : "everyone moves one",
         String(runs[0]!.clients),
         NAMES[system],
         fmt(avg(runs, (r) => r.latencyMs.p50)),
         fmt(avg(runs, (r) => r.latencyMs.p95)),
-        runs.every((r) => r.converged) ? "да" : "НЕТ",
+        runs.every((r) => r.converged) ? "yes" : "NO",
       ]);
     }
   }
   lines.push(
-    table(["Режим", "N", "Система", "p50, мс", "p95, мс", "Состояния совпали"], boardRows),
+    table(["Mode", "N", "System", "p50, ms", "p95, ms", "States match"], boardRows),
     "",
-    "![Доска](charts/board-latency-p95.svg)",
+    "![Board](charts/board-latency-p95.svg)",
     "",
   );
 

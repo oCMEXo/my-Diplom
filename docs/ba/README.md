@@ -1,18 +1,17 @@
-# Бизнес-анализ (BA): срок сдачи 30 октября, защита 9–14 ноября
+# Business analysis (BA)
 
-| Файл | Что это |
+| File | What it is |
 |---|---|
-| `BA_Harminovich_Artsiom.docx` | Готовый документ для эксперта (собирается из `BA.md` и `BA-back.md`) |
-| `BA.md` | Введение, глава 1, глава 2 (английский) |
-| `BA-back.md` | Список литературы (Chicago, по алфавиту), приложения 1 (бэклог), 2 (диаграммы, макеты, полный текст UC-2), 3 (анкета), 4 (расчёт KLM), 5 (термины), заявление об ИИ |
-| `build/references.mjs` | Источники в стиле Chicago: полная запись для списка и короткая для сносок; в тексте ссылка пишется `[@ключ]` |
-| `defense-speech.md` | Текст выступления на защите по слайдам (около 5 минут) и короткие ответы на вопросы комиссии |
-| `survey.md` | Анкета для Google Forms и план интервью (по-русски); пока не проводилась |
-| `diagrams/*.mmd` | Исходники диаграмм (Mermaid) → `img/*.png` |
-| `img/` | Диаграммы, скриншоты аналогов и макеты |
-| `build/klm-estimate.mjs` | Расчёт оценки KPI-1 для приложения 4 |
+| `BA_Harminovich_Artsiom.docx` | The finished document (built from `BA.md` and `BA-back.md`) |
+| `BA.md` | Introduction, chapter 1, chapter 2 |
+| `BA-back.md` | List of references (Chicago, alphabetical), appendices 1 (backlog), 2 (diagrams, mock-ups, full text of UC-2), 3 (questionnaire), 4 (KLM estimate), 5 (terms), statement on the use of AI |
+| `build/references.mjs` | Sources in Chicago style: the full entry for the list and the short one for notes; the text cites a source as `[@key]` |
+| `survey.md` | Questionnaire for Google Forms, interview plan and pilot plan; not run yet |
+| `diagrams/*.mmd` | Diagram sources (Mermaid) → `img/*.png` |
+| `img/` | Diagrams, screenshots of analogues and mock-ups |
+| `build/klm-estimate.mjs` | The KPI-1 estimate for appendix 4 |
 
-Пересобрать документ после правок:
+Rebuild the document after changes:
 
 ```bash
 node docs/ba/build/render-diagrams.mjs
@@ -22,64 +21,22 @@ node docs/ba/build/render-diagrams.mjs
 node docs/ba/build/build-docx.mjs
 ```
 
-Оформление повторяет пример сданной работы (титульный лист, «Table of contents», «Chapter 1. …»,
-«List of references», раздел «Statements» из трёх пунктов, текст по ширине). Руководитель:
-Maksym Svynarenko. Текст написан простым английским (A2 — начало B1): короткие предложения, частые слова, а термины
-объяснены в приложении E. При правках держите этот уровень.
+The table of contents is written with page numbers already, so Word asks nothing when the file opens. The
+numbers follow the same layout as Word; if they ever differ, right-click the table of contents →
+"Update field". The mock-ups in `img/mockup-*.png` are copies from `docs/thesis/screenshots/`.
 
-Оглавление записывается уже с номерами страниц, Word при открытии ничего не спрашивает. Номера
-посчитаны по той же раскладке, что у Word; если где-то разойдутся, правый щелчок по оглавлению →
-«Обновить поле». Макеты в `img/mockup-*.png` — копии из `docs/thesis/screenshots/`.
+## Where the starting KPI values come from
 
-## Откуда взяты исходные значения KPI
+There was no survey, interview or pilot, so the text has no numbers from them and says so directly. The
+problem is called a hypothesis. The baseline and the target are measured by the same pilot (section 2.10),
+and the values below are only first estimates.
 
-Опроса, интервью и пилота не было, поэтому в тексте нет ни одной цифры из них, и он прямо об этом говорит.
-Проблема названа гипотезой. Baseline и target измеряет один и тот же пилот (раздел 2.10), а значения ниже
-только первые оценки.
-
-| KPI | Исходное значение | Источник |
+| KPI | Starting value | Source |
 |---|---|---|
-| KPI-1, время до первой общей правки | 105 с (партнёр без аккаунта); та же модель для платформы 30 с | Оценка по модели KLM (Card, Moran, Newell, 1980), приложение D. Это нижняя граница, не замер |
-| KPI-2, инструменты | 5; цель 3 для Must и 1 для Must + Should | Модель процесса AS-IS, рисунок 1.1 |
-| KPI-3, сессии с потерей работы | Неизвестно, измерит пилот с плановым обрывом связи на 30 с. 17% у Brun et al. это Git-слияния, не живые сессии, поэтому только контекст | Brun et al., ESEC/FSE 2011 |
-| KPI-4, совместный ввод | 50% в паре (печатает один человек), оценка по модели процесса. Порог 100 мс (Nielsen, 1993) теперь только в NFR-P1 | Рисунок 1.1 |
+| KPI-1, time to the first shared edit | 105 s (partner without an account); the same model gives 30 s for the platform | KLM estimate (Card, Moran, Newell, 1980), appendix 4. A lower bound, not a measurement |
+| KPI-2, tools | 5; target 3 for Must and 1 for Must + Should | AS-IS process model, figure 1.1 |
+| KPI-3, sessions with lost work | Unknown; the pilot measures it with a planned 30 s connection break. The 17% from Brun et al. is about Git merges, not live sessions, so it is only context | Brun et al., ESEC/FSE 2011 |
+| KPI-4, typing together | 50% in a pair (one person types), estimated from the process model. The 100 ms threshold (Nielsen, 1993) is now only in NFR-P1 | Figure 1.1 |
 
-Если проведёте опрос и пилот (`survey.md`), ответы можно подставить вместо оценок во Введение, 1.1, 2.1 и 2.10.
-
-## Что осталось сделать вам
-
-1. **Прочитать весь текст.** Документ подаётся от вашего имени, комиссия задаёт по нему вопросы.
-2. **Заявление об ИИ** в конце документа: проверить, что оно точно описывает, как использовался ИИ, и не удалять.
-   Требования называют неуказанный ИИ основанием для оценки 1–4.
-3. **Цель и задачи:** они изменились после ревью эксперта. Требования говорят «agreed with the supervisor», согласовать новые формулировки.
-4. **Тема на титульном листе:** сверить с темой, которую утвердил комитет.
-5. **Итоговое ревью эксперта (оценка 8):** все пункты «Нужно исправить» были исправлены ещё 8 ноября, эксперт, судя по тексту, читал старый файл. 11 ноября исправлено и «Должно улучшиться»: 9 аналогов в 1.3 без столбца самооценки, обоснования и GDPR в 2.7–2.8, стиль Chicago, приложения с номерами, даты, суммы KLM. Отправьте эксперту новую версию. Данные опроса или беседы с преподавателем можете собрать только вы.
-6. **По желанию, для максимума в 1.3:** скриншоты Live Share и Replit. Там нужна регистрация, поэтому
-   пока эти два аналога описаны по документации. Сохраните как `img/analog-liveshare.png` и
-   `img/analog-replit.png`, вставлю.
-
-## Письмо эксперту (отправляете вы)
-
-- **Кому:** Katsiaryna.Shylina@esdc.lt (назначена вам в письме организаторов)
-- **Тема:** `Diplom [BA] Harminovich Artsiom`
-- **Вложение:** один файл `BA_Harminovich_Artsiom.docx`
-- **Срок по требованиям:** 30 октября 2026 включительно
-- **Текст:**
-
-> Dear Ms Shylina,
->
-> Please find attached the Business Analysis block of my diploma project.
->
-> Full name: Artsiom Harminovich
-> Topic: Real-Time Collaborative Code Editing Platform Based on CRDT
-> Supervisor: Maksym Svynarenko
->
-> Kind regards,
-> Artsiom Harminovich
-
-## Защита (9–14 ноября, слот 10 минут: доклад и вопросы вместе, английский)
-
-Презентация: 8 слайдов + титульный, файл PowerPoint у автора.
-Цифры на слайдах совпадают с документом (таблица выше). Текст выступления простым английским, перевод,
-произношение и ответы на типичные вопросы комиссии: [defense-speech.md](defense-speech.md); тот же текст
-лежит в заметках к слайдам.
+If the survey and the pilot are run (`survey.md`), their answers replace the estimates in the
+Introduction, 1.1, 2.1 and 2.10.
