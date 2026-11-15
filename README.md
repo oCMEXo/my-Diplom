@@ -26,7 +26,7 @@ chat, and you can see who is online. The project stays after the session, so you
 - Three kinds of files: code (the Monaco editor, the same one as in VS Code), Markdown with a live
   preview, and a board for diagrams.
 - A project chat and a list of who is online.
-- JavaScript and Python run from the editor in a Docker sandbox on the server, and everyone sees the
+- JavaScript, Python, C, C++ and Java run from the editor in a Docker sandbox on the server, and everyone sees the
   output. There is also a terminal.
 - If the internet drops, you can keep typing. Edits are kept on the device and merge when you are back
   online.

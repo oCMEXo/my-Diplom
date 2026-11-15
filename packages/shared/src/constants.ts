@@ -4,7 +4,7 @@ export type FileType = (typeof FILE_TYPES)[number];
 export const PROJECT_ROLES = ["owner", "editor", "viewer"] as const;
 export type ProjectRole = (typeof PROJECT_ROLES)[number];
 
-export const RUNNABLE_LANGUAGES = ["javascript", "python"] as const;
+export const RUNNABLE_LANGUAGES = ["javascript", "python", "c", "cpp", "java"] as const;
 export type RunnableLanguage = (typeof RUNNABLE_LANGUAGES)[number];
 
 /** Examples a new project can start from: a runnable file and a short guide. */

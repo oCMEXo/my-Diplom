@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { CircleAlert, CircleCheck, Play } from "lucide-react";
-import { describeLanguage, languageCatalogue, RUNNABLE_LANGUAGES, languageName } from "@collab/shared";
+import { describeLanguage, languageCatalogue, runnableLanguageList } from "@collab/shared";
 import { cn } from "../lib/cn";
 import { Modal } from "./ui/Modal";
 
-const RUNNABLE_NAMES = RUNNABLE_LANGUAGES.map(languageName).join(" and ");
+const RUNNABLE_NAMES = runnableLanguageList();
 
 export function LanguageList() {
   const catalogue = languageCatalogue();

@@ -4,6 +4,7 @@ import { MAX_RUN_OUTPUT_BYTES, RUN_TIMEOUT_MS } from "@collab/shared";
 import type { RunJob, RunStatus } from "@collab/shared";
 import { buildDockerArgs, containerName, entryFile, parseErrorLine } from "./sandbox.js";
 import { buildTar } from "./tar.js";
+import { env } from "./env.js";
 
 export interface ExecutionResult {
   status: RunStatus;
@@ -26,7 +27,7 @@ export function runInSandbox(
 ): Promise<ExecutionResult> {
   return new Promise((resolve) => {
     const startedAt = Date.now();
-    const child = spawn("docker", buildDockerArgs(job.language, job.runId, job.entry), {
+    const child = spawn("docker", buildDockerArgs(job.language, job.runId, job.entry, { runtime: env.SANDBOX_RUNTIME }), {
       stdio: ["pipe", "pipe", "pipe"],
     });
 

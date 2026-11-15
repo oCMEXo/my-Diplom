@@ -134,6 +134,12 @@ export function languageName(language: string): string {
   return LANGUAGE_NAMES[language] ?? language;
 }
 
+/** "JavaScript, Python, C, C++ and Java": the languages that run, for sentences. */
+export function runnableLanguageList(): string {
+  const names = RUNNABLE_LANGUAGES.map(languageName);
+  return names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+}
+
 /** What the platform does with a file: run and highlight it, only highlight it, or show it as text. */
 export type LanguageSupport = "run" | "highlight" | "text";
 
