@@ -6,6 +6,7 @@ import { AppError } from "../../lib/errors.js";
 import { hub } from "../../lib/hub.js";
 import { generateInviteCode } from "../../lib/invite-code.js";
 import { checkProjectLimit } from "../../lib/limits.js";
+import { recordUsage } from "../../lib/usage.js";
 
 const BAD_LINK = "The class link is not valid or has expired";
 
@@ -154,6 +155,7 @@ export async function joinClass(userId: string, joinCode: string) {
       files: { create: files.map((file) => ({ ...file, yjsState: file.yjsState ?? undefined })) },
     },
   });
+  recordUsage("class_joined", { userId, projectId: copy.id });
   return { projectId: copy.id };
 }
 

@@ -8,10 +8,11 @@ export function PrivacyPage() {
     >
       <LegalSection title="What we keep">
         <ul className="list-disc space-y-1 pl-5">
-          <li>For an account: name, email and a password hash (the password itself is not stored).</li>
+          <li>For an account: name, email, whether the email is confirmed, and a password hash (the password itself is not stored).</li>
           <li>For a guest: only the name you enter. No email is needed.</li>
           <li>What you create: projects, files, their versions and chat messages.</li>
           <li>A GitHub token, if you enter one, is used for one request only and is not stored.</li>
+          <li>Usage statistics: see below.</li>
         </ul>
       </LegalSection>
 
@@ -21,7 +22,18 @@ export function PrivacyPage() {
           keep projects. This is the performance of a contract with the user (GDPR, Art. 6(1)(b)). Protection against
           abuse, for example limiting sign-in attempts per IP address, is a legitimate interest (Art. 6(1)(f)).
         </p>
-        <p>There is no analytics, no advertising and no sharing of data with third parties.</p>
+        <p>There is no advertising, no third-party analytics and no sharing of data with third parties.</p>
+      </LegalSection>
+
+      <LegalSection title="Usage statistics">
+        <p>
+          To see whether the service helps people work together, the server counts a few events: that an account was
+          active on a day, that a project was created, that two or more people were in a project at the same time,
+          that code was run and that a student joined a class. Each event holds only its kind, the account and project
+          ids and the time. The numbers stay on this server: there are no cookies for this, no tracking scripts and no
+          analytics companies. Events are deleted after 180 days, and at once when you delete your account. The legal
+          basis is a legitimate interest in improving the service (GDPR, Art. 6(1)(f)).
+        </p>
       </LegalSection>
 
       <LegalSection title="Who sees your data">
@@ -37,6 +49,8 @@ export function PrivacyPage() {
           <li>Deleted files: 30 days in the trash, then deleted forever.</li>
           <li>A guest account that is in no project: 30 days after the session ends, then it is deleted with its messages.</li>
           <li>Sign-in session: up to 30 days if you do not use it.</li>
+          <li>Usage events: 180 days.</li>
+          <li>Email links (confirming the address, resetting the password): until used, at most 3 days.</li>
         </ul>
       </LegalSection>
 

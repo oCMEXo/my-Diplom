@@ -8,6 +8,7 @@ import { hub } from "../../lib/hub.js";
 import { templateFiles } from "./templates.js";
 import { checkProjectLimit } from "../../lib/limits.js";
 import { isClassTeacherOf } from "../classes/classes.service.js";
+import { recordUsage } from "../../lib/usage.js";
 
 interface ProjectLike {
   id: string;
@@ -51,6 +52,7 @@ export async function createProject(userId: string, input: CreateProjectInput) {
       files: input.template ? { create: templateFiles(input.template) } : undefined,
     },
   });
+  recordUsage("project_created", { userId, projectId: project.id });
 
   return toProjectDto(project, "owner");
 }
