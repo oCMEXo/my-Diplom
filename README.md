@@ -1,102 +1,153 @@
-# Collab Code Platform
+# Collab
 
-[English version](README.en.md)
+Collab is my diploma project. It is a web app where a few people can write code in the same project at
+the same time and see each other's cursors. To bring someone in, you send them a link. They don't need
+an account.
 
-Веб-платформа для совместного редактирования кода в реальном времени на
-основе CRDT (Yjs). Дипломный проект: работающая платформа + исследование,
-сравнивающее CRDT и OT по задержке, корректности и масштабируемости.
+Sync is built on a CRDT (the Yjs library). The other half of the diploma is a study: I compared CRDT and
+OT on my own test bench by latency, correctness and server load. The short version of the results is
+below.
 
-![Приглашение, общий редактор, документ и доска](docs/img/demo.gif)
+Live version: https://35-228-155-63.sslip.io (it can be a bit behind this repository).
 
-| Страница приглашения | Общий редактор | Доска |
+![An invitation, the shared editor, a document and the board](docs/img/demo.gif)
+
+## Why
+
+When a few people need to fix code together, they usually share a screen, paste pieces of code into a
+messenger, or take turns pushing to one branch. It's slow, and edits get lost. I wanted something like a
+Discord server, but for one project: you open a link and you have the code, documents, a board and a
+chat, and you can see who is online. The project stays after the session, so you can come back to it.
+
+## What it can do
+
+- Join by an invite link. A guest types a name and is in the project.
+- Several people edit one file at the same time, each with their own coloured cursor.
+- Three kinds of files: code (the Monaco editor, the same one as in VS Code), Markdown with a live
+  preview, and a board for diagrams.
+- A project chat and a list of who is online.
+- JavaScript and Python run from the editor in a Docker sandbox on the server, and everyone sees the
+  output. There is also a terminal.
+- If the internet drops, you can keep typing. Edits are kept on the device and merge when you are back
+  online.
+- Import a public GitHub repository and push your changes back as a commit.
+- A new project can start from an example: a short guide and a file that is ready to run.
+
+| Invitation page | Shared editor | Board |
 |---|---|---|
-| ![Страница приглашения](docs/thesis/screenshots/10-invite-landing.png) | ![Редактор с двумя курсорами](docs/thesis/screenshots/03-editor.png) | ![Доска](docs/thesis/screenshots/05-board.png) |
+| ![Invitation page](docs/thesis/screenshots/10-invite-landing.png) | ![Editor with two cursors](docs/thesis/screenshots/03-editor.png) | ![Board](docs/thesis/screenshots/05-board.png) |
 
-## Идея
+## Running it locally
 
-Постоянное общее пространство для проекта — примерно как сервер в Discord, только
-вокруг совместной работы: у проекта есть код, документы, чат и список тех, кто
-сейчас в нём. В проект заходят по ссылке-приглашению (даже без регистрации,
-гостем), правят файлы одновременно, видят курсоры друг друга и не
-выгружают ничего на свои машины. Это не площадка для собеседований и не
-разовый «скретч-пад»: проект живёт, пока им пользуются, а запуск кода —
-скромная вспомогательная функция, а не центр продукта.
-
-Архитектура, ADR и план работ — см. [docs/adr](docs/adr) и разделы ниже.
-
-## Структура репозитория
-
-```
-├── apps/
-│   ├── web/        React SPA (Vite, Monaco, Yjs, react-konva), PWA, invite-ссылки, гостевой вход
-│   ├── api/        Fastify REST + Swagger + auth + проекты + файлы
-│   ├── collab/     Hocuspocus, синхронизация Yjs, права доступа
-│   └── runner/     Воркер BullMQ, запуск кода в Docker-песочнице
-├── packages/
-│   ├── shared/     Типы, Zod-схемы, константы
-│   └── db/         Prisma-схема и миграции
-├── bench/          Стенд CRDT vs OT: сценарии, результаты, графики
-├── e2e/            Playwright: сквозные тесты в двух браузерах
-├── infra/          Dockerfile, docker-compose, Caddyfile, скрипты деплоя
-├── docs/           ADR, WebSocket-протокол, деплой, текст диплома (thesis/)
-└── .github/workflows/
-```
-
-## Локальная разработка
-
-Требуется Node.js 20+, pnpm (`corepack enable`) и Docker.
+You need Node.js 20 or newer, pnpm (`corepack enable` is the easiest way to get it) and Docker.
 
 ```bash
 pnpm install
-docker compose -f infra/docker-compose.dev.yml up -d   # Postgres :5433, Redis :6380
+docker compose -f infra/docker-compose.dev.yml up -d   # Postgres on :5433, Redis on :6380
 cp apps/api/.env.example apps/api/.env
 cp apps/collab/.env.example apps/collab/.env
 cp apps/web/.env.example apps/web/.env
 cp packages/db/.env.example packages/db/.env
 pnpm db:migrate
-pnpm dev:api      # REST API, http://localhost:3001, Swagger на /docs
-pnpm dev:collab   # сервер синхронизации, ws://localhost:1234
-pnpm dev:runner    # запуск кода (нужен Docker)
-pnpm dev:web      # фронтенд, http://localhost:5173
+pnpm dev:api      # REST API on http://localhost:3001, Swagger at /docs
+pnpm dev:collab   # sync server on ws://localhost:1234
+pnpm dev:runner   # runs code (needs Docker)
+pnpm dev:web      # web app on http://localhost:5173
 ```
 
-Зайти можно по email/паролю, через invite-ссылку проекта (видна владельцу на
-странице проекта) или без регистрации — кнопкой «Продолжить как гость» на
-странице входа.
+Then open http://localhost:5173. You can sign up with an email, open an invite link from a project, or
+press "Continue as guest" on the sign-in page.
 
-> Порты 5433/6380 выбраны не случайно: 5432/6379 на этой машине заняты
-> локальными Postgres/Redis вне Docker. При необходимости поменяйте их в
-> `infra/docker-compose.dev.yml` и в `.env`.
->
-> Если после перезагрузки компьютера Docker Desktop падает с ошибкой про `dockerInference` или
-> `engine.sock`, выполните `pnpm docker:restart` (только Windows). Кнопку «Reset to factory defaults»
-> не нажимайте: она стирает данные Docker.
+A few notes:
 
-## Скрипты
+- Postgres and Redis in Docker listen on 5433 and 6380, not on the default ports, because I already had
+  local databases on those. You can change the ports in `infra/docker-compose.dev.yml` and in the `.env`
+  files.
+- On Windows, Docker Desktop sometimes didn't start for me after a reboot (an error about `engine.sock`
+  or `dockerInference`). `pnpm docker:restart` fixes it. Don't press "Reset to factory defaults": it
+  deletes all Docker data.
+- To show the site to other people from your own computer, run `pnpm host:test`
+  (see [docs/deploy-local.md](docs/deploy-local.md)).
 
-- `pnpm lint` / `pnpm typecheck` / `pnpm test` — по всем пакетам
-- `pnpm db:generate` / `pnpm db:migrate` — Prisma
-- `pnpm db:schema-sql` — собрать полный DDL из схемы в `docs/db/schema.sql`
-- `pnpm --filter @collab/e2e e2e` — сквозные тесты (нужны Postgres, Redis и
-  Chrome; с `E2E_RUNNER=1` и запущенным runner — ещё и запуск кода)
-- `pnpm --filter @collab/bench bench` — исследовательский стенд CRDT vs OT
-  (результаты — `bench/results/REPORT.md`, разбор — `docs/thesis/04-research.md`)
+## Database
 
-## Документация
+Everything about the database is in [docs/db](docs/db): the data dictionary, the ER diagram, the full
+DDL and how to create the database from scratch. The schema is in `packages/db/prisma/schema.prisma`,
+and the migrations are next to it in `packages/db/prisma/migrations`. `pnpm db:migrate` creates the
+whole structure, so nothing is done by hand. `pnpm db:schema-sql` rebuilds `docs/db/schema.sql` from the
+schema.
 
-- [docs/db](docs/db) — база данных: словарь данных, ER-диаграмма, миграции и DDL, как создать базу
-- [docs/ux](docs/ux) — UX-спецификация: сценарии с ошибками, визуальный стиль, компоненты, экраны (PDF)
-- [docs/deploy-local.md](docs/deploy-local.md) — показать сайт другим с этого компьютера (`pnpm host:test`)
-- [docs/adr](docs/adr) — архитектурные решения (ADR-001…004)
-- [docs/websocket-protocol.md](docs/websocket-protocol.md) — протоколы реального времени
-- Swagger — `http://localhost:3001/docs` при запущенном api
-- [docs/deploy-gcp.md](docs/deploy-gcp.md) — развёрнуто в Google Cloud: https://35-228-155-63.sslip.io (`node infra/gcp/deploy.mjs`)
-- [docs/deploy-aws.md](docs/deploy-aws.md) — деплой на AWS (не проверен на реальном аккаунте)
-- [docs/thesis](docs/thesis) — черновики глав диплома
+## Tests
 
-## Стек
+- `pnpm lint`, `pnpm typecheck` and `pnpm test` run over all packages. The tests need the Postgres and
+  Redis from Docker.
+- `pnpm --filter @collab/e2e e2e` runs the end-to-end tests: Playwright opens the app in real browsers,
+  often as two people at once. With `E2E_RUNNER=1` and a running runner they also run code.
 
-TypeScript везде. React + Vite на фронтенде, Fastify на бэкенде, Hocuspocus
-для синхронизации Yjs, PostgreSQL (Prisma) + Redis (BullMQ) для данных и
-очередей, Docker — для изолированного запуска кода. Подробности и
-альтернативы — в [docs/adr](docs/adr).
+There are a bit more than 400 tests in total. GitHub Actions runs them on every push, together with lint,
+typecheck and the migrations on an empty database.
+
+## How it is built
+
+```
+├── apps/
+│   ├── web/        React app (Vite, Monaco, Yjs, react-konva), PWA, invite links, guest sign-in
+│   ├── api/        Fastify REST API with Swagger: auth, projects, files, chat, runs
+│   ├── collab/     Hocuspocus: Yjs sync and access checks
+│   └── runner/     BullMQ worker that runs code in a Docker sandbox, and the terminal
+├── packages/
+│   ├── shared/     Types, Zod schemas, constants
+│   └── db/         Prisma schema and migrations
+├── bench/          CRDT vs OT bench: scenarios, results, charts
+├── e2e/            Playwright end-to-end tests
+├── infra/          Dockerfiles, docker-compose, Caddyfile, deploy scripts
+└── docs/           Database, UX, business analysis, ADRs, protocol, deployment, thesis chapters
+```
+
+Everything is TypeScript. The front end is React with Vite, the REST API is Fastify, and sync goes
+through Hocuspocus (a server for Yjs). Data lives in PostgreSQL through Prisma, and the queue for code
+runs uses Redis and BullMQ. Each file of a project is its own Yjs document. Why I chose all this is
+written down in the ADRs in [docs/adr](docs/adr).
+
+## What the study showed
+
+The bench is in `bench/` and runs with `pnpm --filter @collab/bench bench`. I compared Yjs (CRDT) and
+ShareDB (OT) with 2 to 100 users typing at the same time.
+
+- Neither of them lost a single edit, even when everyone typed at the same position.
+- Up to 50 users both have a delay of a few milliseconds. At 100 users Yjs is about twice as slow
+  (p95 of 28.7 ms against 13.4 ms), which is still far below the 100 ms that people notice.
+- Yjs sends 2.2–2.9 times less data per edit.
+- Merging after offline work is faster with ShareDB. I expected the opposite.
+
+So I picked CRDT not for speed but because the architecture is simpler: no server has to decide the
+order of edits, and offline work needs no extra logic. The full tables are in
+[bench/results/REPORT.md](bench/results/REPORT.md), and the discussion is in
+[docs/thesis/04-research.md](docs/thesis/04-research.md).
+
+## Known limitations
+
+- There is no password reset by email yet.
+- Code runs in a container, but the container shares the kernel with the server. That's fine for a
+  study project, not for running strangers' code in public; that would need something like gVisor.
+- Import works only for public GitHub repositories. Pushing a commit was tested against a fake GitHub in
+  the tests, not against a real repository.
+- The API runs as one instance. To scale out, its events would have to go through Redis pub/sub.
+- I wrote the AWS guide but never ran it on a real account. Only the Google Cloud deployment is tested.
+- You can't add pictures to the board yet.
+
+## Documentation
+
+- [docs/db](docs/db): database (data dictionary, ER diagram, migrations, DDL)
+- [docs/ux](docs/ux): UX specification with scenarios, errors, visual style, components and screens (PDF)
+- [docs/ba](docs/ba): business analysis
+- [docs/adr](docs/adr): architecture decisions
+- [docs/websocket-protocol.md](docs/websocket-protocol.md): real-time protocols
+- [docs/deploy-local.md](docs/deploy-local.md), [docs/deploy-gcp.md](docs/deploy-gcp.md),
+  [docs/deploy-aws.md](docs/deploy-aws.md): deployment
+- [docs/thesis](docs/thesis): thesis chapters
+- Swagger: `http://localhost:3001/docs` while the API is running
+
+## Author
+
+Artsiom Harminovich, diploma project. Supervisor: Maksym Svynarenko.

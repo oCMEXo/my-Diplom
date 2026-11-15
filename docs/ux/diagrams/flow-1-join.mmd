@@ -1,16 +1,16 @@
 flowchart TD
-  A([Гость получил ссылку]) --> C{Ссылка действует?}
-  C -- нет --> E1[/Ошибка: ссылка недействительна, экран 4/]
-  C -- да --> D{Уже вошёл?}
-  D -- да --> J[Проект открыт]
-  D -- нет --> F[Экран приглашения, экран 3]
-  F --> H{Имя введено?}
-  H -- нет --> E2[/Кнопка неактивна/] --> F
-  H -- да --> J
-  J --> K{Роль}
-  K -- наблюдатель --> R([Только чтение, экран 5])
-  K -- редактор --> L[Правит файл вместе со всеми]
-  L --> M{Связь есть?}
-  M -- да --> Z([Синхронизировано])
-  M -- нет --> N[/Подключение… или Офлайн, экран 8/]
-  N --> O[Продолжает печатать] --> P[Связь вернулась, правки слились, экран 9] --> Z
+  A([Guest got a link]) --> C{Link valid?}
+  C -- no --> E1[/Error: link not valid, screen 4/]
+  C -- yes --> D{Already signed in?}
+  D -- yes --> J[Project open]
+  D -- no --> F[Invitation page, screen 3]
+  F --> H{Name entered?}
+  H -- no --> E2[/Button disabled/] --> F
+  H -- yes --> J
+  J --> K{Role}
+  K -- viewer --> R([Read only, screen 5])
+  K -- editor --> L[Edits the file with everyone]
+  L --> M{Connected?}
+  M -- yes --> Z([Synced])
+  M -- no --> N[/Connecting… or Offline, screen 8/]
+  N --> O[Keeps typing] --> P[Back online, edits merged, screen 9] --> Z

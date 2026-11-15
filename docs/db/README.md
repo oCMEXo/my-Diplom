@@ -1,104 +1,109 @@
-# База данных
+# Database
 
-Материалы по критерию Database. СУБД — PostgreSQL 16, доступ из кода — Prisma ORM.
+Materials for the Database criterion. The database is PostgreSQL 16; the code talks to it through Prisma ORM.
 
-| Что | Где |
+| What | Where |
 |---|---|
-| Словарь данных: таблицы, поля, типы, ключи | [`data-dictionary.md`](data-dictionary.md) |
-| Логическая схема (ER-диаграмма) | [`er-diagram.png`](er-diagram.png), исходник [`er-diagram.mmd`](er-diagram.mmd) и ниже на этой странице |
-| Миграции (источник структуры) | [`packages/db/prisma/migrations`](../../packages/db/prisma/migrations) |
-| Схема Prisma | [`packages/db/prisma/schema.prisma`](../../packages/db/prisma/schema.prisma) |
-| Полный DDL итоговой структуры одним файлом | [`schema.sql`](schema.sql) |
+| Data dictionary: tables, columns, types, keys | [`data-dictionary.md`](data-dictionary.md) |
+| Logical schema (ER diagram) | [`er-diagram.png`](er-diagram.png), source [`er-diagram.mmd`](er-diagram.mmd), and below on this page |
+| Migrations (the source of the structure) | [`packages/db/prisma/migrations`](../../packages/db/prisma/migrations) |
+| Prisma schema | [`packages/db/prisma/schema.prisma`](../../packages/db/prisma/schema.prisma) |
+| Full DDL of the final structure in one file | [`schema.sql`](schema.sql) |
 
-## Как создаётся база
+## How the database is created
 
-Структура создаётся только скриптами. Вручную в базе ничего не создаётся.
+The structure is created only by scripts. Nothing is created by hand.
 
-1. Запустить PostgreSQL. Для разработки он есть в Docker Compose:
+1. Start PostgreSQL. For development it runs in Docker Compose:
 
    ```bash
    docker compose -f infra/docker-compose.dev.yml up -d
    ```
 
-2. Указать адрес базы. Пример лежит в `packages/db/.env.example`:
+2. Set the database address. There is an example in `packages/db/.env.example`:
 
    ```bash
    cp packages/db/.env.example packages/db/.env
    ```
 
-3. Применить миграции.
+3. Apply the migrations:
 
    ```bash
    pnpm install
-   pnpm db:migrate                                # разработка: prisma migrate dev
-   pnpm --filter @collab/db migrate:deploy        # сервер: prisma migrate deploy, без вопросов
+   pnpm db:migrate                                # development: prisma migrate dev
+   pnpm --filter @collab/db migrate:deploy        # server: prisma migrate deploy, no questions asked
    ```
 
-`prisma migrate deploy` применяет по порядку только те миграции из папки
-`packages/db/prisma/migrations`, которых ещё нет в базе. Выполненные миграции Prisma отмечает в
-служебной таблице `_prisma_migrations`. На сервере это делает отдельный сервис `migrate` в
-[`infra/docker-compose.yml`](../../infra/docker-compose.yml) перед запуском API.
+`prisma migrate deploy` applies, in order, only the migrations from `packages/db/prisma/migrations`
+that the database does not have yet. Prisma records the applied ones in its own table
+`_prisma_migrations`. On the server this is done by a separate `migrate` service in
+[`infra/docker-compose.yml`](../../infra/docker-compose.yml) before the API starts.
 
-Файл `schema.sql` получен из схемы командой `pnpm db:schema-sql`
-(`prisma migrate diff --from-empty --to-schema-datamodel`). Он нужен, чтобы прочитать всю структуру
-одним файлом. Для создания базы используются миграции.
+The CI pipeline (`.github/workflows/ci.yml`) also applies all migrations to an empty database on
+every push, so a broken migration is caught at once.
 
-## Миграции
+`schema.sql` is generated from the schema with `pnpm db:schema-sql`
+(`prisma migrate diff --from-empty --to-schema-datamodel`). It is there so the whole structure can be
+read in one file. The database itself is created by the migrations.
 
-| Миграция | Что меняет |
+## Migrations
+
+| Migration | What it changes |
 |---|---|
-| `20261001193251_init` | Таблицы `users`, `refresh_tokens`, `projects`, `project_members`, `files`, `messages`, типы `ProjectRole` и `FileKind` |
-| `20261001200000_add_invite_links_and_guests` | Гости (`users.is_guest`), ссылки-приглашения (`projects.invite_code`, `invite_role`) |
-| `20261004120000_add_github_link` | Связь проекта с репозиторием GitHub, `files.source_sha` |
-| `20261005120000_add_file_trash` | Корзина: `files.deleted_at`, `trashed_path` |
-| `20261006120000_files_per_branch` | У каждой ветки свои файлы: `files.branch`, новый ключ уникальности |
-| `20261007120000_file_versions` | История версий: таблица `file_versions` |
-| `20261104120000_refresh_token_lookup_and_email_case` | Индекс по `token_hash`, адреса в нижнем регистре |
+| `20261001193251_init` | Tables `users`, `refresh_tokens`, `projects`, `project_members`, `files`, `messages`; types `ProjectRole` and `FileKind` |
+| `20261001200000_add_invite_links_and_guests` | Guests (`users.is_guest`), invite links (`projects.invite_code`, `invite_role`) |
+| `20261004120000_add_github_link` | Link from a project to a GitHub repository, `files.source_sha` |
+| `20261005120000_add_file_trash` | Trash: `files.deleted_at`, `trashed_path` |
+| `20261006120000_files_per_branch` | Each branch has its own files: `files.branch`, new unique key |
+| `20261007120000_file_versions` | Version history: table `file_versions` |
+| `20261104120000_refresh_token_lookup_and_email_case` | Index on `token_hash`, emails in lower case |
 
-## Логическая схема
+## Logical schema
 
 ```mermaid
 erDiagram
-  users ||--o{ refresh_tokens : "сессии входа"
-  users ||--o{ projects : "владеет"
-  users ||--o{ project_members : "участвует"
-  projects ||--o{ project_members : "состав"
-  projects ||--o{ files : "содержит"
-  files ||--o{ file_versions : "версии"
-  users |o--o{ file_versions : "автор версии"
-  projects ||--o{ messages : "чат"
-  users ||--o{ messages : "пишет"
+  users ||--o{ refresh_tokens : "sign-in sessions"
+  users ||--o{ projects : "owns"
+  users ||--o{ project_members : "takes part"
+  projects ||--o{ project_members : "members"
+  projects ||--o{ files : "contains"
+  files ||--o{ file_versions : "versions"
+  users |o--o{ file_versions : "version author"
+  projects ||--o{ messages : "chat"
+  users ||--o{ messages : "writes"
 ```
 
-Подробно, с полями и типами, — на [`er-diagram.png`](er-diagram.png) и в словаре данных.
+The full diagram with columns and types is in [`er-diagram.png`](er-diagram.png) and in the data dictionary.
 
-Сущности:
+Entities:
 
-- **users** — зарегистрированные пользователи и гости.
-- **refresh_tokens** — сессии входа, по одной на устройство.
-- **projects** — проекты с владельцем, ссылкой-приглашением и связью с GitHub.
-- **project_members** — кто в каком проекте и с какой ролью (связь «многие ко многим»).
-- **files** — файлы проекта: код, документы, доски. Содержимое — состояние CRDT-документа Yjs.
-- **file_versions** — прежние версии файлов в виде текста.
-- **messages** — чат проекта.
+- **users**: registered users and guests.
+- **refresh_tokens**: sign-in sessions, one per device.
+- **projects**: projects with an owner, an invite link and an optional GitHub link.
+- **project_members**: who is in which project and with which role (a many-to-many link).
+- **files**: project files: code, documents and boards. The content is the state of a Yjs CRDT document.
+- **file_versions**: earlier versions of files as plain text.
+- **messages**: the project chat.
 
-## Решения по структуре
+## Design decisions
 
-- **Нормализация.** Таблицы в третьей нормальной форме: у каждой одна сущность, неключевые поля
-  зависят только от ключа. Роль хранится в связи `project_members`, а не в `users`, потому что у
-  одного человека в разных проектах разные роли.
-- **Содержимое файла — двоичное состояние Yjs** (`BYTEA`), а не текст. Так при правке без сети
-  изменения сливаются без конфликтов. Версии для просмотра хранятся отдельно, обычным текстом.
-- **Удаление.** Удаление проекта каскадно удаляет участников, файлы, версии и сообщения. Пользователя
-  с проектами и сообщениями база удалить не даст (`RESTRICT`): приложение при удалении аккаунта
-  сначала удаляет его сообщения и проекты в одной транзакции. У версий автор становится `NULL`.
-- **Безопасность.** В базе нет паролей и ключей в открытом виде: пароль — хеш Argon2id, ключ
-  обновления — SHA-256. Гости не дают e-mail: у них служебный адрес.
-- **Redis** в проекте тоже есть, но он хранит только очередь запусков кода и сообщения между
-  серверами. Данных предметной области в нём нет, поэтому в схему он не входит.
+- **Normalization.** The tables are in third normal form: each table holds one entity, and non-key
+  columns depend only on the key. The role is stored in `project_members`, not in `users`, because one
+  person has different roles in different projects.
+- **File content is binary Yjs state** (`BYTEA`), not text. This way offline edits merge without
+  conflicts. Versions for viewing are stored separately as plain text.
+- **Deletion.** Deleting a project cascades to its members, files, versions and messages. The database
+  will not delete a user who still has projects or messages (`RESTRICT`): when an account is deleted,
+  the app first deletes its messages and projects in one transaction. For versions, the author becomes
+  `NULL`.
+- **Security.** No passwords or keys are stored in plain form: the password is an Argon2id hash, and the
+  refresh token is stored as SHA-256. Guests give no email; they get a technical address.
+- **Redis** is also used in the project, but only for the code run queue and messages between servers.
+  It holds no domain data, so it is not part of this schema.
 
-## Ключи и пароли в репозитории
+## Keys and passwords in the repository
 
-В Git нет настоящих ключей и паролей. В репозитории лежат только файлы-примеры `.env.example` и
-`infra/.env.prod.example`. В них локальные значения для Docker на своей машине (`collab:collab`) или
-заглушки `CHANGE_ME`. Настоящие файлы `.env` перечислены в `.gitignore` и в репозиторий не попадали.
+There are no real keys or passwords in Git. The repository has only the example files `.env.example`
+and `infra/.env.prod.example`. They contain local values for Docker on your own machine
+(`collab:collab`) or `CHANGE_ME` placeholders. The real `.env` files are listed in `.gitignore` and
+were never committed.

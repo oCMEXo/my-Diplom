@@ -1,17 +1,17 @@
 erDiagram
-  users ||--o{ refresh_tokens : "сессии входа"
-  users ||--o{ projects : "владеет"
-  users ||--o{ project_members : "участвует"
-  projects ||--o{ project_members : "состав"
-  projects ||--o{ files : "содержит"
-  files ||--o{ file_versions : "версии"
-  users |o--o{ file_versions : "автор версии"
-  projects ||--o{ messages : "чат"
-  users ||--o{ messages : "пишет"
+  users ||--o{ refresh_tokens : "sign-in sessions"
+  users ||--o{ projects : "owns"
+  users ||--o{ project_members : "takes part"
+  projects ||--o{ project_members : "members"
+  projects ||--o{ files : "contains"
+  files ||--o{ file_versions : "versions"
+  users |o--o{ file_versions : "version author"
+  projects ||--o{ messages : "chat"
+  users ||--o{ messages : "writes"
 
   users {
     text id PK "UUID"
-    text email UK "в нижнем регистре"
+    text email UK "lower case"
     text name
     text password_hash "Argon2id"
     boolean is_guest

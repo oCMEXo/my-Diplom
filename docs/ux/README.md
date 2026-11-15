@@ -1,31 +1,31 @@
-# UX-спецификация
+# UX specification
 
-Материалы по критерию Refined UX.
+Materials for the Refined UX criterion.
 
-| Что | Где |
+| What | Where |
 |---|---|
-| Спецификация (PDF для эксперта) | [`UX_Harminovich_Artsiom.pdf`](UX_Harminovich_Artsiom.pdf) |
-| Исходник спецификации | [`ux-spec.html`](ux-spec.html) |
-| Три ключевых сценария с ветками и ошибками | разделы 2–4 PDF; схемы — [`diagrams/`](diagrams) → `img/flow-*.png` |
-| Визуальный стиль и библиотека компонентов | разделы 5–6 PDF; токены — `apps/web/src/index.css`, `apps/web/tailwind.config.js`; компоненты — `apps/web/src/components/ui` |
-| Экраны с ошибками и валидацией (9 экранов) | раздел 7 PDF; снимки — `img/01-…10-*.png` |
+| Specification (PDF for the expert) | [`UX_Harminovich_Artsiom.pdf`](UX_Harminovich_Artsiom.pdf) |
+| Source of the specification | [`ux-spec.html`](ux-spec.html) |
+| Three key scenarios with branches and errors | sections 2–4 of the PDF; diagrams in [`diagrams/`](diagrams) → `img/flow-*.png` |
+| Visual style and component library | sections 5–6 of the PDF; tokens in `apps/web/src/index.css` and `apps/web/tailwind.config.js`; components in `apps/web/src/components/ui` |
+| Screens with errors and validation (9 screens) | section 7 of the PDF; screenshots in `img/01-…10-*.png` |
 
-## Как пересобрать
+## How to rebuild
 
-Снимки экранов делает автотест на тестовой базе (нужны Postgres и Redis из
+The screenshots are taken by an automated test on a test database (it needs the Postgres and Redis from
 `infra/docker-compose.dev.yml`):
 
 ```bash
 UX_SCREENS=1 pnpm --filter @collab/e2e e2e -- ux-screens
 ```
 
-Схемы сценариев (Mermaid, нужен интернет для загрузки Mermaid):
+Scenario diagrams (Mermaid; needs the internet to load Mermaid):
 
 ```bash
 DIAGRAMS_SRC=docs/ux/diagrams DIAGRAMS_OUT=docs/ux/img node docs/ba/build/render-diagrams.mjs
 ```
 
-PDF из HTML (Chrome через Playwright):
+PDF from the HTML (Chrome through Playwright):
 
 ```bash
 node docs/ux/build-pdf.mjs
