@@ -35,6 +35,8 @@ import { featuresSchema, runAccessSchema } from "@collab/shared";
 import { closeRunQueue } from "./lib/queue.js";
 import { closeAccessChanges } from "./lib/access-changes.js";
 import { mailConfigured } from "./lib/mailer.js";
+import { closeHealthChecks, readiness } from "./lib/health.js";
+import { clientErrorsRoutes } from "./modules/client-errors/client-errors.routes.js";
 
 export interface AppOptions {
   /** Requests per minute per address (0 = unlimited) and the stricter limit for the auth endpoints. */
@@ -60,6 +62,7 @@ const AUTH_LIMITED_URLS = new Set([
   // Reveals whether an email is registered, so it is limited like login.
   "/projects/:projectId/members",
   "/run-access",
+  "/client-errors",
 ]);
 
 export async function buildApp(options: AppOptions = {}) {
@@ -132,6 +135,10 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(swaggerUi, { routePrefix: "/docs", indexPrefix: options.pathPrefix ?? env.API_PATH_PREFIX });
 
   app.get("/health", async () => ({ status: "ok" }));
+  app.get("/health/ready", { schema: { tags: ["health"] } }, async (_request, reply) => {
+    const result = await readiness();
+    return reply.code(result.status === "ok" ? 200 : 503).send(result);
+  });
 
   app.get(
     "/features",
@@ -169,10 +176,12 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(exportRoutes, { prefix: "/projects" });
   await app.register(realtimeRoutes);
   await app.register(previewRoutes, { trustProxy });
+  await app.register(clientErrorsRoutes);
 
   app.addHook("onClose", closeRunQueue);
   app.addHook("onClose", closeTerminalTickets);
   app.addHook("onClose", closeAccessChanges);
+  app.addHook("onClose", closeHealthChecks);
 
   return app;
 }
