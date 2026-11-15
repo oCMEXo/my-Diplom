@@ -1,18 +1,18 @@
 flowchart TD
-  A([Новый пользователь]) --> B[Регистрация]
-  B --> C{Данные верны?}
-  C -- пароль короче 8 --> E1[/Подсказка под полем/] --> B
-  C -- email занят --> E2[/Ошибка: email занят, экран 2/] --> L[Вход]
-  C -- да --> P[Мои проекты]
-  L --> LC{Email и пароль верны?}
-  LC -- нет --> E3[/Ошибка: неверный email или пароль, экран 1/] --> L
-  LC -- да --> P
-  P --> Q{Как начать?}
-  Q -- пустой проект --> R[Проект создан]
-  Q -- из GitHub --> S[Ссылка на репозиторий]
-  S --> T{Ссылка верна?}
-  T -- не GitHub --> E4[/Ошибка с примером ссылки, экран 7/] --> S
-  T -- приватный или нет --> E5[/Ошибка: не найден/] --> S
-  T -- GitHub не отвечает --> E6[/Ошибка: повторить/] --> S
-  T -- да --> R
-  R --> U[Пригласить: роль и ссылка] --> V([Ссылка отправлена])
+  A([New user]) --> B[Sign up]
+  B --> C{Data valid?}
+  C -- password under 8 --> E1[/Hint under the field/] --> B
+  C -- email taken --> E2[/Error: email taken, screen 2/] --> L[Sign in]
+  C -- yes --> P[Your projects]
+  L --> LC{Email and password right?}
+  LC -- no --> E3[/Error: wrong email or password, screen 1/] --> L
+  LC -- yes --> P
+  P --> Q{How to start?}
+  Q -- empty project --> R[Project created]
+  Q -- from GitHub --> S[Repository link]
+  S --> T{Link valid?}
+  T -- not GitHub --> E4[/Error with an example link, screen 7/] --> S
+  T -- private or missing --> E5[/Error: not found/] --> S
+  T -- GitHub not answering --> E6[/Error: try again/] --> S
+  T -- yes --> R
+  R --> U[Invite: role and link] --> V([Link sent])

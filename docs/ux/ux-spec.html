@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>UX-спецификация Collab</title>
+<title>Collab UX specification</title>
 <style>
   @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
   body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1f2328; margin: 0; }
@@ -35,211 +35,211 @@
 <body>
 
 <section class="title">
-  <h1>UX-спецификация</h1>
-  <p class="sub">Collab — платформа для совместного редактирования кода в реальном времени</p>
+  <h1>UX specification</h1>
+  <p class="sub">Collab: a platform for editing code together in real time</p>
   <table class="meta">
-    <tr><td>Автор: Artsiom Harminovich</td></tr>
-    <tr><td>Руководитель: Maksym Svynarenko</td></tr>
-    <tr><td>Критерий: Refined UX</td></tr>
-    <tr><td>Ноябрь 2026</td></tr>
+    <tr><td>Author: Artsiom Harminovich</td></tr>
+    <tr><td>Supervisor: Maksym Svynarenko</td></tr>
+    <tr><td>Criterion: Refined UX</td></tr>
+    <tr><td>November 2026</td></tr>
   </table>
-  <p class="note">Все экраны в этом документе — снимки работающего приложения. Их делает автотест
-  <code>e2e/tests/ux-screens.spec.ts</code> на тестовых данных, поэтому снимки можно повторить
-  после любых изменений интерфейса. Интерфейс на русском языке, тёмная тема (есть и светлая).</p>
+  <p class="note">Every screen in this document is a screenshot of the working app. The automated test
+  <code>e2e/tests/ux-screens.spec.ts</code> takes them on test data, so they can be taken again after any
+  change to the interface. The screenshots use the dark theme (there is a light one too).</p>
 </section>
 
 <section class="page">
-<h2>1. Продукт и пользователи</h2>
-<p>Collab — общее рабочее пространство проекта в браузере: файлы кода, документы Markdown, доска для схем,
-чат и запуск кода. В проект заходят по одной ссылке, гость — без регистрации.</p>
+<h2>1. Product and users</h2>
+<p>Collab is a shared workspace for a project in the browser: code files, Markdown documents, a board for
+diagrams, a chat and running code. People join a project with one link; a guest needs no account.</p>
 
 <table>
-  <tr><th>Пользователь</th><th>Цель</th><th>Что ему важно</th></tr>
-  <tr><td>Студент — владелец проекта</td><td>Быстро собрать команду над кодом</td><td>Одна ссылка вместо приглашений в 4–5 сервисах; проект не теряется после сессии</td></tr>
-  <tr><td>Гость (друг, однокурсник)</td><td>Помочь с кодом прямо сейчас</td><td>Ничего не устанавливать и не регистрироваться; сразу печатать в общем файле</td></tr>
-  <tr><td>Наставник или преподаватель</td><td>Посмотреть код и подсказать</td><td>Видеть, кто что правит; роль «наблюдатель», чтобы ничего не сломать</td></tr>
+  <tr><th>User</th><th>Goal</th><th>What matters to them</th></tr>
+  <tr><td>Student, project owner</td><td>Get a team working on the code quickly</td><td>One link instead of invitations in 4–5 services; the project is not lost after the session</td></tr>
+  <tr><td>Guest (friend, classmate)</td><td>Help with the code right now</td><td>Nothing to install, no sign-up; start typing in the shared file at once</td></tr>
+  <tr><td>Mentor or teacher</td><td>Look at the code and give advice</td><td>See who is editing what; the "viewer" role so nothing gets broken</td></tr>
 </table>
 
-<h3>Принципы интерфейса</h3>
+<h3>Interface principles</h3>
 <ol>
-  <li><b>Вход за минуту.</b> Ссылка → имя → редактор. Никаких лишних шагов для гостя.</li>
-  <li><b>Правки не теряются.</b> При обрыве связи можно продолжать работу, состояние видно в шапке.</li>
-  <li><b>Ошибка объясняет, что делать.</b> Текст говорит, что случилось и как это исправить, без кодов ошибок.</li>
-  <li><b>Ошибку видно до отправки, если это возможно.</b> Поле сразу показывает проблему, а кнопка остаётся неактивной.</li>
-  <li><b>Безопасность важнее подсказки.</b> При входе текст не сообщает, какое поле неверно, чтобы не выдавать, есть ли аккаунт.</li>
+  <li><b>In within a minute.</b> Link → name → editor. No extra steps for a guest.</li>
+  <li><b>Edits are not lost.</b> When the connection drops, work goes on, and the header shows the state.</li>
+  <li><b>An error says what to do.</b> The text says what happened and how to fix it, without error codes.</li>
+  <li><b>Show the error before sending, when possible.</b> The field shows the problem at once and the button stays disabled.</li>
+  <li><b>Security comes before a hint.</b> At sign-in the text does not say which field is wrong, so it does not reveal whether an account exists.</li>
 </ol>
 </section>
 
 <section class="page">
-<h2>2. Сценарий 1. Гость присоединяется по ссылке и правит файл</h2>
-<p><b>Пользователь:</b> гость без аккаунта. <b>Начало:</b> получил ссылку-приглашение в мессенджере.
-<b>Результат:</b> гость правит файл вместе со всеми, правки видны у каждого.</p>
+<h2>2. Scenario 1. A guest joins by a link and edits a file</h2>
+<p><b>User:</b> a guest without an account. <b>Start:</b> got an invite link in a messenger.
+<b>Result:</b> the guest edits the file together with everyone, and everyone sees the edits.</p>
 
-<h3>Основной путь</h3>
+<h3>Main path</h3>
 <ol>
-  <li>Гость открывает ссылку. Экран приглашения показывает, кто зовёт, название проекта и роль (экран 3).</li>
-  <li>Вводит имя. Пока поле пустое, кнопка неактивна.</li>
-  <li>Нажимает «Присоединиться как гость». Открывается проект.</li>
-  <li>Гость печатает в файле. Другие видят текст и курсор с его именем, в шапке — «Синхронизировано».</li>
+  <li>The guest opens the link. The invitation page shows who invites, the project name and the role (screen 3).</li>
+  <li>Types a name. While the field is empty, the button is disabled.</li>
+  <li>Presses "Join as guest". The project opens.</li>
+  <li>The guest types in the file. Others see the text and a cursor with the guest's name; the header says "Synced".</li>
 </ol>
 
-<h3>Альтернативы и ошибки</h3>
+<h3>Alternatives and errors</h3>
 <table>
-  <tr><th>Условие</th><th>Что видит пользователь</th><th>Что дальше</th></tr>
-  <tr><td>Ссылка неверная или владелец её заменил</td><td class="err">«Не получилось присоединиться. Ссылка-приглашение недействительна или устарела» (экран 4)</td><td>Кнопка «К моим проектам»; попросить новую ссылку</td></tr>
-  <tr><td>Имя не введено</td><td>Кнопка «Присоединиться как гость» неактивна (экран 3)</td><td>Ввести имя (до 100 символов)</td></tr>
-  <tr><td>Ссылка даёт роль «наблюдатель»</td><td>«Вы сможете смотреть, но не менять» (экран 5)</td><td>Файлы открываются только для чтения</td></tr>
-  <tr><td>Человек уже вошёл в аккаунт</td><td>Экран приглашения пропускается</td><td>Сразу добавлен в проект</td></tr>
-  <tr><td>Связь оборвалась во время правки</td><td>В шапке «Подключение…» или «Офлайн — правки сохранятся локально» (экран 8)</td><td>Продолжать печатать; после восстановления связи правки сливаются, в шапке снова «Синхронизировано» (экран 9)</td></tr>
+  <tr><th>Condition</th><th>What the user sees</th><th>What next</th></tr>
+  <tr><td>The link is wrong or the owner replaced it</td><td class="err">"Could not join. The invite link is not valid or has expired" (screen 4)</td><td>Button "To my projects"; ask for a new link</td></tr>
+  <tr><td>No name entered</td><td>The "Join as guest" button is disabled (screen 3)</td><td>Enter a name (up to 100 characters)</td></tr>
+  <tr><td>The link gives the "viewer" role</td><td>"You will be able to view, but not change" (screen 5)</td><td>Files open read-only</td></tr>
+  <tr><td>The person is already signed in</td><td>The invitation page is skipped</td><td>Added to the project at once</td></tr>
+  <tr><td>The connection drops while editing</td><td>The header says "Connecting…" or "Offline: edits are saved on this device" (screen 8)</td><td>Keep typing; when the connection is back the edits merge and the header says "Synced" again (screen 9)</td></tr>
 </table>
-<figure class="flow"><img src="img/flow-1-join.png"><figcaption>Рис. 1 — Схема сценария 1 с ветками и ошибками</figcaption></figure>
+<figure class="flow"><img src="img/flow-1-join.png"><figcaption>Fig. 1. Scenario 1 with branches and errors</figcaption></figure>
 </section>
 
 <section class="page">
-<h2>3. Сценарий 2. Регистрация, вход и новый проект</h2>
-<p><b>Пользователь:</b> студент, будущий владелец проекта. <b>Начало:</b> впервые открыл сайт.
-<b>Результат:</b> проект создан (пустой или из репозитория GitHub), ссылка-приглашение отправлена команде.</p>
+<h2>3. Scenario 2. Sign-up, sign-in and a new project</h2>
+<p><b>User:</b> a student who will own the project. <b>Start:</b> opened the site for the first time.
+<b>Result:</b> a project is created (empty, from an example or from a GitHub repository), and the invite link is sent to the team.</p>
 
-<h3>Основной путь</h3>
+<h3>Main path</h3>
 <ol>
-  <li>«Создать аккаунт»: имя, email, пароль. Под паролем подсказка «Не короче 8 символов».</li>
-  <li>Открывается список «Мои проекты». «Новый проект» → название → проект открыт.</li>
-  <li>Меню проекта → «Пригласить»: выбрать роль (редактор или наблюдатель) и скопировать ссылку.</li>
+  <li>"Create account": name, email, password. Under the password there is a hint "At least 8 characters".</li>
+  <li>The list "Your projects" opens. "New project" → name → the project is open.</li>
+  <li>Project menu → "Invite people": choose a role (editor or viewer) and copy the link.</li>
 </ol>
 
-<h3>Альтернативы и ошибки</h3>
+<h3>Alternatives and errors</h3>
 <table>
-  <tr><th>Условие</th><th>Что видит пользователь</th><th>Что дальше</th></tr>
-  <tr><td>Email уже зарегистрирован</td><td class="err">«Этот email уже зарегистрирован» (экран 2)</td><td>Перейти ко входу по ссылке «Войти»</td></tr>
-  <tr><td>Пароль короче 8 символов</td><td>Подсказка под полем; браузер не отправляет форму</td><td>Ввести пароль подлиннее</td></tr>
-  <tr><td>Неверный email или пароль при входе</td><td class="err">«Неверный email или пароль» — без указания, что именно неверно (экран 1)</td><td>Ввести снова или войти как гость</td></tr>
-  <tr><td>Проект из GitHub: вставлена не ссылка на репозиторий</td><td class="err">«Не похоже на ссылку на репозиторий GitHub. Пример: https://github.com/owner/repo» (экран 7)</td><td>Исправить ссылку по примеру</td></tr>
-  <tr><td>Репозиторий приватный или не существует</td><td class="err">«Репозиторий или ветка не найдены. Приватные репозитории пока не поддерживаются.»</td><td>Проверить адрес; открыть доступ к репозиторию</td></tr>
-  <tr><td>GitHub не отвечает</td><td class="err">«Не удалось связаться с GitHub. Попробуйте ещё раз.»</td><td>Повторить позже</td></tr>
-  <tr><td>Владелец хочет закрыть старую ссылку</td><td>«Новая ссылка»: старая сразу перестаёт работать</td><td>Отправить новую ссылку</td></tr>
+  <tr><th>Condition</th><th>What the user sees</th><th>What next</th></tr>
+  <tr><td>The email is already registered</td><td class="err">"This email is already registered" (screen 2)</td><td>Go to sign-in with the "Sign in" link</td></tr>
+  <tr><td>The password is shorter than 8 characters</td><td>Hint under the field; the browser does not send the form</td><td>Enter a longer password</td></tr>
+  <tr><td>Wrong email or password at sign-in</td><td class="err">"Wrong email or password", without saying which one is wrong (screen 1)</td><td>Try again or continue as a guest</td></tr>
+  <tr><td>Project from GitHub: the text is not a repository link</td><td class="err">"This does not look like a GitHub repository link. Example: https://github.com/owner/repo" (screen 7)</td><td>Fix the link following the example</td></tr>
+  <tr><td>The repository is private or does not exist</td><td class="err">"Repository or branch not found. Private repositories are not supported yet."</td><td>Check the address; make the repository public</td></tr>
+  <tr><td>GitHub does not answer</td><td class="err">"Could not reach GitHub. Please try again."</td><td>Try again later</td></tr>
+  <tr><td>The owner wants to close the old link</td><td>"Make a new link": the old one stops working at once</td><td>Send the new link</td></tr>
 </table>
-<figure class="flow"><img src="img/flow-2-start.png"><figcaption>Рис. 2 — Схема сценария 2 с ветками и ошибками</figcaption></figure>
+<figure class="flow"><img src="img/flow-2-start.png"><figcaption>Fig. 2. Scenario 2 with branches and errors</figcaption></figure>
 </section>
 
 <section class="page">
-<h2>4. Сценарий 3. Файлы и общий запуск кода</h2>
-<p><b>Пользователь:</b> редактор проекта. <b>Начало:</b> открыт проект. <b>Результат:</b> программа
-запущена, все участники видят один и тот же вывод, статус и время работы.</p>
+<h2>4. Scenario 3. Files and running code together</h2>
+<p><b>User:</b> an editor of the project. <b>Start:</b> the project is open. <b>Result:</b> the program has
+run, and every member sees the same output, status and run time.</p>
 
-<h3>Основной путь</h3>
+<h3>Main path</h3>
 <ol>
-  <li>«Создать файл» или «Переименовать»: имя с папкой, например <code>src/app.py</code>.</li>
-  <li>Пишет код вместе с другими.</li>
-  <li>«Запустить». Вывод, статус и время появляются у всех, у кого открыт файл.</li>
+  <li>"Create a file" or "Rename": a name with a folder, for example <code>src/app.py</code>.</li>
+  <li>Writes code together with others.</li>
+  <li>"Run". The output, status and time appear for everyone who has the file open.</li>
 </ol>
 
-<h3>Альтернативы и ошибки</h3>
+<h3>Alternatives and errors</h3>
 <table>
-  <tr><th>Условие</th><th>Что видит пользователь</th><th>Что дальше</th></tr>
-  <tr><td>Имя файла уже занято</td><td class="err">Под полем сразу при вводе: «Файл с таким именем уже есть»; кнопка неактивна (экран 6)</td><td>Выбрать другое имя</td></tr>
-  <tr><td>Имя начинается или заканчивается на «/», содержит «..»</td><td class="err">«Имя не должно начинаться или заканчиваться на «/» и содержать «..»»</td><td>Исправить имя</td></tr>
-  <tr><td>Файл не на JavaScript и не на Python</td><td class="err">«Запускать можно только файлы JavaScript и Python»</td><td>Запускать файл с кодом</td></tr>
-  <tr><td>Публичный сервер с кодом доступа</td><td>Окно «Код доступа»; при ошибке <span class="err">«Неверный код доступа»</span></td><td>Ввести код, его даёт владелец сервера</td></tr>
-  <tr><td>Сервис запуска недоступен</td><td class="err">«Запуск кода сейчас недоступен. Попробуйте чуть позже.»</td><td>Повторить позже; правка файлов работает</td></tr>
-  <tr><td>Слишком много запусков сразу</td><td class="err">«Сейчас запускается слишком много программ. Попробуйте через минуту.»</td><td>Повторить через минуту</td></tr>
-  <tr><td>Программа работает дольше 10 с</td><td>Статус «превышено время (10 с)», программа остановлена</td><td>Проверить бесконечный цикл</td></tr>
-  <tr><td>Ошибка в программе</td><td>Статус «ошибка», строка с ошибкой подсвечена, сообщение показано первым</td><td>Перейти к строке и исправить</td></tr>
+  <tr><th>Condition</th><th>What the user sees</th><th>What next</th></tr>
+  <tr><td>The file name is taken</td><td class="err">Under the field while typing: "A file with this name already exists"; the button is disabled (screen 6)</td><td>Choose another name</td></tr>
+  <tr><td>The name starts or ends with "/" or contains ".."</td><td class="err">"The name must not start or end with “/” or contain “..”"</td><td>Fix the name</td></tr>
+  <tr><td>The file is neither JavaScript nor Python</td><td class="err">"Only JavaScript and Python files can run"</td><td>Run a file with code</td></tr>
+  <tr><td>Public server with an access code</td><td>An "Access code" window; if it is wrong, <span class="err">"Wrong access code"</span></td><td>Enter the code; the server owner gives it</td></tr>
+  <tr><td>The runner is not available</td><td class="err">"Running code is not available right now. Please try a bit later."</td><td>Try later; editing files still works</td></tr>
+  <tr><td>Too many runs at once</td><td class="err">"Too many programs are running right now. Please try again in a minute."</td><td>Try again in a minute</td></tr>
+  <tr><td>The program runs longer than 10 s</td><td>Status "time limit (10 s)", the program is stopped</td><td>Look for an endless loop</td></tr>
+  <tr><td>An error in the program</td><td>Status "error", the line with the error is highlighted, the message is shown first</td><td>Go to the line and fix it</td></tr>
 </table>
-<figure class="flow"><img src="img/flow-3-run.png"><figcaption>Рис. 3 — Схема сценария 3 с ветками и ошибками</figcaption></figure>
+<figure class="flow"><img src="img/flow-3-run.png"><figcaption>Fig. 3. Scenario 3 with branches and errors</figcaption></figure>
 </section>
 
 <section class="page">
-<h2>5. Визуальный стиль</h2>
-<p>Стиль спокойный и плотный, как в рабочих мессенджерах: тёмная тема по умолчанию, светлая — по
-переключателю в меню профиля. Все цвета заданы токенами (CSS-переменные в <code>apps/web/src/index.css</code>,
-имена в <code>tailwind.config.js</code>), поэтому обе темы используют одни и те же имена.</p>
+<h2>5. Visual style</h2>
+<p>The style is calm and dense, like work messengers: the dark theme by default, the light one through a
+switch in the profile menu. All colours are tokens (CSS variables in <code>apps/web/src/index.css</code>,
+names in <code>tailwind.config.js</code>), so both themes use the same names.</p>
 
-<h3>Цвета</h3>
+<h3>Colours</h3>
 <table>
-  <tr><th>Токен</th><th>Тёмная тема</th><th>Светлая тема</th><th>Где используется</th></tr>
-  <tr><td><code>canvas</code></td><td><span class="sw" style="background:rgb(30,31,34)"></span> 30 31 34</td><td><span class="sw" style="background:rgb(227,229,232)"></span> 227 229 232</td><td>Фон приложения</td></tr>
-  <tr><td><code>surface</code></td><td><span class="sw" style="background:rgb(43,45,49)"></span> 43 45 49</td><td><span class="sw" style="background:rgb(242,243,245)"></span> 242 243 245</td><td>Панели, карточки, окна</td></tr>
-  <tr><td><code>main</code></td><td><span class="sw" style="background:rgb(49,51,56)"></span> 49 51 56</td><td><span class="sw" style="background:rgb(255,255,255)"></span> 255 255 255</td><td>Область редактора</td></tr>
-  <tr><td><code>fg</code> / <code>muted</code></td><td><span class="sw" style="background:rgb(219,222,225)"></span> <span class="sw" style="background:rgb(181,186,193)"></span></td><td><span class="sw" style="background:rgb(49,51,56)"></span> <span class="sw" style="background:rgb(78,80,88)"></span></td><td>Основной и второстепенный текст</td></tr>
-  <tr><td><code>accent</code></td><td colspan="2"><span class="sw" style="background:rgb(88,101,242)"></span> 88 101 242 (одинаковый в обеих темах)</td><td>Главные кнопки, ссылки, фокус</td></tr>
-  <tr><td><code>ok</code></td><td><span class="sw" style="background:rgb(45,199,112)"></span> 45 199 112</td><td><span class="sw" style="background:rgb(21,105,58)"></span> 21 105 58</td><td>Успех, «в сети»</td></tr>
-  <tr><td><code>bad</code></td><td><span class="sw" style="background:rgb(252,135,139)"></span> 252 135 139</td><td><span class="sw" style="background:rgb(176,28,28)"></span> 176 28 28</td><td>Ошибки и предупреждения об удалении</td></tr>
-  <tr><td><code>warn</code></td><td><span class="sw" style="background:rgb(240,178,50)"></span> 240 178 50</td><td><span class="sw" style="background:rgb(140,72,6)"></span> 140 72 6</td><td>Роль «владелец», «Подключение…»</td></tr>
+  <tr><th>Token</th><th>Dark theme</th><th>Light theme</th><th>Used for</th></tr>
+  <tr><td><code>canvas</code></td><td><span class="sw" style="background:rgb(30,31,34)"></span> 30 31 34</td><td><span class="sw" style="background:rgb(227,229,232)"></span> 227 229 232</td><td>App background</td></tr>
+  <tr><td><code>surface</code></td><td><span class="sw" style="background:rgb(43,45,49)"></span> 43 45 49</td><td><span class="sw" style="background:rgb(242,243,245)"></span> 242 243 245</td><td>Panels, cards, dialogs</td></tr>
+  <tr><td><code>main</code></td><td><span class="sw" style="background:rgb(49,51,56)"></span> 49 51 56</td><td><span class="sw" style="background:rgb(255,255,255)"></span> 255 255 255</td><td>Editor area</td></tr>
+  <tr><td><code>fg</code> / <code>muted</code></td><td><span class="sw" style="background:rgb(219,222,225)"></span> <span class="sw" style="background:rgb(181,186,193)"></span></td><td><span class="sw" style="background:rgb(49,51,56)"></span> <span class="sw" style="background:rgb(78,80,88)"></span></td><td>Main and secondary text</td></tr>
+  <tr><td><code>accent</code></td><td colspan="2"><span class="sw" style="background:rgb(88,101,242)"></span> 88 101 242 (the same in both themes)</td><td>Main buttons, links, focus</td></tr>
+  <tr><td><code>ok</code></td><td><span class="sw" style="background:rgb(45,199,112)"></span> 45 199 112</td><td><span class="sw" style="background:rgb(21,105,58)"></span> 21 105 58</td><td>Success, "online"</td></tr>
+  <tr><td><code>bad</code></td><td><span class="sw" style="background:rgb(252,135,139)"></span> 252 135 139</td><td><span class="sw" style="background:rgb(176,28,28)"></span> 176 28 28</td><td>Errors and delete warnings</td></tr>
+  <tr><td><code>warn</code></td><td><span class="sw" style="background:rgb(240,178,50)"></span> 240 178 50</td><td><span class="sw" style="background:rgb(140,72,6)"></span> 140 72 6</td><td>The "owner" role, "Connecting…"</td></tr>
 </table>
-<p>Цвета текста подобраны с контрастом не ниже 4,5 : 1 к фону (WCAG 2.1 AA), поэтому цвет ошибки
-в светлой теме темнее, чем в тёмной.</p>
+<p>Text colours have a contrast of at least 4.5 : 1 against their background (WCAG 2.1 AA), which is why
+the error colour is darker in the light theme than in the dark one.</p>
 
-<h3>Шрифты, размеры, формы</h3>
+<h3>Fonts, sizes, shapes</h3>
 <table>
-  <tr><th>Что</th><th>Значение</th></tr>
-  <tr><td>Шрифт интерфейса</td><td>Inter Variable; код — JetBrains Mono Variable (оба подключены в приложение, не зависят от системы)</td></tr>
-  <tr><td>Размеры текста</td><td>16 px — то, что читают; 14 px — то, что рядом с ним (подсказки, подписи); 12 px — метки. Заголовки 20 и 24 px</td></tr>
-  <tr><td>Скругления</td><td>8 px у кнопок и полей, 12 px у окон и карточек</td></tr>
-  <tr><td>Тени</td><td><code>card</code> для карточек, <code>pop</code> для окон и меню</td></tr>
-  <tr><td>Иконки</td><td>Lucide, контурные, 14–24 px, всегда с подписью или <code>aria-label</code></td></tr>
-  <tr><td>Анимация</td><td>Короткая: появление 0,18 с, окно 0,2 с. Только чтобы показать, откуда что появилось</td></tr>
-  <tr><td>Ширина экрана</td><td>От 360 до 1920 px; на телефоне панели открываются поверх редактора</td></tr>
+  <tr><th>What</th><th>Value</th></tr>
+  <tr><td>Interface font</td><td>Inter Variable; code in JetBrains Mono Variable (both are bundled with the app and do not depend on the system)</td></tr>
+  <tr><td>Text sizes</td><td>16 px for what people read; 14 px for what goes with it (hints, captions); 12 px for labels. Headings 20 and 24 px</td></tr>
+  <tr><td>Corner radius</td><td>8 px for buttons and fields, 12 px for dialogs and cards</td></tr>
+  <tr><td>Shadows</td><td><code>card</code> for cards, <code>pop</code> for dialogs and menus</td></tr>
+  <tr><td>Icons</td><td>Lucide, outline, 14–24 px, always with a label or an <code>aria-label</code></td></tr>
+  <tr><td>Animation</td><td>Short: appearing 0.18 s, dialog 0.2 s. Only to show where something came from</td></tr>
+  <tr><td>Screen width</td><td>From 360 to 1920 px; on a phone the panels open over the editor</td></tr>
 </table>
 </section>
 
 <section class="page">
-<h2>6. Библиотека компонентов</h2>
-<p>Компоненты лежат в <code>apps/web/src/components/ui</code> и <code>components/layout</code>.
-Ниже — состояния, которые важны для ошибок и валидации, и снимки настоящих компонентов.</p>
+<h2>6. Component library</h2>
+<p>The components are in <code>apps/web/src/components/ui</code> and <code>components/layout</code>.
+Below are the states that matter for errors and validation, and screenshots of the real components.</p>
 <table>
-  <tr><th>Компонент</th><th>Назначение</th><th>Варианты и состояния</th></tr>
-  <tr><td><b>Button</b></td><td>Все действия</td><td>primary (одно главное действие на экране), secondary, ghost, danger (удаление); размеры sm/md/lg; неактивная; «в процессе» с другим текстом («Входим…», «Создаём…»)</td></tr>
-  <tr><td><b>Field</b></td><td>Поле ввода с подписью</td><td>подпись над полем; подсказка под полем; подсказка-ошибка красным; фокус с рамкой цвета accent</td></tr>
-  <tr><td><b>ErrorNote</b></td><td>Ошибка формы от сервера</td><td>красная плашка над полями, <code>role="alert"</code> — экранный диктор читает её сразу</td></tr>
-  <tr><td><b>Modal</b></td><td>Диалоги</td><td>заголовок, пояснение, кнопка «Закрыть», закрытие по Esc; фокус остаётся внутри окна</td></tr>
-  <tr><td><b>ErrorScreen</b></td><td>Страница не открылась</td><td>иконка, понятная причина, одна кнопка выхода (экран 4)</td></tr>
-  <tr><td><b>Статус синхронизации</b></td><td>Шапка файла</td><td>«Синхронизировано», «Подключение…», «Офлайн — правки сохранятся локально»; <code>role="status"</code></td></tr>
-  <tr><td><b>RoleBadge</b></td><td>Роль участника</td><td>владелец, редактор, наблюдатель — цвет и иконка</td></tr>
-  <tr><td><b>Avatar</b></td><td>Участник</td><td>инициалы на цвете человека; тот же цвет у его курсора</td></tr>
-  <tr><td><b>Segmented</b>, <b>Spinner</b>, <b>Logo</b></td><td>Переключатели, ожидание, знак</td><td>—</td></tr>
-  <tr><td><b>FileTree</b>, <b>SidePanel</b>, <b>ProjectHeader</b></td><td>Каркас проекта</td><td>кнопки файла появляются при наведении и фокусе; чат и участники в боковой панели</td></tr>
+  <tr><th>Component</th><th>Purpose</th><th>Variants and states</th></tr>
+  <tr><td><b>Button</b></td><td>All actions</td><td>primary (one main action per screen), secondary, ghost, danger (delete); sizes sm/md/lg; disabled; "in progress" with another text ("Signing in…", "Creating…")</td></tr>
+  <tr><td><b>Field</b></td><td>Input with a label</td><td>label above the field; hint under it; error hint in red; focus with an accent-coloured border</td></tr>
+  <tr><td><b>ErrorNote</b></td><td>Form error from the server</td><td>red box above the fields, <code>role="alert"</code>, so a screen reader reads it at once</td></tr>
+  <tr><td><b>Modal</b></td><td>Dialogs</td><td>title, description, "Close" button, closes with Esc; focus stays inside the dialog</td></tr>
+  <tr><td><b>ErrorScreen</b></td><td>A page could not open</td><td>icon, a clear reason, one way out (screen 4)</td></tr>
+  <tr><td><b>Sync status</b></td><td>File header</td><td>"Synced", "Connecting…", "Offline: edits are saved on this device"; <code>role="status"</code></td></tr>
+  <tr><td><b>RoleBadge</b></td><td>Member role</td><td>owner, editor, viewer: colour and icon</td></tr>
+  <tr><td><b>Avatar</b></td><td>Member</td><td>initials on the person's colour; their cursor has the same colour</td></tr>
+  <tr><td><b>Segmented</b>, <b>Spinner</b>, <b>Logo</b></td><td>Switches, waiting, logo</td><td>—</td></tr>
+  <tr><td><b>FileTree</b>, <b>SidePanel</b>, <b>ProjectHeader</b></td><td>Project layout</td><td>file buttons appear on hover and focus; chat and members in the side panel</td></tr>
 </table>
 <div class="grid">
   <figure class="crop"><img src="img/c-button-primary.png"><figcaption>Button primary</figcaption></figure>
-  <figure class="crop"><img src="img/c-status-connection.png"><figcaption>Статус синхронизации при обрыве связи</figcaption></figure>
+  <figure class="crop"><img src="img/c-status-connection.png"><figcaption>Sync status when the connection drops</figcaption></figure>
   <figure class="crop"><img src="img/c-error-note.png"><figcaption>ErrorNote</figcaption></figure>
-  <figure class="crop"><img src="img/c-field-hint.png"><figcaption>Field с подсказкой</figcaption></figure>
+  <figure class="crop"><img src="img/c-field-hint.png"><figcaption>Field with a hint</figcaption></figure>
 </div>
-<figure class="crop"><img src="img/c-modal.png" style="max-height:70mm"><figcaption>Modal с ошибкой в подсказке поля и неактивной главной кнопкой</figcaption></figure>
+<figure class="crop"><img src="img/c-modal.png" style="max-height:70mm"><figcaption>Modal with an error in the field hint and a disabled main button</figcaption></figure>
 </section>
 
 <section class="page">
-<h2>7. Ключевые экраны с ошибками и валидацией</h2>
-<figure><img src="img/01-login-error.png"><figcaption>Экран 1 — Вход: «Неверный email или пароль». Сообщение не говорит, какое поле неверно, чтобы нельзя было узнать, есть ли такой аккаунт. Введённые данные остаются в полях</figcaption></figure>
-<figure><img src="img/02-register-taken.png"><figcaption>Экран 2 — Регистрация: «Этот email уже зарегистрирован». Правило пароля видно заранее под полем, а не после ошибки</figcaption></figure>
+<h2>7. Key screens with errors and validation</h2>
+<figure><img src="img/01-login-error.png"><figcaption>Screen 1. Sign-in: "Wrong email or password". The message does not say which field is wrong, so nobody can find out whether the account exists. What was typed stays in the fields</figcaption></figure>
+<figure><img src="img/02-register-taken.png"><figcaption>Screen 2. Sign-up: "This email is already registered". The password rule is visible under the field in advance, not after an error</figcaption></figure>
 </section>
 
 <section class="page">
-<figure><img src="img/03-join-empty-name.png"><figcaption>Экран 3 — Приглашение: роль видна до входа; пока имя пустое, главная кнопка неактивна. Под полем — зачем нужно имя и ссылка на то, какие данные хранятся</figcaption></figure>
-<figure><img src="img/04-join-invalid.png"><figcaption>Экран 4 — Ссылка недействительна: причина простыми словами и один понятный выход</figcaption></figure>
+<figure><img src="img/03-join-empty-name.png"><figcaption>Screen 3. Invitation: the role is visible before joining; while the name is empty, the main button is disabled. Under the field: why the name is needed and a link to what data is kept</figcaption></figure>
+<figure><img src="img/04-join-invalid.png"><figcaption>Screen 4. The link is not valid: the reason in simple words and one clear way out</figcaption></figure>
 </section>
 
 <section class="page">
-<figure><img src="img/05-join-viewer.png"><figcaption>Экран 5 — Ссылка только для просмотра: человек знает заранее, что не сможет менять файлы</figcaption></figure>
-<figure><img src="img/06-rename-taken.png"><figcaption>Экран 6 — Переименование: ошибка видна во время ввода, кнопка неактивна, запрос на сервер не уходит</figcaption></figure>
+<figure><img src="img/05-join-viewer.png"><figcaption>Screen 5. A view-only link: the person knows in advance that they cannot change files</figcaption></figure>
+<figure><img src="img/06-rename-taken.png"><figcaption>Screen 6. Rename: the error is visible while typing, the button is disabled, and no request goes to the server</figcaption></figure>
 </section>
 
 <section class="page">
-<figure><img src="img/07-import-invalid.png"><figcaption>Экран 7 — Импорт из GitHub: ошибка с примером правильной ссылки; под полем — какие ссылки подходят и какие файлы будут пропущены</figcaption></figure>
-<figure><img src="img/09-offline.png"><figcaption>Экран 8 — Связь оборвалась: шапка показывает «Подключение…», а пользователь продолжает печатать</figcaption></figure>
+<figure><img src="img/07-import-invalid.png"><figcaption>Screen 7. Import from GitHub: an error with an example of a correct link; under the field, which links work and which files are skipped</figcaption></figure>
+<figure><img src="img/09-offline.png"><figcaption>Screen 8. The connection dropped: the header says "Connecting…", and the user keeps typing</figcaption></figure>
 </section>
 
 <section class="page">
-<figure><img src="img/10-back-online.png"><figcaption>Экран 9 — Связь вернулась: «Синхронизировано», правки, сделанные без связи, на месте и видны остальным</figcaption></figure>
+<figure><img src="img/10-back-online.png"><figcaption>Screen 9. The connection is back: "Synced"; the edits made offline are there and the others see them</figcaption></figure>
 
-<h2>8. Правила текстов ошибок</h2>
+<h2>8. Rules for error texts</h2>
 <ol>
-  <li>Сказать, что случилось, и что делать дальше: «Попробуйте ещё раз», «Пример: …».</li>
-  <li>Без кодов и технических слов: не «404», а «Ссылка-приглашение недействительна или устарела».</li>
-  <li>Ошибку поля показывать под этим полем и во время ввода, если её можно проверить без сервера.</li>
-  <li>Ошибку от сервера показывать одной плашкой над формой (<code>role="alert"</code>), введённые данные не стирать.</li>
-  <li>Если действие сейчас невозможно, кнопка неактивна, а рядом видно почему.</li>
-  <li>При входе не уточнять, что именно неверно: это защищает аккаунты.</li>
+  <li>Say what happened and what to do next: "Please try again", "Example: …".</li>
+  <li>No codes or technical words: not "404", but "The invite link is not valid or has expired".</li>
+  <li>Show a field error under that field and while typing, if it can be checked without the server.</li>
+  <li>Show a server error in one box above the form (<code>role="alert"</code>), and do not clear what was typed.</li>
+  <li>If an action is not possible right now, the button is disabled and the reason is visible next to it.</li>
+  <li>At sign-in, do not say what exactly is wrong: this protects accounts.</li>
 </ol>
 </section>
 

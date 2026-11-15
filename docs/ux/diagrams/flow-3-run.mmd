@@ -1,17 +1,17 @@
 flowchart TD
-  A([Редактор в проекте]) --> B[Создаёт или переименовывает файл]
-  B --> C{Имя свободно и допустимо?}
-  C -- нет --> E1[/Ошибка под полем, кнопка неактивна, экран 6/] --> B
-  C -- да --> D[Пишет код и нажимает «Запустить»]
-  D --> G{Можно запускать?}
-  G -- не JS и не Python --> E3[/Ошибка: тип файла/]
-  G -- нужен код доступа --> H[Вводит код] --> HC{Код верный?}
-  HC -- нет --> E4[/Ошибка: неверный код/] --> H
-  HC -- да --> I
-  G -- да --> I{Сервис свободен?}
-  I -- недоступен или занят --> E5[/Ошибка: повторить позже/]
-  I -- да --> J[Программа в песочнице]
-  J --> K{Итог}
-  K -- дольше 10 с --> E7[/Статус: превышено время/]
-  K -- ошибка в коде --> E8[/Статус: ошибка, строка подсвечена/]
-  K -- успешно --> Z([Все видят вывод, статус и время])
+  A([Editor in a project]) --> B[Creates or renames a file]
+  B --> C{Name free and allowed?}
+  C -- no --> E1[/Error under the field, button disabled, screen 6/] --> B
+  C -- yes --> D[Writes code and presses Run]
+  D --> G{Can it run?}
+  G -- not JS or Python --> E3[/Error: file type/]
+  G -- access code needed --> H[Enters the code] --> HC{Code right?}
+  HC -- no --> E4[/Error: wrong code/] --> H
+  HC -- yes --> I
+  G -- yes --> I{Runner free?}
+  I -- down or busy --> E5[/Error: try later/]
+  I -- yes --> J[Program in the sandbox]
+  J --> K{Result}
+  K -- over 10 s --> E7[/Status: time limit/]
+  K -- error in code --> E8[/Status: error, line highlighted/]
+  K -- success --> Z([Everyone sees output, status and time])
