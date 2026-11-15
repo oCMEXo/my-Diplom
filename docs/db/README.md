@@ -57,6 +57,10 @@ read in one file. The database itself is created by the migrations.
 | `20261006120000_files_per_branch` | Each branch has its own files: `files.branch`, new unique key |
 | `20261007120000_file_versions` | Version history: table `file_versions` |
 | `20261104120000_refresh_token_lookup_and_email_case` | Index on `token_hash`, emails in lower case |
+| `20261115120000_email_verification` | Email confirmation and password reset: `users.email_verified_at`, table `email_tokens`, type `EmailTokenKind` |
+| `20261115130000_classes` | Classes: table `classes`, `projects.class_id` |
+| `20261115140000_usage_events` | Usage statistics: table `usage_events` |
+| `20261115150000_github_sign_in` | Sign-in with GitHub: `users.github_id` |
 
 ## Logical schema
 
@@ -71,6 +75,11 @@ erDiagram
   users |o--o{ file_versions : "version author"
   projects ||--o{ messages : "chat"
   users ||--o{ messages : "writes"
+  users ||--o{ email_tokens : "email links"
+  users ||--o{ classes : "teaches"
+  projects ||--o| classes : "task of"
+  classes |o--o{ projects : "student copies"
+  users |o--o{ usage_events : "usage"
 ```
 
 The full diagram with columns and types is in [`er-diagram.png`](er-diagram.png) and in the data dictionary.
@@ -84,6 +93,9 @@ Entities:
 - **files**: project files: code, documents and boards. The content is the state of a Yjs CRDT document.
 - **file_versions**: earlier versions of files as plain text.
 - **messages**: the project chat.
+- **email_tokens**: one-time links for confirming the address and resetting the password.
+- **classes**: a teacher's class; students get their own copies of the task project.
+- **usage_events**: usage statistics, kept on this server and deleted after 180 days.
 
 ## Design decisions
 
@@ -98,6 +110,11 @@ Entities:
   `NULL`.
 - **Security.** No passwords or keys are stored in plain form: the password is an Argon2id hash, and the
   refresh token is stored as SHA-256. Guests give no email; they get a technical address.
+- **Classes reuse projects.** A student's copy is an ordinary project with `class_id` set, so editing,
+  running code, chat and access rights work in it without new code. Deleting a class only clears
+  `class_id`; the students keep their work.
+- **Email links and statistics.** Email links are stored as hashes and work once. Usage events keep no
+  names or emails, only ids, and are deleted after 180 days or with the account.
 - **Redis** is also used in the project, but only for the code run queue and messages between servers.
   It holds no domain data, so it is not part of this schema.
 

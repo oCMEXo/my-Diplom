@@ -109,6 +109,11 @@ column: `users` has no `created_at` there, `refresh_tokens` has no `created_at`,
 columns, `files` has no `branch`, `source_sha`, `deleted_at`, `trashed_path`, and the `file_versions`
 table is left out. The full diagram and the data dictionary are in `docs/db`.
 
+After the diploma work three more tables were added for running the platform as a product: `email_tokens`
+(email confirmation and password reset), `classes` (a teacher's class, whose students get their own copies
+of a task project) and `usage_events` (usage statistics kept on the server); they are described in `docs/db`
+and `docs/roadmap.md`.
+
 Table 2.3. Database tables
 
 | Table | Key columns | Relations |

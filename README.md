@@ -26,12 +26,20 @@ chat, and you can see who is online. The project stays after the session, so you
 - Three kinds of files: code (the Monaco editor, the same one as in VS Code), Markdown with a live
   preview, and a board for diagrams.
 - A project chat and a list of who is online.
-- JavaScript, Python, C, C++ and Java run from the editor in a Docker sandbox on the server, and everyone sees the
-  output. There is also a terminal.
+- Classes: a teacher shares one link, every student gets their own copy of the task, and the class page
+  shows who is working. The teacher can open any copy and help live.
+- JavaScript, Python, C, C++ and Java run from the editor in a Docker sandbox on the server, and everyone
+  sees the output. There is also a terminal.
 - If the internet drops, you can keep typing. Edits are kept on the device and merge when you are back
   online.
 - Import a public GitHub repository and push your changes back as a commit.
 - A new project can start from an example: a short guide and a file that is ready to run.
+- Accounts with email confirmation and password reset, sign-in with GitHub (when the site owner sets it
+  up), or no account at all as a guest.
+
+| Landing page | Class page |
+|---|---|
+| ![Landing page](docs/thesis/screenshots/11-landing.png) | ![A teacher's class page with three students](docs/thesis/screenshots/12-class.png) |
 
 | Invitation page | Shared editor | Board |
 |---|---|---|
@@ -125,11 +133,27 @@ order of edits, and offline work needs no extra logic. The full tables are in
 [bench/results/REPORT.md](bench/results/REPORT.md), and the discussion is in
 [docs/thesis/04-research.md](docs/thesis/04-research.md).
 
+## Running it as a service
+
+- **Email.** Set `SMTP_URL` and `MAIL_FROM` for confirmation and password reset emails. Without them, a
+  development server prints the links to its log.
+- **GitHub sign-in.** Create an OAuth app on GitHub and set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`.
+- **Safer sandbox.** `infra/gcp/enable-gvisor.sh` installs gVisor on the server, and code then runs with
+  its own user-space kernel (`SANDBOX_RUNTIME=runsc`).
+- **Limits.** Projects per person, files per project and runs per minute (`MAX_PROJECTS_PER_USER`,
+  `MAX_FILES_PER_PROJECT`, `RUNS_PER_MINUTE`).
+- **Backups.** The `backup` service dumps the database every day and keeps 7 days.
+- **Health.** `/health/ready` answers 200 only when the database and Redis work; point an uptime monitor
+  at it. Errors from browsers go to the server log.
+- **Usage numbers.** `pnpm --filter @collab/api stats` prints active and returning people, sessions with
+  two or more people, runs and class joins for the last 7 days. The numbers stay on the server.
+
+More in [docs/deploy-gcp.md](docs/deploy-gcp.md) and [docs/roadmap.md](docs/roadmap.md).
+
 ## Known limitations
 
-- There is no password reset by email yet.
-- Code runs in a container, but the container shares the kernel with the server. That's fine for a
-  study project, not for running strangers' code in public; that would need something like gVisor.
+- Without gVisor, code runs in a container that shares the kernel with the server. Turn gVisor on before
+  running strangers' code in public.
 - Import works only for public GitHub repositories. Pushing a commit was tested against a fake GitHub in
   the tests, not against a real repository.
 - The API runs as one instance. To scale out, its events would have to go through Redis pub/sub.
@@ -138,6 +162,7 @@ order of edits, and offline work needs no extra logic. The full tables are in
 
 ## Documentation
 
+- [docs/roadmap.md](docs/roadmap.md): what is done to make this a product, and what is next
 - [docs/db](docs/db): database (data dictionary, ER diagram, migrations, DDL)
 - [docs/ux](docs/ux): UX specification with scenarios, errors, visual style, components and screens (PDF)
 - [docs/ba](docs/ba): business analysis
