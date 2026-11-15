@@ -17,10 +17,7 @@ function resolve(written: string, files: FileRefTarget[]): FileRefTarget | null 
   return matching.length === 1 ? (matching[0] ?? null) : null;
 }
 
-/**
- * Turns "src/app.ts:12" and "app.ts:12:4" in a chat message into links to that line.
- * Only files of this project become links, so "localhost:8080" or "12:30" stay plain text.
- */
+/** Turns "src/app.ts:12" and "app.ts:12:4" in chat into links. Only project files match, so "12:30" stays text. */
 export function createFileRefParser(files: FileRefTarget[]) {
   // Whole paths come first because they are the only way to catch a name with spaces.
   const known = [...files]

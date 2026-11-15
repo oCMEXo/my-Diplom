@@ -31,7 +31,7 @@ function Preview({ match }: { match: SearchMatch }) {
   );
 }
 
-/** "Find in project" (Ctrl+Shift+F): searches inside the files of the active branch on the server. */
+/** Find in project (Ctrl+Shift+F). */
 export function SearchPanel({
   projectId,
   files,
@@ -57,8 +57,7 @@ export function SearchPanel({
     inputRef.current?.select();
   }, [focusSignal]);
 
-  // Ask the server only after a pause in typing. Results are not cached: they would go into the
-  // persisted query cache and be stale after the next edit anyway.
+  // Debounced. Not cached: results would go stale after the next edit anyway.
   const term = query.trim();
   useEffect(() => {
     if (term.length < SEARCH_LIMITS.minQuery) {

@@ -8,7 +8,7 @@ import { FILE_KINDS, fileTone } from "./layout/file-kinds";
 
 const MAX_RESULTS = 12;
 
-/** "Go to file": type a few letters of a name, move with the arrows, open with Enter. */
+/** Go to file (Ctrl+P). */
 export function QuickOpen({
   files,
   onOpen,

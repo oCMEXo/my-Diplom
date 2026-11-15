@@ -48,7 +48,6 @@ export function ChatPanel({
   files: FileRecord[];
   insert: ChatInsert | null;
   onInsertDone: () => void;
-  /** A link to a file line was followed. */
   onFileLink: () => void;
 }) {
   const { user } = useAuth();

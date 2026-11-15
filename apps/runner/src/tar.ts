@@ -47,10 +47,7 @@ function header(path: string, size: number): Buffer {
   return block;
 }
 
-/**
- * Packs text files into a ustar archive in memory. The sandbox unpacks it from stdin into its own
- * tmpfs, so project files never touch the host's filesystem. Files with unusable paths are skipped.
- */
+/** Packs text files into an in-memory ustar archive. Unsafe paths are skipped. */
 export function buildTar(files: TarFile[]): Buffer {
   const chunks: Buffer[] = [];
   const seen = new Set<string>();

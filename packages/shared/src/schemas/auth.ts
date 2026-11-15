@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Anya@Mail.com and anya@mail.com are one person; addresses are stored and compared in lower case. */
+/** Emails are stored and compared in lower case. */
 export const emailSchema = z.string().trim().toLowerCase().email();
 
 export const registerSchema = z.object({

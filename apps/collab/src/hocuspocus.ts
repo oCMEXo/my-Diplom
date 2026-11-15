@@ -4,13 +4,9 @@ import { databaseExtension } from "./persistence.js";
 import { restoreExtension } from "./restore.js";
 import { forgetFile } from "./versions.js";
 
-/**
- * The default of the WebSocket library is 100 MB per message, accepted even before authentication,
- * so a stranger could fill the memory. Real updates are far smaller; a pasted file fits easily.
- */
+/** ws accepts 100 MB per message by default, even before auth. Real updates are far smaller. */
 export const WEBSOCKET_OPTIONS = { maxPayload: 4 * 1024 * 1024 };
 
-/** The sync server as it runs in production; tests start the same one on a free port. */
 export function createHocuspocus(configuration: Partial<Configuration> = {}) {
   return new Hocuspocus({
     extensions: [databaseExtension, restoreExtension],

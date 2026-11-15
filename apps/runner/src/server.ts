@@ -24,7 +24,7 @@ const publisher = new Redis(env.REDIS_URL);
 
 const publish = (event: RunEvent) => publisher.publish(RUN_EVENTS_CHANNEL, JSON.stringify(event));
 
-// Runs this runner is executing, so that a Stop from the project they belong to can end them.
+// Runs executing here, so a stop request can find them.
 const active = new Map<string, { projectId: string; controller: AbortController }>();
 
 const worker = new Worker(
@@ -99,7 +99,7 @@ if (terminals) {
   terminals.listen(env.TERMINAL_PORT, env.TERMINAL_HOST, () => {
     console.log(`terminals on ws://${env.TERMINAL_HOST}:${env.TERMINAL_PORT}`);
   });
-  // The first terminal should not wait for the image to build.
+  // Build the terminal image in advance.
   ensureTerminalImage(docker).catch((error) => console.error("terminal image:", error.message));
 }
 

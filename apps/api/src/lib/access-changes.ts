@@ -5,10 +5,7 @@ import { hub } from "./hub.js";
 
 let publisher: Redis | null = null;
 
-/**
- * Makes a change of access reach sockets that are already open: this process closes its own `/ws`
- * connections, and the sync server (another process) learns about it through Redis.
- */
+/** Closes sockets that are already open after an access change: our own /ws here, collab via Redis. */
 export async function announceAccessChange(change: AccessChange) {
   if (change.reason !== "role") {
     hub.disconnect(change.projectId, change.userId ?? null, CLOSE_ACCESS_REVOKED, change.reason);
@@ -17,13 +14,13 @@ export async function announceAccessChange(change: AccessChange) {
     hub.broadcast(change.projectId, { type: "project.members", projectId: change.projectId });
   }
 
-  // One retry at most: the request that changed access should not hang while Redis is away.
+  // One retry at most, so the request doesn't hang while Redis is down.
   publisher ??= new Redis(env.REDIS_URL, { maxRetriesPerRequest: 1 });
   try {
     await publisher.publish(ACCESS_CHANGES_CHANNEL, JSON.stringify(change));
   } catch {
-    // The change is already in the database and every new connection checks it; without Redis only
-    // the documents open right now keep the old access, until they reconnect.
+    // The change is in the DB and every new connection checks it. Without Redis only the
+    // documents open right now keep the old role until they reconnect.
   }
 }
 

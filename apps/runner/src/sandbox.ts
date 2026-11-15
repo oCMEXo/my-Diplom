@@ -3,7 +3,6 @@ import type { RunnableLanguage } from "@collab/shared";
 
 interface LanguageSpec {
   image: string;
-  /** Interpreter that runs the entry file. */
   interpreter: string;
   defaultEntry: string;
   /** Matches `<file>:<line>` in the error output; `%FILE%` is replaced by the entry file's path. */
@@ -41,10 +40,7 @@ export const SANDBOX_LIMITS = {
   tmpfsSize: "16m",
 } as const;
 
-/**
- * The runner kills a program at the time limit, but a runner that crashed kills nothing, and the program
- * would run for ever. So the container has its own limit, a little later, that needs nobody's help.
- */
+/** A second time limit inside the container, a bit later than the runner's, in case the runner crashes. */
 export const SELF_STOP_SECONDS = Math.ceil(RUN_TIMEOUT_MS / 1000) + 5;
 
 export function containerName(runId: string) {

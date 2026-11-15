@@ -11,7 +11,6 @@ export function markRead(projectId: string, at = new Date().toISOString()): stri
   return at;
 }
 
-/** When this person last had the project's chat in front of them. */
 export function readMark(projectId: string): string {
   try {
     const stored = localStorage.getItem(key(projectId));
@@ -23,7 +22,6 @@ export function readMark(projectId: string): string {
   return markRead(projectId);
 }
 
-/** Messages from other people written after the mark. */
 export function countUnread(messages: Message[], mark: string, userId: string | undefined): number {
   const since = new Date(mark).getTime();
   return messages.filter((m) => m.author.id !== userId && new Date(m.createdAt).getTime() > since).length;

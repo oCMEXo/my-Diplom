@@ -4,15 +4,12 @@ import { purgeExpiredTrash } from "../modules/files/files.service.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 
-/**
- * Deletes what its storage period has ended for, right away and then every hour: files in the trash
- * and guest accounts that nobody uses. Returns a function that stops it.
- */
+/** Purges expired trash and unused guest accounts now and then every hour. Returns a stop function. */
 export function startCleanup(log: FastifyBaseLogger, intervalMs = HOUR_MS) {
   let running = false;
 
   const run = async () => {
-    // A slow pass must not overlap the next one.
+    // Don't let a slow pass overlap the next one.
     if (running) return;
     running = true;
     try {

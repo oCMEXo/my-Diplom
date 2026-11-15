@@ -9,10 +9,7 @@ const RESTORE_URL = /^\/files\/([0-9a-f-]{36})\/versions\/([0-9a-f-]{36})\/resto
 const isHighSurrogate = (code: number) => code >= 0xd800 && code <= 0xdbff;
 const isLowSurrogate = (code: number) => code >= 0xdc00 && code <= 0xdfff;
 
-/**
- * Turns `text` into `next` by replacing only the part that differs, so collaborators whose
- * cursors are outside it stay where they were.
- */
+/** Replaces only the part that differs, so cursors outside it don't move. */
 export function replaceText(text: YText, next: string) {
   const current = text.toString();
   const max = Math.min(current.length, next.length);
@@ -29,21 +26,14 @@ export function replaceText(text: YText, next: string) {
   if (next.length - start - end > 0) text.insert(start, next.slice(start, next.length - end));
 }
 
-/**
- * `text` with the line breaks `current` uses. Monaco keeps one kind per file and converts what it
- * receives, so a version with other line breaks would make the editors' text drift from the document.
- */
+/** Uses the line breaks of `current`. Monaco normalizes them, so other line breaks would make the texts drift. */
 export function withLineBreaksOf(text: string, current: string) {
   if (!current.includes("\n")) return text;
   const lf = text.replace(/\r\n/g, "\n");
   return current.includes("\r\n") ? lf.replace(/\n/g, "\r\n") : lf;
 }
 
-/**
- * Puts a version back into the live document. The sync server is the only place that holds it,
- * so the restore is applied here as an ordinary edit: connected people receive it like any other
- * change, and the stored state is written from the same document they are editing.
- */
+/** Applies a version as a normal edit in the live document, so connected clients get it like any other change. */
 export async function restoreVersion(instance: Hocuspocus, fileId: string, versionId: string, userId: string) {
   const version = await prisma.fileVersion.findFirst({ where: { id: versionId, fileId }, select: { content: true } });
   if (!version) throw new AccessError("Version not found", 404);
@@ -79,7 +69,7 @@ export const restoreExtension: Extension = {
     const [, fileId, versionId] = match;
 
     try {
-      // The role is checked again here, as for any edit: this address is reachable from outside.
+      // Check the role again: this endpoint is reachable from outside.
       const token = /^Bearer (.+)$/.exec(request.headers.authorization ?? "")?.[1] ?? "";
       const access = await resolveFileAccess(token, fileId);
       if (access.role === "viewer") throw new AccessError("Viewers cannot restore versions", 403);

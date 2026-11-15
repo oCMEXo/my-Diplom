@@ -1,7 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { ErrorScreen } from "./ui/ErrorScreen";
 
-/** A failed render shows an explanation and a way out rather than an empty page. */
 export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   override state = { failed: false };
 

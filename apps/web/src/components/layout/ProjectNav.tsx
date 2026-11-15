@@ -159,7 +159,7 @@ export function ProjectNav({
   );
 }
 
-/** The bottom of the sidebar, as in Discord: who you are and whether you are connected. */
+/** User card at the bottom of the sidebar. */
 function UserPanel() {
   const { user } = useAuth();
   const status = useRealtimeStatus();

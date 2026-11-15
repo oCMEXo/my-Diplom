@@ -4,10 +4,7 @@ import { requireProjectRole } from "../../lib/authorization.js";
 import { activeBranch } from "../../lib/branch.js";
 import { yjsStateToText } from "../../lib/yjs-text.js";
 
-/**
- * The project's text files on the active branch as a ZIP, so that the work is never locked in here.
- * Whiteboards have no text form; they are exported as PNG or SVG from the board itself.
- */
+/** Text files of the active branch as a ZIP. Boards are exported as PNG/SVG from the board itself. */
 export async function exportProject(userId: string, projectId: string) {
   await requireProjectRole(projectId, userId, "viewer");
 
@@ -19,7 +16,7 @@ export async function exportProject(userId: string, projectId: string) {
 
   const entries: Record<string, Uint8Array> = {};
   for (const file of files) {
-    // An unzip tool must not be able to write outside its folder.
+    // Zip slip protection.
     if (file.path.startsWith("/") || file.path.split("/").includes("..")) continue;
     entries[file.path] = strToU8(yjsStateToText(file.yjsState));
   }

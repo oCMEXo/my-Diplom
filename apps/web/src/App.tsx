@@ -23,8 +23,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
-      // Cached answers outlive the tab so projects and files that were opened before
-      // can still be listed and edited when the network is gone.
+      // Persisted cache, so projects and files opened before stay available offline.
       gcTime: WEEK_MS,
       networkMode: "offlineFirst",
     },

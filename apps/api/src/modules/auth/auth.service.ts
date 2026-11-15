@@ -63,7 +63,7 @@ let decoyHash: Promise<string> | null = null;
 
 export async function loginUser(input: LoginInput) {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
-  // An unknown address takes as long as a wrong password: the time must not tell who has an account.
+  // Same timing for unknown emails and wrong passwords, so accounts can't be probed.
   decoyHash ??= hashPassword(randomUUID());
   const valid = await verifyPassword(user?.passwordHash ?? (await decoyHash), input.password);
   if (!user || !valid) {
@@ -79,7 +79,7 @@ export async function loginAsGuest(input: GuestLoginInput) {
   const user = await prisma.user.create({
     data: {
       email: `guest-${randomUUID()}@guest.local`,
-      // Without a number every nameless guest would look the same on the cursors and in the chat.
+      // Random number, so nameless guests can be told apart.
       name: input.name?.trim() || `Guest ${randomInt(1000, 10000)}`,
       passwordHash,
       isGuest: true,
@@ -106,7 +106,7 @@ export async function refreshSession(refreshToken: string) {
     throw new AppError("Your session has expired. Please sign in again.", 401);
   }
 
-  // Two tabs can present the same token at once: only one of them gets a new one.
+  // Two tabs may refresh with the same token at once; only one of them wins.
   const { count } = await prisma.refreshToken.deleteMany({ where: { id: stored.id } });
   if (count === 0) throw new AppError("Your session has expired. Please sign in again.", 401);
 
@@ -114,7 +114,6 @@ export async function refreshSession(refreshToken: string) {
   return { user: toAuthUser(stored.user), tokens };
 }
 
-/** A guest keeps the account, and with it the projects and the chat history, by adding a login. */
 export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   if (!user.isGuest) throw new AppError("This is already a full account", 400);
@@ -129,10 +128,7 @@ export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
   return toAuthUser(updated);
 }
 
-/**
- * The right to erasure: the account, its own messages and the projects it owns go for good. Files
- * history stays anonymous in other people's projects (the author is set to null by the database).
- */
+/** GDPR erasure: deletes the account, its messages and owned projects. Its file versions in other projects stay (author set to null). */
 export async function deleteAccount(userId: string, input: DeleteAccountInput) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   if (!user.isGuest && !(input.password && (await verifyPassword(user.passwordHash, input.password)))) {
@@ -157,10 +153,7 @@ export async function deleteAccount(userId: string, input: DeleteAccountInput) {
   }
 }
 
-/**
- * Deletes guest accounts that nobody uses: older than `days`, in no project and with no live session.
- * Their chat messages go with them, as when a person deletes the account. Returns how many went.
- */
+/** Deletes guests older than `days` with no project and no live session, with their messages. Returns the count. */
 export async function purgeStaleGuests(now = new Date(), days = env.GUEST_RETENTION_DAYS, batchSize = 200) {
   const unused = {
     isGuest: true,
@@ -174,7 +167,7 @@ export async function purgeStaleGuests(now = new Date(), days = env.GUEST_RETENT
     const batch = await prisma.user.findMany({ where: unused, select: { id: true }, take: batchSize });
     if (batch.length === 0) return purged;
     const ids = batch.map((user) => user.id);
-    // The conditions are repeated, so a guest who joins a project in between keeps the account and the messages.
+    // Conditions repeated in case the guest joined a project in between.
     const [, { count }] = await prisma.$transaction([
       prisma.message.deleteMany({ where: { authorId: { in: ids }, author: unused } }),
       prisma.user.deleteMany({ where: { id: { in: ids }, ...unused } }),

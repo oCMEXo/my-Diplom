@@ -4,7 +4,6 @@ import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 
-/** A yes/no question that runs `action` on confirmation and shows its error, if any. */
 export function ConfirmDialog({
   title,
   description,

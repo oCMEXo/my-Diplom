@@ -148,7 +148,6 @@ export function useOnlineUsers() {
   return useRealtime().online;
 }
 
-/** Keeps the others informed which file this page has open. */
 export function useAnnounceFile(fileId: string | undefined) {
   const { announceFile } = useRealtime();
   useEffect(() => {

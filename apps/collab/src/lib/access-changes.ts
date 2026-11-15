@@ -7,7 +7,6 @@ import type { FileAccess } from "./access.js";
 const RECONNECT = { code: 4205, reason: "Reset Connection" };
 const FORBIDDEN = { code: 4403, reason: "Forbidden" };
 
-/** Closes the open document connections a change of access applies to; returns how many. */
 export function applyAccessChange(hocuspocus: Hocuspocus, change: AccessChange) {
   let closed = 0;
   for (const document of hocuspocus.documents.values()) {
@@ -22,10 +21,7 @@ export function applyAccessChange(hocuspocus: Hocuspocus, change: AccessChange) 
   return closed;
 }
 
-/**
- * Listens for changes of access. It does not hold anything up: without Redis documents still work,
- * and the subscription is made as soon as Redis appears (`subscribed` tells when).
- */
+/** Subscribes to access changes without blocking startup: documents work without Redis, and it subscribes once Redis is up. */
 export function startAccessChangeListener(
   redisUrl: string,
   hocuspocus: Hocuspocus,

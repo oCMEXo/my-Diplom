@@ -20,9 +20,8 @@ const PREFIXES = [
 ] as const;
 
 /**
- * The API limits requests per address and trusts X-Forwarded-For, so a value sent by the visitor must
- * not reach it. This server listens only on 127.0.0.1: what comes through the tunnel carries the real
- * address in CF-Connecting-IP, which Cloudflare sets itself.
+ * The API trusts X-Forwarded-For, so a value sent by the visitor must not reach it. This server
+ * listens on 127.0.0.1 only; traffic from the tunnel has the real address in CF-Connecting-IP.
  */
 function setClientAddress(request: http.IncomingMessage) {
   const real = request.headers["cf-connecting-ip"];
@@ -48,10 +47,7 @@ const NO_CACHE = new Set(["/", "/index.html", "/sw.js", "/manifest.webmanifest",
 /** The robots that messengers send to build a link preview. Keep in step with infra/gcp/Caddyfile. */
 const PREVIEW_ROBOTS = /telegrambot|whatsapp|facebookexternalhit|twitterbot|slackbot|discordbot|vkshare|linkedinbot|viber|skypeuripreview/i;
 
-/**
- * A robot does not run the web app, so for the start page and for invitation links it gets a small
- * page with the title and the picture from the API (`/preview/*`).
- */
+/** Bots don't run the web app, so the start page and invite links get a small preview page from the API. */
 function previewPath(request: http.IncomingMessage) {
   const url = request.url ?? "/";
   const path = url.split("?")[0]!;
@@ -59,10 +55,7 @@ function previewPath(request: http.IncomingMessage) {
   return path === "/" || path.startsWith("/join/") ? `/preview${path}` : null;
 }
 
-/**
- * One address for everything: the built web app, the REST API under `/api`, the sync server under
- * `/collab` and the terminals under `/terminal` (WebSockets included). That is what lets a single public tunnel carry the whole site.
- */
+/** One address for the web app, /api, /collab and /terminal (WebSockets too), so one tunnel can carry the whole site. */
 export function createHostServer(options: HostOptions) {
   const proxy = httpProxy.createProxyServer({ xfwd: true, ws: true });
 

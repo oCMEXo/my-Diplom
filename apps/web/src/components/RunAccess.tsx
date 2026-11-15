@@ -7,7 +7,6 @@ import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 
-/** Asks for the access code and remembers it once the server confirms it. */
 export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; onCancel?: () => void }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +54,7 @@ export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; 
   );
 }
 
-/**
- * Runs an action that needs code execution. On a site protected by an access code it first asks for
- * the code (once per browser) and asks again if the server stops accepting the remembered one.
- */
+/** Runs an action that needs the access code: asks for it once per browser, and again if the server rejects it. */
 export function useRunAccess() {
   const mode = useRunMode();
   const [pending, setPending] = useState<(() => void) | null>(null);

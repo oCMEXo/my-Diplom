@@ -40,9 +40,7 @@ export interface AppOptions {
   rateLimit?: { perMinute: number; authPerMinute: number };
   trustProxy?: boolean;
   runEnabled?: boolean;
-  /** Running code and the terminal only for people who know this code (the public test host). */
   runAccessCode?: string;
-  /** The path a proxy puts the API under ("/api"), so that the docs page asks for its files there. */
   pathPrefix?: string;
 }
 
@@ -54,7 +52,7 @@ const AUTH_LIMITED_URLS = new Set([
   "/auth/refresh",
   "/auth/upgrade",
   "/auth/delete-account",
-  // Its answer tells whether an address is registered, so it is limited like signing in.
+  // Reveals whether an email is registered, so it is limited like login.
   "/projects/:projectId/members",
   "/run-access",
 ]);
@@ -97,7 +95,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(cors, { origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true });
   if (limits.perMinute > 0) {
     const authMax = limits.authPerMinute > 0 ? limits.authPerMinute : limits.perMinute;
-    // The plugin reads each route's own limit when the route is added, so this hook must come first.
+    // Must run before the routes are added, so per-route limits are picked up.
     app.addHook("onRoute", (route) => {
       if (AUTH_LIMITED_URLS.has(route.url) && route.method === "POST") {
         route.config = { ...route.config, rateLimit: { max: authMax, timeWindow: "1 minute" } };
@@ -135,7 +133,7 @@ export async function buildApp(options: AppOptions = {}) {
     { schema: { tags: ["runs"], response: { 200: featuresSchema } } },
     async () => ({ run: runMode(runEnabled, runAccessCode) }),
   );
-  // Lets the app check the access code before remembering it. Limited like sign-in, so it cannot be guessed.
+  // Limited like login, so the code can't be brute-forced.
   app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema } }, async (request, reply) => {
     if (!runEnabled) throw new AppError("Running code is turned off on this server", 403);
     if (runAccessCode && !codeMatches(runAccessCode, request.body.code)) throw new AppError("Wrong access code", 403);
@@ -153,7 +151,7 @@ export async function buildApp(options: AppOptions = {}) {
     await app.register(runsRoutes, { prefix: "/projects", accessCode: runAccessCode });
     await app.register(terminalRoutes, { prefix: "/projects", accessCode: runAccessCode });
   } else {
-    // This server does not run visitors' programs; say so instead of queueing a job nobody will take.
+    // Running is off here: fail fast instead of queueing a job nobody will take.
     for (const url of ["/projects/:projectId/files/:fileId/run", "/projects/:projectId/terminal"]) {
       app.post(url, { preHandler: [app.authenticate] }, async () => {
         throw new AppError("Running code is turned off on this server", 403);

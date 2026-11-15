@@ -63,10 +63,7 @@ function HeaderButton({ label, ...rest }: ButtonHTMLAttributes<HTMLButtonElement
   );
 }
 
-/**
- * A live command line in a sandbox with the project's files, like Git Bash: `ls`, `node main.js`,
- * `python app.py`. One session per open panel; closing the panel ends it.
- */
+/** Sandbox shell with the project files. One session per open panel. */
 export function TerminalPanel({ projectId, onClose }: { projectId: string; onClose: () => void }) {
   const mode = useRunMode();
   const host = useRef<HTMLDivElement>(null);

@@ -25,11 +25,7 @@ async function isFresh(copy: string, source: Date) {
   }
 }
 
-/**
- * Puts a `.br` and a `.gz` next to every text file of the built site, which the host server then sends to
- * browsers that accept them. The editor makes the site several megabytes large, too much for a slow link
- * to wait for, and compressing it once here costs nothing per request.
- */
+/** Precompresses the text files of the build (.br and .gz) so the host server can send them as they are. */
 export async function compressWebRoot(root: string) {
   for await (const file of filesIn(root)) {
     if (!COMPRESSIBLE.test(file)) continue;

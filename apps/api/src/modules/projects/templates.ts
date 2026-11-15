@@ -52,7 +52,6 @@ console.log(Array.from({ length: 10 }, (_, i) => fib(i)));
   ],
 };
 
-/** The files a new project starts with when it is made from an example, ready to be stored. */
 export function templateFiles(template: ProjectTemplate) {
   return TEMPLATES[template].map((file) => ({
     path: file.path,

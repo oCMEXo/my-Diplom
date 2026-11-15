@@ -26,7 +26,7 @@ function toProjectDto(project: ProjectLike, myRole: ProjectRole) {
     ownerId: project.ownerId,
     createdAt: project.createdAt.toISOString(),
     myRole,
-    // With the code a viewer could join again under another account and get the link's role.
+    // Viewers don't get the code: they could rejoin under another account with the link's role.
     inviteCode: myRole === "viewer" ? null : project.inviteCode,
     inviteRole: project.inviteRole as InviteRole,
     github:
@@ -134,7 +134,7 @@ export async function updateMemberRole(
     where: { projectId_userId: { projectId, userId: targetUserId } },
     data: { role },
   });
-  // Someone just demoted has seen the invitation link and could use it to come back as an editor.
+  // A demoted member knows the link and could come back with it as an editor.
   if (role === "viewer") await rotateInviteCode(projectId);
   // Open documents keep the role they connected with; reconnecting gives them the new one.
   await announceAccessChange({ projectId, userId: targetUserId, reason: "role" });
@@ -166,7 +166,7 @@ export async function removeMember(
   await prisma.projectMember.delete({
     where: { projectId_userId: { projectId, userId: targetUserId } },
   });
-  // Otherwise whoever was removed could walk straight back in with the link they already have.
+  // Otherwise a removed member could come back with the old link.
   if (requesterId !== targetUserId) await rotateInviteCode(projectId);
   await announceAccessChange({
     projectId,

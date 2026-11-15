@@ -2,11 +2,9 @@ import { prisma } from "@collab/db";
 
 /** A new version at most this often per file, so a typing session leaves a few versions, not hundreds. */
 export const SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000;
-/** The oldest versions beyond this are deleted. */
 export const MAX_VERSIONS_PER_FILE = 50;
 
-// The latest version of each open file. Documents are stored every few seconds while people type,
-// so the check must usually be answered from memory, without a query or even reading the text.
+// Latest version per open file, kept in memory: documents are stored every few seconds while people type.
 const latest = new Map<string, { at: number; content: string }>();
 // A restore records its own version; the stores it causes must not add the restored text again.
 const restoring = new Set<string>();
@@ -25,10 +23,7 @@ async function latestVersion(fileId: string) {
   return last;
 }
 
-/**
- * Called on every store: saves `content()` as a version unless one was taken less than
- * SNAPSHOT_INTERVAL_MS ago or the text is the same as in the latest version.
- */
+/** Called on every store. Saves a version unless the last one is younger than SNAPSHOT_INTERVAL_MS or has the same text. */
 export async function snapshotIfChanged(
   fileId: string,
   content: () => string,
@@ -73,7 +68,6 @@ export async function recordVersion(fileId: string, content: string, authorId: s
   }
 }
 
-/** Snapshots of `fileId` are skipped while `work` runs. */
 export async function withoutSnapshots<T>(fileId: string, work: () => Promise<T>): Promise<T> {
   restoring.add(fileId);
   try {

@@ -173,8 +173,7 @@ export function BoardEditor({
     const base: BoardShape = { id, type: tool, x, y, w: 0, h: 0, x2: x, y2: y, fill: color, text: "" };
 
     if (tool === "text") {
-      // Otherwise the browser then focuses the board itself, the new text field loses focus at once
-      // and, still empty, is removed.
+      // Otherwise the browser focuses the board and the new, still empty text field is removed.
       event.evt.preventDefault();
       addShape(board, { ...base, w: 220, h: TEXT_SIZE * 1.4 });
       setSelectedId(id);
@@ -227,7 +226,7 @@ export function BoardEditor({
     setTool("select");
   }
 
-  /** The keyboard's way to draw: the shape appears in the middle of the visible board, selected. */
+  /** Keyboard drawing: adds the shape in the middle of the visible board. */
   function placeShape(type: ShapeType) {
     if (!board || !canEdit) return;
     const id = newShapeId();
@@ -478,8 +477,7 @@ export function BoardEditor({
               {TOOLS.map((item) => (
                 <button
                   key={item.id}
-                  // Pressed from the keyboard (no pointer, so detail is 0) a shape tool adds its shape at once:
-                  // there is no mouse to draw it with.
+                  // From the keyboard (detail is 0) a tool adds its shape right away.
                   onClick={(event) => (event.detail === 0 && item.id !== "select" ? placeShape(item.id) : setTool(item.id))}
                   aria-label={item.label}
                   aria-pressed={tool === item.id}

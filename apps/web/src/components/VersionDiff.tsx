@@ -4,11 +4,7 @@ import * as monaco from "monaco-editor";
 import { MONACO_THEME } from "../lib/monaco-setup";
 import { useTheme } from "../lib/theme";
 
-/**
- * A read-only diff: an earlier version on the left, the text as it is now on the right.
- * Built on Monaco directly so the models are disposed after the editor, not before it
- * (the React wrapper's DiffEditor does it the other way round and Monaco then throws).
- */
+/** Read-only diff built on Monaco directly: the React DiffEditor disposes the models before the editor, and Monaco throws. */
 export function VersionDiff({ original, modified, language }: { original: string; modified: string; language: string }) {
   const host = useRef<HTMLDivElement>(null);
   const models = useRef<{ original: monaco.editor.ITextModel; modified: monaco.editor.ITextModel } | null>(null);

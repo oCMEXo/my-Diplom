@@ -18,7 +18,7 @@ export function initials(name: string) {
   return letters.join("").toUpperCase();
 }
 
-/** A pleasant two-stop gradient derived from an id, for project tiles. */
+/** Two-colour gradient from an id, for project tiles. */
 export function gradientFor(id: string) {
   const a = USER_COLORS[hash(id) % USER_COLORS.length]!;
   const b = USER_COLORS[(hash(id) >>> 3) % USER_COLORS.length]!;

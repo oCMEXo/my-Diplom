@@ -4,17 +4,14 @@ import { AppError } from "./errors.js";
 
 const TIMEOUT_MS = 10_000;
 
-/**
- * Asks the sync server to put a version back. Only it holds the live document: writing
- * `files.yjs_state` from here would be overwritten by its next save while people are editing.
- */
+/** Restores a version through the collab server. It owns the live doc, so writing yjs_state from here would be overwritten on its next save. */
 export async function restoreThroughCollab(
   userId: string,
   fileId: string,
   versionId: string,
   fetchImpl: typeof fetch = fetch,
 ) {
-  // A one-minute token of the person who asked: the sync server checks their role itself, as for any edit.
+  // Short-lived token of the requester; collab checks the role itself.
   const token = jwt.sign({ sub: userId }, env.JWT_ACCESS_SECRET, { expiresIn: 60 });
 
   let response: Response;

@@ -2,10 +2,7 @@ const HIGH_WATER_BYTES = 1024 * 1024;
 const LOW_WATER_BYTES = 256 * 1024;
 const CHECK_MS = 100;
 
-/**
- * `yes` in a terminal writes far faster than a browser reads, and what is not yet sent stays in the
- * runner's memory. So reading from the program stops while too much is waiting, and starts again later.
- */
+/** Backpressure: stop reading from the program while too much output is waiting to be sent. */
 export function createOutputGate({
   buffered,
   pause,
@@ -14,7 +11,6 @@ export function createOutputGate({
   low = LOW_WATER_BYTES,
   checkMs = CHECK_MS,
 }: {
-  /** How many bytes are waiting to be sent. */
   buffered: () => number;
   pause: () => void;
   resume: () => void;
@@ -30,7 +26,6 @@ export function createOutputGate({
   };
 
   return {
-    /** Call after sending output. */
     check() {
       if (timer || buffered() <= high) return;
       pause();

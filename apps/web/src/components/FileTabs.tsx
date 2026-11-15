@@ -6,7 +6,6 @@ import { cn } from "../lib/cn";
 import { useOpenTabs } from "../lib/tabs";
 import { FILE_KINDS, fileTone } from "./layout/file-kinds";
 
-/** Tabs of the files a person has opened in this project; the active one is the file on screen. */
 export function FileTabs({ projectId, files, activeId }: { projectId: string; files: FileRecord[]; activeId: string }) {
   const navigate = useNavigate();
   const { tabs, close } = useOpenTabs(
@@ -22,7 +21,6 @@ export function FileTabs({ projectId, files, activeId }: { projectId: string; fi
     activeRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [activeId, open.length]);
 
-  // With a single tab there is nothing to switch between.
   if (open.length < 2) return null;
 
   function closeTab(id: string) {

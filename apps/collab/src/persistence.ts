@@ -27,7 +27,7 @@ export const databaseExtension = new Database({
 
     if (file.type === "board") return;
     const authorId = (context as { userId?: string } | undefined)?.userId ?? null;
-    // History is an extra: a failed snapshot must not turn into a failed save of the edit itself.
+    // Versions are optional: a failed snapshot must not fail the save.
     await snapshotIfChanged(documentName, () => document.getText("monaco").toString(), authorId).catch((err) =>
       console.error("[versions] snapshot failed", err),
     );

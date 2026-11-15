@@ -13,11 +13,11 @@ const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (char) => ESCAPES[
 const firstValue = (header: string | string[] | undefined) =>
   (Array.isArray(header) ? header[0] : header)?.split(",")[0]?.trim();
 
-/** The address people see the site at: behind a proxy it is in the forwarded headers. */
+/** Public origin; behind a proxy it comes from the forwarded headers. */
 function siteOrigin(request: FastifyRequest, trustProxy: boolean) {
   const host = (trustProxy && firstValue(request.headers["x-forwarded-host"])) || firstValue(request.headers.host) || "";
   const protocol = (trustProxy && firstValue(request.headers["x-forwarded-proto"])) || request.protocol;
-  // The value ends up in the page, so only what a host name can contain is let through.
+  // It goes into the HTML, so allow only host name characters.
   const safeHost = /^[\w.\-:[\]]{1,255}$/.test(host) ? host : "localhost";
   return `${protocol === "https" ? "https" : "http"}://${safeHost}`;
 }
@@ -50,11 +50,7 @@ function page(card: { title: string; description: string }, url: string, image: 
 `;
 }
 
-/**
- * Link previews. A messenger builds the preview of a link from the page's HTML and does not run the
- * web app, so the proxy sends the robots of messengers here (infra/gcp/Caddyfile, infra/local-host).
- * An invitation link gets the same words as the invitation page: who invites and to which project.
- */
+/** Open Graph pages for link previews. Messenger bots don't run JS, so the proxy sends them here (infra/gcp/Caddyfile, infra/local-host). */
 export const previewRoutes: FastifyPluginAsync<{ trustProxy: boolean }> = async (app, { trustProxy }) => {
   app.get("/preview/*", { schema: { hide: true } }, async (request, reply) => {
     const origin = siteOrigin(request, trustProxy);

@@ -12,7 +12,6 @@ export function UnreadWatcher({
   setUnread,
 }: {
   projectId: string;
-  /** The chat tab is on the screen. */
   chatShown: boolean;
   setUnread: Dispatch<SetStateAction<number>>;
 }) {

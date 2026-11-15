@@ -6,7 +6,7 @@ import { joinViaInvite, previewInvite } from "./projects.service.js";
 const joinParams = z.object({ code: z.string().min(1) });
 
 export const inviteRoutes: FastifyPluginAsyncZod = async (app) => {
-  // Public on purpose: the person following the link needs to see where it leads before signing in.
+  // Public: the invitee needs to see the project before signing in.
   app.get(
     "/join/:code",
     {

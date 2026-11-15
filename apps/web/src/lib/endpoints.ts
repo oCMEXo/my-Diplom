@@ -1,8 +1,4 @@
-/**
- * Server addresses can be absolute ("http://localhost:3001") or relative to the page ("/api"), which
- * is how the app is hosted behind one public address. These helpers turn either form into the
- * URLs the browser needs.
- */
+/** Server URLs can be absolute or relative to the page ("/api" when everything is behind one domain). */
 
 /** The HTTP(S) base of a server, without a trailing slash. */
 export function httpBase(base: string, origin: string): string {

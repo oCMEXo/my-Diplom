@@ -12,7 +12,6 @@ export function LegalSection({ title, children }: { title: string; children: Rea
   );
 }
 
-/** The page frame of the privacy notice and the terms of use: open to everyone, also without an account. */
 export function LegalShell({ title, intro, children }: { title: string; intro: ReactNode; children: ReactNode }) {
   return (
     <div className="relative min-h-screen px-5 py-10">

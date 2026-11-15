@@ -6,7 +6,6 @@ import { Modal } from "./ui/Modal";
 
 const RUNNABLE_NAMES = RUNNABLE_LANGUAGES.map(languageName).join(" and ");
 
-/** Every language the platform knows: which ones run, which ones are only highlighted. */
 export function LanguageList() {
   const catalogue = languageCatalogue();
   const groups = [
@@ -48,7 +47,6 @@ export function LanguagesDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** What will happen to a file with this name, said while the name is typed. */
 export function LanguageHint({ path }: { path: string }) {
   const [open, setOpen] = useState(false);
   const info = describeLanguage(path.trim());

@@ -47,7 +47,6 @@ function resolveRepo(
   return { owner: parsed.owner, repo: parsed.repo, linkedBranch: parsed.ref, needsLink: true };
 }
 
-/** Branches of the project's repository, so the push dialog can offer a list instead of a text box. */
 export async function listBranches(
   userId: string,
   projectId: string,
@@ -83,11 +82,8 @@ interface Change {
 }
 
 /**
- * Works out what a push would do: which files to send and which collide with changes made on
- * GitHub. A file edited here (its SHA differs from the one recorded at the last sync) is new when the
- * path is missing in the repository and modified otherwise, but only if the repository still holds
- * the version it was synced from; otherwise someone changed it on GitHub meanwhile and it is a
- * conflict. Files not edited here are never sent, so other people's commits stay intact.
+ * What a push would send. A file edited here is added or modified; if GitHub's copy also changed
+ * since the last sync, it is a conflict. Files not edited here are never sent.
  */
 async function planPush(
   userId: string,
@@ -158,7 +154,6 @@ async function planPush(
   };
 }
 
-/** Shows what a push would send and what would collide, so the person can decide before sending. */
 export async function previewPush(
   userId: string,
   projectId: string,
@@ -176,7 +171,7 @@ export async function previewPush(
   };
 }
 
-/** Commits the changed text files to the linked repository (see `planPush` for what counts as changed). */
+/** Commits the changed text files to the linked repo (see planPush). */
 export async function pushToGithub(
   userId: string,
   projectId: string,
@@ -213,7 +208,7 @@ export async function pushToGithub(
     await api.patch(`/repos/${slug}/git/refs/heads/${encodeRef(target)}`, { sha: commit.sha, force: false });
   }
 
-  // The files now match the repository; remember that, so the next push only sends new edits.
+  // Files match the repo now; remember that so the next push sends only new edits.
   const synced = target === baseBranch ? [...plan.inSync, ...changes] : [];
   await prisma.$transaction([
     ...synced.map(({ id, sha }) => prisma.file.update({ where: { id }, data: { sourceSha: sha } })),

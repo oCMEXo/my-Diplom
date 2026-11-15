@@ -57,7 +57,6 @@ export function MembersPanel({
   const memberIds = new Set(members.map((member) => member.userId));
   const visitors = online.filter((person) => !memberIds.has(person.id));
 
-  /** Which file a participant has open, as a line under the name. */
   function whereIs(person: PresenceUser | undefined) {
     const path = files.find((file) => file.id === person?.fileId)?.path;
     if (!path) return null;

@@ -46,11 +46,9 @@ export function CollabEditor({
   language: string | null;
   readOnly: boolean;
   autoFocus?: boolean;
-  /** The participant whose cursor to keep in view. */
   following?: string | null;
   onStatusChange?: (status: CollabStatus) => void;
   onReady?: (controller: EditorController) => void;
-  /** This person pressed a key in the editor. */
   onTyped?: () => void;
   onShareLine?: (line: number) => void;
 }) {
