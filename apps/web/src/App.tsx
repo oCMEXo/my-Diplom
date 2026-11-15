@@ -1,8 +1,9 @@
+import { useRef } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { AuthProvider } from "./lib/auth";
+import { AuthProvider, useAuth } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -14,6 +15,7 @@ import { TermsPage } from "./routes/TermsPage";
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./routes/PasswordPages";
 import { ClassPage } from "./routes/ClassPage";
 import { ClassJoinPage } from "./routes/ClassJoinPage";
+import { LandingPage } from "./routes/LandingPage";
 import { ProjectsPage } from "./routes/ProjectsPage";
 import { ProjectPage } from "./routes/ProjectPage";
 import { FileEditorPage } from "./routes/FileEditorPage";
@@ -32,6 +34,20 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+/**
+ * The site's address: the landing page for visitors, the projects for people who are signed in.
+ * Someone who signs out here goes to the sign-in page, as on every other page.
+ */
+function Home() {
+  const { isAuthenticated } = useAuth();
+  const wasSignedIn = useRef(isAuthenticated);
+  if (isAuthenticated) {
+    wasSignedIn.current = true;
+    return <ProjectsPage />;
+  }
+  return wasSignedIn.current ? <Navigate to="/login" replace /> : <LandingPage />;
+}
 
 export const QUERY_CACHE_KEY = "collab.query-cache";
 
@@ -57,8 +73,8 @@ export function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/" element={<Home />} />
               <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<ProjectsPage />} />
                 <Route path="/classes/:classId" element={<ClassPage />} />
                 <Route path="/projects/:projectId" element={<ProjectPage />}>
                   <Route index element={<EmptyProjectView />} />

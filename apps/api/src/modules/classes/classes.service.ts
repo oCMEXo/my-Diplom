@@ -121,7 +121,7 @@ export async function previewClass(joinCode: string) {
 }
 
 /**
- * Gives the student an own copy of the task: the student owns it, the teacher is an editor. Opening
+ * Gives the student their own copy of the task: the student owns it, the teacher is an editor. Opening
  * the link again leads to the same copy.
  */
 export async function joinClass(userId: string, joinCode: string) {
