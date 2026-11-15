@@ -38,6 +38,11 @@ const envSchema = z.object({
   API_PATH_PREFIX: z.string().regex(/^(\/[\w-]+)*$/).default(""),
   /** With a code set, running code and the terminal work only for people who entered it. */
   RUN_ACCESS_CODE: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(8).optional()),
+  /** Limits per person and per project, so one account cannot use up the server. */
+  MAX_PROJECTS_PER_USER: z.coerce.number().int().positive().default(100),
+  MAX_FILES_PER_PROJECT: z.coerce.number().int().positive().default(2000),
+  /** Code runs and new terminals one person may start per minute. */
+  RUNS_PER_MINUTE: z.coerce.number().int().positive().default(20),
   /** smtp://user:password@host:587 (or smtps://…:465). Without it, emails are only written to the log in development. */
   SMTP_URL: z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional()),
   MAIL_FROM: z.string().default("Collab <no-reply@localhost>"),

@@ -6,6 +6,7 @@ import { generateInviteCode } from "../../lib/invite-code.js";
 import { announceAccessChange } from "../../lib/access-changes.js";
 import { hub } from "../../lib/hub.js";
 import { templateFiles } from "./templates.js";
+import { checkProjectLimit } from "../../lib/limits.js";
 
 interface ProjectLike {
   id: string;
@@ -37,6 +38,7 @@ function toProjectDto(project: ProjectLike, myRole: ProjectRole) {
 }
 
 export async function createProject(userId: string, input: CreateProjectInput) {
+  await checkProjectLimit(userId);
   const project = await prisma.project.create({
     data: {
       name: input.name,

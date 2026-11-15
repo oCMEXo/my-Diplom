@@ -7,6 +7,7 @@ import { requireProjectRole } from "../../lib/authorization.js";
 import { enqueueRun } from "../../lib/queue.js";
 import { publishRunStop } from "../../lib/run-stop.js";
 import { yjsStateToText } from "../../lib/yjs-text.js";
+import { takeRunSlot } from "../../lib/limits.js";
 
 /** The project's other text files for a run or a terminal: shallow files first when limits apply, no node_modules. */
 export async function projectTextFiles(projectId: string, branch: string, exceptId?: string) {
@@ -64,6 +65,7 @@ export async function requestRun(
   enqueueTimeoutMs = ENQUEUE_TIMEOUT_MS,
 ) {
   await requireProjectRole(projectId, userId, "editor");
+  takeRunSlot(userId);
 
   const file = await prisma.file.findUnique({ where: { id: fileId } });
   if (!file || file.projectId !== projectId || file.deletedAt) {

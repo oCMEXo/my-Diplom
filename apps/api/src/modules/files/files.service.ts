@@ -6,6 +6,7 @@ import { requireProjectRole } from "../../lib/authorization.js";
 import { activeBranch } from "../../lib/branch.js";
 import { hub } from "../../lib/hub.js";
 import { env } from "../../env.js";
+import { checkFileLimit } from "../../lib/limits.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -76,6 +77,7 @@ export async function purgeExpiredTrash(now = new Date(), days = env.TRASH_RETEN
 
 export async function createFile(userId: string, projectId: string, input: CreateFileInput) {
   await requireProjectRole(projectId, userId, "editor");
+  await checkFileLimit(projectId);
 
   try {
     const file = await prisma.file.create({
