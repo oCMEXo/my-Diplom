@@ -15,6 +15,7 @@ import { signAccessToken } from "../../lib/jwt.js";
 import { generateRefreshToken, hashRefreshToken } from "../../lib/refresh-token.js";
 import { AppError } from "../../lib/errors.js";
 import { env } from "../../env.js";
+import { sendVerificationEmail } from "./email.service.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -23,10 +24,17 @@ interface UserLike {
   email: string;
   name: string;
   isGuest: boolean;
+  emailVerifiedAt: Date | null;
 }
 
-function toAuthUser(user: UserLike) {
-  return { id: user.id, email: user.email, name: user.name, isGuest: user.isGuest };
+export function toAuthUser(user: UserLike) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    isGuest: user.isGuest,
+    emailVerified: user.emailVerifiedAt !== null,
+  };
 }
 
 async function issueTokens(user: { id: string; email: string }) {
@@ -55,6 +63,7 @@ export async function registerUser(input: RegisterInput) {
     data: { email: input.email, name: input.name, passwordHash },
   });
 
+  await sendVerificationEmail(user);
   const tokens = await issueTokens(user);
   return { user: toAuthUser(user), tokens };
 }
@@ -125,6 +134,7 @@ export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
     where: { id: userId },
     data: { email: input.email, passwordHash: await hashPassword(input.password), isGuest: false },
   });
+  await sendVerificationEmail(updated);
   return toAuthUser(updated);
 }
 

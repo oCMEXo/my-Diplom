@@ -34,6 +34,7 @@ import { codeMatches, runMode } from "./lib/run-access.js";
 import { featuresSchema, runAccessSchema } from "@collab/shared";
 import { closeRunQueue } from "./lib/queue.js";
 import { closeAccessChanges } from "./lib/access-changes.js";
+import { mailConfigured } from "./lib/mailer.js";
 
 export interface AppOptions {
   /** Requests per minute per address (0 = unlimited) and the stricter limit for the auth endpoints. */
@@ -52,6 +53,10 @@ const AUTH_LIMITED_URLS = new Set([
   "/auth/refresh",
   "/auth/upgrade",
   "/auth/delete-account",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/verify-email",
+  "/auth/resend-verification",
   // Reveals whether an email is registered, so it is limited like login.
   "/projects/:projectId/members",
   "/run-access",
@@ -131,7 +136,7 @@ export async function buildApp(options: AppOptions = {}) {
   app.get(
     "/features",
     { schema: { tags: ["runs"], response: { 200: featuresSchema } } },
-    async () => ({ run: runMode(runEnabled, runAccessCode) }),
+    async () => ({ run: runMode(runEnabled, runAccessCode), passwordReset: mailConfigured() }),
   );
   // Limited like login, so the code can't be brute-forced.
   app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema } }, async (request, reply) => {

@@ -19,15 +19,23 @@ enum FileKind {
   board
 }
 
+enum EmailTokenKind {
+  verify
+  reset
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   name         String
   passwordHash String   @map("password_hash")
   isGuest      Boolean  @default(false) @map("is_guest")
+  // Set once the person opened the link from the confirmation email (or reset the password by email).
+  emailVerifiedAt DateTime? @map("email_verified_at")
   createdAt    DateTime @default(now()) @map("created_at")
 
   refreshTokens RefreshToken[]
+  emailTokens   EmailToken[]
   ownedProjects Project[]       @relation("ProjectOwner")
   memberships   ProjectMember[]
   messages      Message[]
@@ -48,6 +56,21 @@ model RefreshToken {
   @@index([userId])
   @@index([tokenHash])
   @@map("refresh_tokens")
+}
+
+// One-time links sent by email: confirming the address or setting a new password.
+model EmailToken {
+  id        String         @id @default(uuid())
+  userId    String         @map("user_id")
+  kind      EmailTokenKind
+  tokenHash String         @unique @map("token_hash")
+  expiresAt DateTime       @map("expires_at")
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_tokens")
 }
 
 model Project {

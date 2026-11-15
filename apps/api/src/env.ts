@@ -38,6 +38,16 @@ const envSchema = z.object({
   API_PATH_PREFIX: z.string().regex(/^(\/[\w-]+)*$/).default(""),
   /** With a code set, running code and the terminal work only for people who entered it. */
   RUN_ACCESS_CODE: z.preprocess((value) => (value === "" ? undefined : value), z.string().min(8).optional()),
+  /** smtp://user:password@host:587 (or smtps://…:465). Without it, emails are only written to the log in development. */
+  SMTP_URL: z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional()),
+  MAIL_FROM: z.string().default("Collab <no-reply@localhost>"),
+  /** Address of the web app, for links in emails. Defaults to the first CORS origin. */
+  APP_URL: z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional()),
 });
 
-export const env = envSchema.parse(process.env);
+const parsed = envSchema.parse(process.env);
+
+export const env = {
+  ...parsed,
+  APP_URL: (parsed.APP_URL ?? parsed.CORS_ORIGIN.split(",")[0]!.trim()).replace(/\/+$/, ""),
+};

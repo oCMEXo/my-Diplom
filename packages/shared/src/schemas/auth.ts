@@ -49,6 +49,7 @@ export const authUserSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   isGuest: z.boolean(),
+  emailVerified: z.boolean(),
 });
 export type AuthUser = z.infer<typeof authUserSchema>;
 
@@ -63,3 +64,16 @@ export const authResponseSchema = z.object({
   tokens: authTokensSchema,
 });
 export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+export const forgotPasswordSchema = z.object({ email: emailSchema });
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+/** The token comes from the link in the email. */
+export const resetPasswordSchema = z.object({
+  token: z.string().min(20).max(200),
+  password: z.string().min(8).max(72),
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const verifyEmailSchema = z.object({ token: z.string().min(20).max(200) });
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

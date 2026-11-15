@@ -13,6 +13,7 @@ import { Button } from "../components/ui/Button";
 import { Wordmark } from "../components/ui/Logo";
 import { RoleBadge } from "../components/ui/RoleBadge";
 import { Spinner } from "../components/ui/Spinner";
+import { VerifyEmailBanner } from "../components/VerifyEmailBanner";
 
 function projectCode(value: string) {
   // Accepts a full invite link or just the code.
@@ -53,6 +54,7 @@ export function ProjectsPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-5 py-10">
+        <VerifyEmailBanner />
         {notice && (
           <div role="status" className="mb-8 flex items-start gap-3 rounded-xl bg-bad/10 px-4 py-3 text-base text-bad">
             <p className="flex-1">{notice}</p>
