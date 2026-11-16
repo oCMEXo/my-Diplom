@@ -30,9 +30,9 @@ describe("describeLanguage", () => {
 describe("languageCatalogue", () => {
   it("lists the languages that run first, each with its extensions", () => {
     const catalogue = languageCatalogue();
-    expect(catalogue.slice(0, 2).map((entry) => entry.name)).toEqual(["JavaScript", "Python"]);
+    expect(catalogue.slice(0, 5).map((entry) => entry.name)).toEqual(["C", "C++", "Java", "JavaScript", "Python"]);
     expect(catalogue.find((entry) => entry.language === "javascript")?.extensions).toEqual([".js", ".mjs", ".cjs", ".jsx"]);
-    expect(catalogue.every((entry, index) => index < 2 || entry.support === "highlight")).toBe(true);
+    expect(catalogue.every((entry, index) => index < 5 || entry.support === "highlight")).toBe(true);
     expect(catalogue.some((entry) => entry.language === "plaintext")).toBe(false);
   });
 });
