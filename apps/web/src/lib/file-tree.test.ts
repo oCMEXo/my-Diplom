@@ -11,7 +11,6 @@ const file = (path: string): FileRecord => ({
   updatedAt: "2026-10-04T00:00:00.000Z",
 });
 
-/** A compact view of the tree for assertions: folders end with "/", children are nested. */
 function outline(nodes: TreeNode[]): unknown[] {
   return nodes.map((node) => (node.kind === "dir" ? { [`${node.name}/`]: outline(node.children) } : node.name));
 }

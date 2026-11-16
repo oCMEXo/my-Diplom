@@ -30,7 +30,6 @@ function toProjectDto(project: ProjectLike, myRole: ProjectRole) {
     ownerId: project.ownerId,
     createdAt: project.createdAt.toISOString(),
     myRole,
-    // Viewers don't get the code: they could rejoin under another account with the link's role.
     inviteCode: myRole === "viewer" ? null : project.inviteCode,
     inviteRole: project.inviteRole as InviteRole,
     github:
@@ -141,9 +140,7 @@ export async function updateMemberRole(
     where: { projectId_userId: { projectId, userId: targetUserId } },
     data: { role },
   });
-  // A demoted member knows the link and could come back with it as an editor.
   if (role === "viewer") await rotateInviteCode(projectId);
-  // Open documents keep the role they connected with; reconnecting gives them the new one.
   await announceAccessChange({ projectId, userId: targetUserId, reason: "role" });
 }
 
@@ -176,7 +173,6 @@ export async function removeMember(
   await prisma.projectMember.delete({
     where: { projectId_userId: { projectId, userId: targetUserId } },
   });
-  // Otherwise a removed member could come back with the old link.
   if (requesterId !== targetUserId) await rotateInviteCode(projectId);
   await announceAccessChange({
     projectId,
@@ -208,7 +204,6 @@ export async function updateInviteRole(requesterId: string, projectId: string, r
     where: { id: projectId },
     data: {
       inviteRole: role,
-      // A link handed out as read-only must not start giving write access by itself.
       ...(current.inviteRole === "viewer" && role === "editor" ? { inviteCode: generateInviteCode() } : {}),
     },
   });

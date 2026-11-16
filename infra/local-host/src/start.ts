@@ -1,18 +1,3 @@
-/**
- * Turns this computer into a test host for the platform:
- *   - a separate database (collab_host) in the development Postgres,
- *   - the API and the sync server on local ports,
- *   - the built web app, with /api and /collab on one address,
- *   - optionally a public Cloudflare tunnel in front of it.
- *
- *   pnpm host:test                 # build, start everything, open a public tunnel
- *   pnpm host:test -- --no-tunnel  # same, but only on http://127.0.0.1:8787
- *   pnpm host:test -- --skip-build # reuse the last web build
- *   pnpm host:test -- --no-run     # no code running and no terminal at all
- *
- * Running code here takes the site owner's access code (saved in .state/secrets.json): the public
- * address must not become a way to run other people's programs on this computer.
- */
 import { spawn, execFileSync, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { chmodSync, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -41,7 +26,6 @@ const API_PORT = PORT + 1000;
 const COLLAB_PORT = PORT + 2000;
 const TERMINAL_PORT = PORT + 3000;
 const REDIS_PORT = Number(process.env.HOST_REDIS_PORT ?? 6380);
-// Database 2: the development runner uses 0 and the end-to-end tests 1, so nobody takes another's jobs.
 const REDIS_URL = `redis://localhost:${REDIS_PORT}/2`;
 const DB_NAME = "collab_host";
 const DB_CONTAINER = process.env.HOST_DB_CONTAINER ?? "collab-dev-postgres-1";
@@ -68,7 +52,6 @@ function stop(code: number | null = 0) {
       if (process.platform === "win32") execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
       else child.kill("SIGTERM");
     } catch {
-      // already gone
     }
   }
   if (code !== null) setTimeout(() => process.exit(code), 200).unref();
@@ -78,14 +61,12 @@ process.on("SIGINT", () => stop(0));
 process.on("SIGTERM", () => stop(0));
 process.on("exit", () => stop(null));
 
-/** Easy to read out and type: no 0/O or 1/I, grouped by four. */
 function newRunCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const chars = [...randomBytes(12)].map((byte) => alphabet[byte % alphabet.length]);
   return [0, 4, 8].map((start) => chars.slice(start, start + 4).join("")).join("-");
 }
 
-/** Kept between restarts, so sign-ins and the access code survive them. */
 function secrets() {
   const file = path.join(stateDir, "secrets.json");
   const stored = existsSync(file)
@@ -147,7 +128,6 @@ async function waitFor(url: string, label: string, seconds = 60) {
     try {
       if ((await fetch(url)).ok) return;
     } catch {
-      // not up yet
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }

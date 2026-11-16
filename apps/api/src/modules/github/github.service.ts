@@ -34,7 +34,6 @@ function validBranch(name: string) {
 
 const encodeRef = (name: string) => name.split("/").map(encodeURIComponent).join("/");
 
-/** The repository a project pushes to: its saved link, or the one given in the request. */
 function resolveRepo(
   project: { githubOwner: string | null; githubRepo: string | null; githubBranch: string | null },
   repoUrl?: string,
@@ -81,10 +80,6 @@ interface Change {
   kind: "added" | "modified";
 }
 
-/**
- * What a push would send. A file edited here is added or modified; if GitHub's copy also changed
- * since the last sync, it is a conflict. Files not edited here are never sent.
- */
 async function planPush(
   userId: string,
   projectId: string,
@@ -171,7 +166,6 @@ export async function previewPush(
   };
 }
 
-/** Commits the changed text files to the linked repo (see planPush). */
 export async function pushToGithub(
   userId: string,
   projectId: string,
@@ -208,7 +202,6 @@ export async function pushToGithub(
     await api.patch(`/repos/${slug}/git/refs/heads/${encodeRef(target)}`, { sha: commit.sha, force: false });
   }
 
-  // Files match the repo now; remember that so the next push sends only new edits.
   const synced = target === baseBranch ? [...plan.inSync, ...changes] : [];
   await prisma.$transaction([
     ...synced.map(({ id, sha }) => prisma.file.update({ where: { id }, data: { sourceSha: sha } })),

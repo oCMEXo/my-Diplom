@@ -3,13 +3,9 @@ import httpProxy from "http-proxy";
 import sirv from "sirv";
 
 export interface HostOptions {
-  /** Folder with the built web app. */
   webRoot: string;
-  /** Where `/api/*` goes, e.g. http://127.0.0.1:3201 (the `/api` prefix is removed). */
   apiTarget: string;
-  /** Where `/collab` goes, e.g. http://127.0.0.1:3234 (the `/collab` prefix is removed). */
   collabTarget: string;
-  /** Where `/terminal` goes (the runner's terminal server); without it there is no terminal. */
   terminalTarget?: string;
 }
 
@@ -19,17 +15,12 @@ const PREFIXES = [
   { prefix: "/terminal", key: "terminalTarget" },
 ] as const;
 
-/**
- * The API trusts X-Forwarded-For, so a value sent by the visitor must not reach it. This server
- * listens on 127.0.0.1 only; traffic from the tunnel has the real address in CF-Connecting-IP.
- */
 function setClientAddress(request: http.IncomingMessage) {
   const real = request.headers["cf-connecting-ip"];
   if (typeof real === "string" && real) request.headers["x-forwarded-for"] = real;
   else delete request.headers["x-forwarded-for"];
 }
 
-/** `/api`, `/api/x` and `/api?x` belong to the API; `/apiary` does not. */
 function match(url: string, prefix: string) {
   return url === prefix || url.startsWith(`${prefix}/`) || url.startsWith(`${prefix}?`);
 }
@@ -44,10 +35,8 @@ function route(url: string, options: HostOptions) {
 
 const NO_CACHE = new Set(["/", "/index.html", "/sw.js", "/manifest.webmanifest", "/registerSW.js"]);
 
-/** The robots that messengers send to build a link preview. Keep in step with infra/gcp/Caddyfile. */
 const PREVIEW_ROBOTS = /telegrambot|whatsapp|facebookexternalhit|twitterbot|slackbot|discordbot|vkshare|linkedinbot|viber|skypeuripreview/i;
 
-/** Bots don't run the web app, so the start page and invite links get a small preview page from the API. */
 function previewPath(request: http.IncomingMessage) {
   const url = request.url ?? "/";
   const path = url.split("?")[0]!;
@@ -55,12 +44,10 @@ function previewPath(request: http.IncomingMessage) {
   return path === "/" || path.startsWith("/join/") ? `/preview${path}` : null;
 }
 
-/** One address for the web app, /api, /collab and /terminal (WebSockets too), so one tunnel can carry the whole site. */
 export function createHostServer(options: HostOptions) {
   const proxy = httpProxy.createProxyServer({ xfwd: true, ws: true });
 
   proxy.on("error", (_error, _request, response) => {
-    // For plain requests `response` is the HTTP response; for upgrades it is the raw socket.
     if (response instanceof http.ServerResponse) {
       if (!response.headersSent) {
         response.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
@@ -74,7 +61,6 @@ export function createHostServer(options: HostOptions) {
   const web = sirv(options.webRoot, {
     single: true,
     etag: true,
-    // The ready-made copies from compressWebRoot, for browsers that accept them.
     gzip: true,
     brotli: true,
     setHeaders(response, pathname) {

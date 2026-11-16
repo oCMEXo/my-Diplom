@@ -15,13 +15,11 @@ export const classSchema = z.object({
 });
 export type Classroom = z.infer<typeof classSchema>;
 
-/** One student's copy, as the teacher sees it on the class page. */
 export const classStudentSchema = z.object({
   projectId: z.string().uuid(),
   name: z.string(),
   isGuest: z.boolean(),
   joinedAt: z.string().datetime(),
-  /** When a file of the copy last changed; null if nothing was edited yet. */
   lastEditAt: z.string().datetime().nullable(),
   online: z.boolean(),
 });
@@ -32,7 +30,6 @@ export const classDetailSchema = classSchema.extend({
 });
 export type ClassDetail = z.infer<typeof classDetailSchema>;
 
-/** What someone with a class link may see before signing in. */
 export const classPreviewSchema = z.object({
   className: z.string(),
   teacherName: z.string(),

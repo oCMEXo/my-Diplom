@@ -1,6 +1,3 @@
-// Prints the usage numbers of the last 7 days for the site owner:
-//   pnpm --filter @collab/api stats
-//   docker compose -f infra/gcp/docker-compose.yml exec api pnpm --filter @collab/api stats
 import { prisma } from "@collab/db";
 import { usageStats } from "./lib/usage.js";
 

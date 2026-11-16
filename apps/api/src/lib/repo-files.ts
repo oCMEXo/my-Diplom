@@ -8,14 +8,11 @@ export interface RepoFile {
   text: string;
   type: FileType;
   language: string | null;
-  /** Git blob SHA of the original bytes, to tell later whether the file changed. */
   sha: string;
 }
 
 export type SkipCounts = ImportResult["skipped"];
 
-// Skip only what is never useful (.git, node_modules, OS junk). Binaries and big files
-// are caught by the size checks.
 const IGNORED_DIRS = new Set([".git", "node_modules"]);
 const IGNORED_FILES = new Set([".DS_Store", "Thumbs.db"]);
 const MAX_PATH_LENGTH = 500;
@@ -27,7 +24,6 @@ function isIgnored(path: string) {
   return parts.slice(0, -1).some((part) => IGNORED_DIRS.has(part)) || IGNORED_FILES.has(name);
 }
 
-/** Files inside an ignored folder are reported as the folder ("node_modules/"), not one by one. */
 function skipLabel(path: string) {
   const parts = path.split("/");
   const index = parts.slice(0, -1).findIndex((part) => IGNORED_DIRS.has(part));
@@ -53,13 +49,11 @@ function decodeText(bytes: Uint8Array): string | null {
   }
 }
 
-/** GitHub archives wrap everything in one `<repo>-<ref>/` folder; the files should not carry it. */
 function stripRoot(name: string) {
   const index = name.indexOf("/");
   return index === -1 ? name : name.slice(index + 1);
 }
 
-/** Picks the importable text files from the archive. Shallow files win when the file limit is hit. */
 export function extractRepoFiles(zip: Uint8Array): {
   files: RepoFile[];
   skipped: Omit<SkipCounts, "existing">;
@@ -70,7 +64,6 @@ export function extractRepoFiles(zip: Uint8Array): {
   const candidates: { entry: string; path: string; size: number }[] = [];
 
   try {
-    // First pass reads only the file list, nothing is decompressed.
     unzipSync(zip, {
       filter(file) {
         if (file.name.endsWith("/")) return false;

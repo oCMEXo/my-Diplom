@@ -1,6 +1,5 @@
 import { RUNNABLE_LANGUAGES, type RunnableLanguage } from "./constants.js";
 
-/** Languages by file extension: the editor highlights all of them; only RUNNABLE_LANGUAGES run. */
 const EXTENSION_LANGUAGES: Record<string, string> = {
   py: "python",
   js: "javascript",
@@ -59,7 +58,6 @@ const EXTENSION_LANGUAGES: Record<string, string> = {
   txt: "plaintext",
 };
 
-/** Files known by their whole name rather than an extension. */
 const NAMED_FILES: Record<string, string> = { dockerfile: "dockerfile" };
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -110,7 +108,6 @@ function fileName(path: string) {
   return path.split("/").pop() ?? path;
 }
 
-/** The extension in lower case, or null when the name has none (".env" counts as none). */
 export function extensionOf(path: string): string | null {
   const name = fileName(path);
   const dot = name.lastIndexOf(".");
@@ -134,22 +131,18 @@ export function languageName(language: string): string {
   return LANGUAGE_NAMES[language] ?? language;
 }
 
-/** "JavaScript, Python, C, C++ and Java": the languages that run, for sentences. */
 export function runnableLanguageList(): string {
   const names = RUNNABLE_LANGUAGES.map(languageName);
   return names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
 
-/** What the platform does with a file: run and highlight it, only highlight it, or show it as text. */
 export type LanguageSupport = "run" | "highlight" | "text";
 
 export interface LanguageInfo {
   language: string | null;
-  /** Shown to people: "Python", "C++", or "Text" for a file the editor does not know. */
   name: string;
   extension: string | null;
   support: LanguageSupport;
-  /** The extension is there but means nothing to the platform. */
   unknown: boolean;
 }
 
@@ -167,7 +160,6 @@ export function describeLanguage(path: string, language: string | null = inferLa
   };
 }
 
-/** Every language the platform knows, with its extensions, for the list people can look at. */
 export function languageCatalogue(): { language: string; name: string; extensions: string[]; support: LanguageSupport }[] {
   const byLanguage = new Map<string, string[]>();
   for (const [extension, language] of Object.entries(EXTENSION_LANGUAGES)) {

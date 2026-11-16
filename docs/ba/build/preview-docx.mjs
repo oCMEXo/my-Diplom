@@ -1,6 +1,3 @@
-// Renders the DOCX page by page in a browser (docx-preview) to check the layout without Word.
-//   node docs/ba/build/preview-docx.mjs   -> docs/ba/build/preview/page-NN.png
-// docx-preview approximates Word: page breaks and fonts can differ slightly.
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -25,7 +22,6 @@ await page.evaluate(async (b64) => {
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   await window.docx.renderAsync(bytes, document.getElementById("c"), null, { breakPages: true, ignoreLastRenderedPageBreak: false });
 }, docx);
-// docx-preview breaks pages only at explicit breaks, so the result is cut into A4-high slices.
 const sections = page.locator("section.docx");
 let n = 0;
 for (let s = 0; s < (await sections.count()); s++) {

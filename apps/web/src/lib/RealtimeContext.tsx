@@ -32,7 +32,6 @@ interface RealtimeValue {
   runs: RunsByFile;
   online: PresenceUser[];
   announceFile: (fileId: string | null) => void;
-  /** The participant whose file and cursor this person is following. */
   following: string | null;
   follow: (userId: string | null) => void;
 }
@@ -92,7 +91,6 @@ export function RealtimeProvider({
   children,
 }: {
   projectId: string;
-  /** The server closed the connection because access to the project was taken away. */
   onRevoked?: (reason: AccessChangeReason) => void;
   children: ReactNode;
 }) {

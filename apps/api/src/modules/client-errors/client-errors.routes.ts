@@ -2,7 +2,6 @@ import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { clientErrorSchema } from "@collab/shared";
 
-/** Links can carry one-time tokens (reset, verification); only the path is kept. */
 function pathOnly(url: string | undefined) {
   if (!url) return undefined;
   try {
@@ -12,10 +11,6 @@ function pathOnly(url: string | undefined) {
   }
 }
 
-/**
- * Errors from the browser, written to the server log so the site owner sees them. No third-party
- * service: nothing leaves the server, and no user id is stored with the error.
- */
 export const clientErrorsRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     "/client-errors",

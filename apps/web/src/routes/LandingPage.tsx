@@ -32,7 +32,6 @@ function Step({ number, title, children }: { number: number; title: string; chil
   );
 }
 
-/** What a visitor who is not signed in sees at the site's address. */
 export function LandingPage() {
   const { continueAsGuest } = useAuth();
   const navigate = useNavigate();

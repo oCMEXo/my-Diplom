@@ -1,14 +1,10 @@
 import { z } from "zod";
 
 export const pushGithubSchema = z.object({
-  /** A GitHub personal access token with write access to the repository; used once and never stored. */
   token: z.string().trim().min(10).max(255).regex(/^\S+$/, "Token must not contain spaces"),
   message: z.string().trim().min(1).max(500),
-  /** Branch to commit to; created from the project's branch if it does not exist. Default: the linked branch. */
   branch: z.string().trim().max(200).optional(),
-  /** Needed only when the project is not linked to a repository yet. */
   repoUrl: z.string().trim().max(300).optional(),
-  /** Replace files that changed on GitHub since they were imported. */
   overwrite: z.boolean().optional(),
 });
 export type PushGithubInput = z.infer<typeof pushGithubSchema>;
@@ -33,7 +29,6 @@ export type GithubBranchesInput = z.infer<typeof githubBranchesSchema>;
 
 export const githubBranchesResultSchema = z.object({
   repo: z.object({ owner: z.string(), name: z.string() }),
-  /** The branch pushes go to by default: the project's linked branch, else the repository default. */
   defaultBranch: z.string(),
   branches: z.array(z.string()),
   canPush: z.boolean(),
@@ -43,15 +38,11 @@ export type GithubBranchesResult = z.infer<typeof githubBranchesResultSchema>;
 export const pushPreviewRequestSchema = pushGithubSchema.pick({ token: true, repoUrl: true, branch: true, overwrite: true });
 export type PushPreviewRequest = z.infer<typeof pushPreviewRequestSchema>;
 
-/** What a push would do right now, without doing it. */
 export const pushPreviewSchema = z.object({
   branch: z.string(),
   newBranch: z.boolean(),
-  /** Files that exist here but not in the repository. */
   added: z.array(z.string()),
-  /** Files edited here that the repository already has. */
   modified: z.array(z.string()),
-  /** Files edited here that also changed on GitHub since they were synced. */
   conflicts: z.array(z.string()),
   unchanged: z.number().int(),
 });
@@ -59,11 +50,9 @@ export type PushPreview = z.infer<typeof pushPreviewSchema>;
 
 export const branchListSchema = z.object({
   repo: z.object({ owner: z.string(), name: z.string() }),
-  /** The branch whose files the project shows now. */
   active: z.string(),
   defaultBranch: z.string(),
   branches: z.array(z.string()),
-  /** Branches that already have files in the project (opened before). */
   loaded: z.array(z.string()),
 });
 export type BranchList = z.infer<typeof branchListSchema>;
@@ -72,7 +61,6 @@ export const branchSwitchSchema = z.object({ name: z.string().trim().min(1).max(
 
 export const branchSwitchResultSchema = z.object({
   branch: z.string(),
-  /** Files downloaded from GitHub; 0 when the branch had been opened before. */
   imported: z.number().int(),
 });
 export type BranchSwitchResult = z.infer<typeof branchSwitchResultSchema>;

@@ -5,7 +5,6 @@ import { useAuth } from "../lib/auth";
 import { countUnread, markRead, readMark } from "../lib/chat-read";
 import { useRealtimeEvents, useRealtimeStatus } from "../lib/RealtimeContext";
 
-/** Counts the messages this person has not seen yet: while the chat is hidden and between visits. */
 export function UnreadWatcher({
   projectId,
   chatShown,
@@ -35,7 +34,6 @@ export function UnreadWatcher({
     setUnread(0);
   }, [seen, projectId, setUnread]);
 
-  // On opening the project and after a lost connection the server knows what was missed.
   useEffect(() => {
     if (status !== "open" || seenRef.current) return;
     let current = true;

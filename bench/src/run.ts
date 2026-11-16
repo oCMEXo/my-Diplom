@@ -7,7 +7,6 @@ import { runBoard, runGrowth, runOffline, runTyping } from "./scenarios.js";
 import { SYSTEMS } from "./systems.js";
 
 const quick = process.argv.includes("--quick");
-// --only=growth re-runs just the document-size scenario and keeps the other results of the last full run.
 const onlyGrowth = process.argv.includes("--only=growth");
 const outDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../results");
 

@@ -6,7 +6,6 @@ import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 
-/** The owner deletes the project for everyone; others just leave it. */
 export function RemoveProjectDialog({ project, onClose }: { project: Project; onClose: () => void }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();

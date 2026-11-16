@@ -1,6 +1,3 @@
-# One address for the whole site, as the local test host has it: the web app, the REST API under
-# /api, the sync server under /collab and the terminals under /terminal (WebSockets included).
-# Caddy gets and renews the HTTPS certificate by itself.
 {$SITE_DOMAIN} {
 	header {
 		X-Content-Type-Options nosniff
@@ -28,9 +25,6 @@
 		reverse_proxy runner:3003
 	}
 
-	# A messenger builds the preview of a link from the page's HTML and does not run the web app.
-	# Its robot gets a small page with the title and the picture from the API, so an invitation link
-	# shows who invites and to which project. Keep the list in step with infra/local-host/src/server.ts.
 	@preview {
 		method GET
 		path / /join/*
@@ -48,7 +42,6 @@
 		@assets path /assets/*
 		header @assets Cache-Control "public, max-age=31536000, immutable"
 		try_files {path} /index.html
-		# The .br and .gz copies are made before the upload (compressWebRoot).
 		file_server {
 			precompressed br gzip
 		}

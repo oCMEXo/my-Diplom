@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-/** Emails are stored and compared in lower case. */
 export const emailSchema = z.string().trim().toLowerCase().email();
 
 export const registerSchema = z.object({
@@ -31,14 +30,12 @@ export const updateProfileSchema = z.object({
 });
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
-/** Turns a guest into a registered user: the same account, so projects and history stay. */
 export const upgradeGuestSchema = z.object({
   email: emailSchema,
   password: z.string().min(8).max(72),
 });
 export type UpgradeGuestInput = z.infer<typeof upgradeGuestSchema>;
 
-/** A guest has no password to confirm with; a registered user must give theirs. */
 export const deleteAccountSchema = z.object({
   password: z.string().min(1).max(200).optional(),
 });
@@ -68,7 +65,6 @@ export type AuthResponse = z.infer<typeof authResponseSchema>;
 export const forgotPasswordSchema = z.object({ email: emailSchema });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
-/** The token comes from the link in the email. */
 export const resetPasswordSchema = z.object({
   token: z.string().min(20).max(200),
   password: z.string().min(8).max(72),

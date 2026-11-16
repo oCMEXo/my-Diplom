@@ -9,7 +9,6 @@ import { AuthShell } from "../components/layout/AuthShell";
 import { ErrorNote } from "../components/ui/Field";
 import { Spinner } from "../components/ui/Spinner";
 
-/** Shown only where the site owner has set up a GitHub OAuth app. */
 export function GithubSignInButton({ redirectTo }: { redirectTo: string }) {
   const features = useFeatures();
   if (!features?.githubSignIn) return null;
@@ -24,7 +23,6 @@ export function GithubSignInButton({ redirectTo }: { redirectTo: string }) {
   );
 }
 
-/** GitHub sends the person here (through the API) with a one-time code in the address fragment. */
 export function GithubCallbackPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,6 @@ export function GithubCallbackPage() {
     if (started.current) return;
     started.current = true;
     const params = new URLSearchParams(window.location.hash.slice(1));
-    // The fragment is never sent to a server, and it is removed from the address at once.
     window.history.replaceState(null, "", window.location.pathname);
     const failure = params.get("error");
     const code = params.get("code");

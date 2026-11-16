@@ -59,7 +59,6 @@ export const realtimeRoutes: FastifyPluginAsync = async (app) => {
         const message = presenceFileMessageSchema.safeParse(JSON.parse(raw.toString()));
         if (message.success) hub.setFile(parsed.data.projectId, socket, message.data.fileId);
       } catch {
-        // not ours: nothing else is expected on this socket
       }
     });
     socket.on("close", unsubscribe);

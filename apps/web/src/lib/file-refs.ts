@@ -9,7 +9,6 @@ export type ChatSegment =
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** A path as written in chat: the whole path of a file, or its end if only one file ends like that. */
 function resolve(written: string, files: FileRefTarget[]): FileRefTarget | null {
   const exact = files.find((file) => file.path === written);
   if (exact) return exact;
@@ -17,9 +16,7 @@ function resolve(written: string, files: FileRefTarget[]): FileRefTarget | null 
   return matching.length === 1 ? (matching[0] ?? null) : null;
 }
 
-/** Turns "src/app.ts:12" and "app.ts:12:4" in chat into links. Only project files match, so "12:30" stays text. */
 export function createFileRefParser(files: FileRefTarget[]) {
-  // Whole paths come first because they are the only way to catch a name with spaces.
   const known = [...files]
     .sort((a, b) => b.path.length - a.path.length)
     .map((file) => escapeRegExp(file.path))

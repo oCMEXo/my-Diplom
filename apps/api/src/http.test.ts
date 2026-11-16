@@ -139,7 +139,6 @@ describe("HTTP behaviour a person sees", { timeout: 30_000 }, () => {
       expect(blocked.statusCode).toBe(429);
       expect(blocked.json().message).toMatch(/Too many requests/);
 
-      // Another visitor behind the same proxy is counted separately.
       expect((await attempt("203.0.113.8")).statusCode).toBe(401);
     } finally {
       await app.close();
@@ -216,7 +215,6 @@ describe("HTTP behaviour a person sees", { timeout: 30_000 }, () => {
         expect(without.json().message).toMatch(/access code/);
         const wrong = await app.inject({ method: "POST", url, headers: { ...auth, "x-run-code": "nope" }, payload });
         expect(wrong.statusCode).toBe(403);
-        // With the code the request gets through to the project check (this project does not exist).
         const right = await app.inject({ method: "POST", url, headers: { ...auth, "x-run-code": "secret-code-1" }, payload });
         expect(right.statusCode).toBe(404);
       }

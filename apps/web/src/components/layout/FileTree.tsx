@@ -27,7 +27,6 @@ export function FileTree({
   const location = useLocation();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  // Opening a file (or following a link to one) unfolds the folders it sits in.
   const activeFile = files.find((file) => location.pathname.endsWith(`/files/${file.id}`));
   useEffect(() => {
     if (!activeFile) return;
@@ -77,7 +76,6 @@ export function FileTree({
             style={{ paddingLeft: 10 + depth * INDENT_PX + 22 }}
             className={({ isActive }) =>
               cn(
-                // The room for the two buttons is taken only when they show: names need every pixel.
                 "flex items-center gap-2 rounded-lg py-1.5 pr-2 text-base font-medium transition",
                 canEdit && "touch-reserve group-focus-within/file:pr-14 group-hover/file:pr-14",
                 isActive ? "bg-selected text-fg" : "text-muted hover:bg-raised hover:text-fg",

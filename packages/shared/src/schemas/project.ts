@@ -6,7 +6,6 @@ export const projectRoleSchema = z.enum(PROJECT_ROLES);
 
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(200),
-  /** Without it the project starts empty. */
   template: z.enum(PROJECT_TEMPLATES).optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
@@ -24,7 +23,6 @@ export type InviteRole = z.infer<typeof inviteRoleSchema>;
 export const githubLinkSchema = z.object({
   owner: z.string(),
   repo: z.string(),
-  /** `null` means the repository's default branch. */
   branch: z.string().nullable(),
 });
 export type GithubLink = z.infer<typeof githubLinkSchema>;
@@ -35,11 +33,9 @@ export const projectSchema = z.object({
   ownerId: z.string().uuid(),
   createdAt: z.string().datetime(),
   myRole: projectRoleSchema,
-  /** Null for viewers: with the code they could come back as editors under another account. */
   inviteCode: z.string().nullable(),
   inviteRole: inviteRoleSchema,
   github: githubLinkSchema.nullable(),
-  /** Set when this is a student's copy of a class task. */
   classId: z.string().uuid().nullable(),
 });
 export type Project = z.infer<typeof projectSchema>;
@@ -65,7 +61,6 @@ export const updateInviteRoleSchema = z.object({
 });
 export type UpdateInviteRoleInput = z.infer<typeof updateInviteRoleSchema>;
 
-/** What someone with an invite link may see before signing in. */
 export const invitePreviewSchema = z.object({
   projectName: z.string(),
   ownerName: z.string(),

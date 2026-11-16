@@ -13,11 +13,9 @@ const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (char) => ESCAPES[
 const firstValue = (header: string | string[] | undefined) =>
   (Array.isArray(header) ? header[0] : header)?.split(",")[0]?.trim();
 
-/** Public origin; behind a proxy it comes from the forwarded headers. */
 function siteOrigin(request: FastifyRequest, trustProxy: boolean) {
   const host = (trustProxy && firstValue(request.headers["x-forwarded-host"])) || firstValue(request.headers.host) || "";
   const protocol = (trustProxy && firstValue(request.headers["x-forwarded-proto"])) || request.protocol;
-  // It goes into the HTML, so allow only host name characters.
   const safeHost = /^[\w.\-:[\]]{1,255}$/.test(host) ? host : "localhost";
   return `${protocol === "https" ? "https" : "http"}://${safeHost}`;
 }
@@ -50,7 +48,6 @@ function page(card: { title: string; description: string }, url: string, image: 
 `;
 }
 
-/** Open Graph pages for link previews. Messenger bots don't run JS, so the proxy sends them here (infra/gcp/Caddyfile, infra/local-host). */
 export const previewRoutes: FastifyPluginAsync<{ trustProxy: boolean }> = async (app, { trustProxy }) => {
   app.get("/preview/*", { schema: { hide: true } }, async (request, reply) => {
     const origin = siteOrigin(request, trustProxy);

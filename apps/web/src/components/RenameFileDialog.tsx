@@ -7,7 +7,6 @@ import { ErrorNote, Field } from "./ui/Field";
 import { LanguageHint } from "./Languages";
 import { Modal } from "./ui/Modal";
 
-/** Renames a file; a name with slashes ("src/app.js") also moves it into that folder. */
 export function RenameFileDialog({
   projectId,
   file,

@@ -1,6 +1,3 @@
-// Renders docs/ba/diagrams/*.mmd to PNG (4x) in docs/ba/img with Mermaid in a real browser.
-//   node docs/ba/build/render-diagrams.mjs [name-prefix ...]
-// Playwright is taken from the e2e package; Mermaid is loaded from a CDN, so this needs the internet.
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -9,7 +6,6 @@ const here = import.meta.dirname;
 const require = createRequire(path.resolve(here, "../../../e2e/package.json"));
 const { chromium } = require("@playwright/test");
 
-// DIAGRAMS_SRC and DIAGRAMS_OUT let other folders use the same renderer, e.g. docs/db for the ER diagram.
 const src = process.env.DIAGRAMS_SRC ? path.resolve(process.env.DIAGRAMS_SRC) : path.resolve(here, "../diagrams");
 const out = process.env.DIAGRAMS_OUT ? path.resolve(process.env.DIAGRAMS_OUT) : path.resolve(here, "../img");
 const only = process.argv.slice(2);

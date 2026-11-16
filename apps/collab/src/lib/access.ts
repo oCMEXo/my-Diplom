@@ -8,7 +8,6 @@ export interface FileAccess {
   role: ProjectRole;
 }
 
-/** Carries the HTTP status for the restore endpoint; WebSocket clients only see the message. */
 export class AccessError extends Error {
   constructor(
     message: string,
@@ -35,7 +34,6 @@ export async function resolveFileAccess(token: string, fileId: string): Promise<
     where: { projectId_userId: { projectId: file.projectId, userId } },
   });
   if (!membership) {
-    // Like the API: a stranger cannot tell a missing file from someone else's.
     throw new AccessError("Not a member of this project", 404);
   }
 

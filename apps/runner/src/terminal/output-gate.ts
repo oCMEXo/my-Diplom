@@ -2,7 +2,6 @@ const HIGH_WATER_BYTES = 1024 * 1024;
 const LOW_WATER_BYTES = 256 * 1024;
 const CHECK_MS = 100;
 
-/** Backpressure: stop reading from the program while too much output is waiting to be sent. */
 export function createOutputGate({
   buffered,
   pause,

@@ -66,7 +66,6 @@ export async function setInviteRole(
   });
 }
 
-/** The same session, but its access token runs out in the given number of seconds (negative: already has). */
 export function withExpiringToken(auth: Auth, seconds: number): Auth {
   const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
   const body = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({
@@ -78,7 +77,6 @@ export function withExpiringToken(auth: Auth, seconds: number): Auth {
   return { ...auth, tokens: { ...auth.tokens, accessToken: `${body}.${signature}` } };
 }
 
-/** Opens a page that is already signed in as `auth`, using the same storage the app reads. */
 export async function openAs(browser: Browser, auth: Auth, path: string): Promise<Page> {
   const context = await browser.newContext();
   await context.addInitScript((stored) => {

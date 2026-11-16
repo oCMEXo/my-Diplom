@@ -33,10 +33,6 @@ export const fileSchema = z.object({
 });
 export type FileRecord = z.infer<typeof fileSchema>;
 
-/**
- * A deleted file as listed in the trash: `path` is the original path, `deletedAt` when it was removed,
- * `purgeAt` when the server deletes it for good.
- */
 export const trashedFileSchema = fileSchema.extend({
   deletedAt: z.string().datetime(),
   purgeAt: z.string().datetime(),

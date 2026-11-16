@@ -10,7 +10,6 @@ export interface ChartOptions {
   xLabel: string;
   yLabel: string;
   series: ChartSeries[];
-  /** Plot the y axis on a log scale (for values spanning orders of magnitude). */
   logY?: boolean;
 }
 

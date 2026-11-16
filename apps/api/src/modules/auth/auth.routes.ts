@@ -205,7 +205,6 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, reply) => reply.redirect(githubAuthorizeUrl(request.query.redirect)),
   );
 
-  // GitHub sends the person back here; the browser then goes on to the web app with a one-time code.
   app.get(
     "/github/callback",
     {

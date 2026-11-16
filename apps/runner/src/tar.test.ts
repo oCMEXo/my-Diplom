@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildTar, safeTarPath } from "./tar.js";
 
-/** A minimal ustar reader, enough to check what buildTar wrote. */
 function readTar(archive: Buffer) {
   const files: Record<string, string> = {};
   for (let offset = 0; offset + 512 <= archive.length; ) {

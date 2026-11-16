@@ -11,7 +11,6 @@ function clock(date: Date) {
   return date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-/** "just now", "5 minutes ago", "2 hours ago", "yesterday at 14:05", "3 October at 14:05". */
 export function versionAge(iso: string, now = new Date()): string {
   const date = new Date(iso);
   const elapsed = now.getTime() - date.getTime();
@@ -31,7 +30,6 @@ export function versionAge(iso: string, now = new Date()): string {
   return `${day} at ${clock(date)}`;
 }
 
-/** The exact moment, for a tooltip next to the relative one. */
 export function versionMoment(iso: string): string {
   return new Date(iso).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" });
 }

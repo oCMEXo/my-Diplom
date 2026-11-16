@@ -73,7 +73,6 @@ export const classesRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  // Public: a student sees which class the link leads to before signing in.
   app.get(
     "/class-links/:code",
     { schema: { tags: ["classes"], params: codeParams, response: { 200: classPreviewSchema, 404: errorResponseSchema } } },

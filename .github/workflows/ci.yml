@@ -75,7 +75,6 @@ jobs:
           set -o pipefail
           pnpm test 2>&1 | tee test.log
 
-      # pnpm prefixes every line with the package name, which hides vitest's failure annotations. Re-emit them.
       - name: Show the failed tests
         if: failure()
         run: |

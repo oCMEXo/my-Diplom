@@ -72,7 +72,6 @@ let decoyHash: Promise<string> | null = null;
 
 export async function loginUser(input: LoginInput) {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
-  // Same timing for unknown emails and wrong passwords, so accounts can't be probed.
   decoyHash ??= hashPassword(randomUUID());
   const valid = await verifyPassword(user?.passwordHash ?? (await decoyHash), input.password);
   if (!user || !valid) {
@@ -88,7 +87,6 @@ export async function loginAsGuest(input: GuestLoginInput) {
   const user = await prisma.user.create({
     data: {
       email: `guest-${randomUUID()}@guest.local`,
-      // Random number, so nameless guests can be told apart.
       name: input.name?.trim() || `Guest ${randomInt(1000, 10000)}`,
       passwordHash,
       isGuest: true,
@@ -115,7 +113,6 @@ export async function refreshSession(refreshToken: string) {
     throw new AppError("Your session has expired. Please sign in again.", 401);
   }
 
-  // Two tabs may refresh with the same token at once; only one of them wins.
   const { count } = await prisma.refreshToken.deleteMany({ where: { id: stored.id } });
   if (count === 0) throw new AppError("Your session has expired. Please sign in again.", 401);
 
@@ -138,7 +135,6 @@ export async function upgradeGuest(userId: string, input: UpgradeGuestInput) {
   return toAuthUser(updated);
 }
 
-/** GDPR erasure: deletes the account, its messages and owned projects. Its file versions in other projects stay (author set to null). */
 export async function deleteAccount(userId: string, input: DeleteAccountInput) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   if (!user.isGuest && !(input.password && (await verifyPassword(user.passwordHash, input.password)))) {
@@ -163,7 +159,6 @@ export async function deleteAccount(userId: string, input: DeleteAccountInput) {
   }
 }
 
-/** Deletes guests older than `days` with no project and no live session, with their messages. Returns the count. */
 export async function purgeStaleGuests(now = new Date(), days = env.GUEST_RETENTION_DAYS, batchSize = 200) {
   const unused = {
     isGuest: true,
@@ -177,7 +172,6 @@ export async function purgeStaleGuests(now = new Date(), days = env.GUEST_RETENT
     const batch = await prisma.user.findMany({ where: unused, select: { id: true }, take: batchSize });
     if (batch.length === 0) return purged;
     const ids = batch.map((user) => user.id);
-    // Conditions repeated in case the guest joined a project in between.
     const [, { count }] = await prisma.$transaction([
       prisma.message.deleteMany({ where: { authorId: { in: ids }, author: unused } }),
       prisma.user.deleteMany({ where: { id: { in: ids }, ...unused } }),

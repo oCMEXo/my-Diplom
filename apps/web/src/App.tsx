@@ -29,17 +29,12 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
-      // Persisted cache, so projects and files opened before stay available offline.
       gcTime: WEEK_MS,
       networkMode: "offlineFirst",
     },
   },
 });
 
-/**
- * The site's address: the landing page for visitors, the projects for people who are signed in.
- * Someone who signs out here goes to the sign-in page, as on every other page.
- */
 function Home() {
   const { isAuthenticated } = useAuth();
   const wasSignedIn = useRef(isAuthenticated);

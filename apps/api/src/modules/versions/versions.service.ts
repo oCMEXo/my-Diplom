@@ -3,8 +3,6 @@ import { AppError } from "../../lib/errors.js";
 import { requireProjectRole } from "../../lib/authorization.js";
 import { restoreThroughCollab } from "../../lib/collab.js";
 
-// Versions are written by the sync server (apps/collab/src/versions.ts); the API only reads them.
-
 const versionFields = {
   id: true,
   createdAt: true,
@@ -57,7 +55,6 @@ export async function getVersion(userId: string, projectId: string, fileId: stri
   return { ...toVersionDto(version), content: version.content };
 }
 
-/** Collab replaces the text in the live doc and saves the old text as a version, so a restore can be undone. */
 export async function restoreVersion(
   userId: string,
   projectId: string,

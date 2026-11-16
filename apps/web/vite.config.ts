@@ -20,8 +20,6 @@ export default defineConfig({
         icons: [{ src: "icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
       },
       workbox: {
-        // The app shell (including the Monaco editor and its workers) is precached so the
-        // app opens without a network; API and WebSocket traffic is never cached here.
         globPatterns: ["**/*.{js,css,html,svg,woff2,ttf}"],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: "/index.html",

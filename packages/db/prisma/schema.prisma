@@ -30,9 +30,7 @@ model User {
   name            String
   passwordHash    String    @map("password_hash")
   isGuest         Boolean   @default(false) @map("is_guest")
-  // Set once the person opened the link from the confirmation email (or reset the password by email).
   emailVerifiedAt DateTime? @map("email_verified_at")
-  // The GitHub account this user signs in with, if any.
   githubId        String?   @unique @map("github_id")
   createdAt       DateTime  @default(now()) @map("created_at")
 
@@ -62,7 +60,6 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-// Usage statistics, kept on this server only and deleted after 180 days (see apps/api/src/lib/usage.ts).
 model UsageEvent {
   id        String   @id @default(uuid())
   kind      String
@@ -76,7 +73,6 @@ model UsageEvent {
   @@map("usage_events")
 }
 
-// One-time links sent by email: confirming the address or setting a new password.
 model EmailToken {
   id        String         @id @default(uuid())
   userId    String         @map("user_id")
@@ -99,11 +95,9 @@ model Project {
   inviteRole ProjectRole @default(editor) @map("invite_role")
   createdAt  DateTime    @default(now()) @map("created_at")
 
-  // Set when the project is linked to a GitHub repository (import or first push).
   githubOwner  String? @map("github_owner")
   githubRepo   String? @map("github_repo")
   githubBranch String? @map("github_branch")
-  // A student's own copy of a class task; null for ordinary projects.
   classId      String? @map("class_id")
 
   owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id])
@@ -117,8 +111,6 @@ model Project {
   @@map("projects")
 }
 
-// A class: students open its link and each gets their own copy of the teacher's task project, with the
-// teacher added as an editor. Deleting the class keeps the students' copies.
 model Classroom {
   id            String   @id @default(uuid())
   name          String
@@ -151,16 +143,12 @@ model File {
   id          String    @id @default(uuid())
   projectId   String    @map("project_id")
   path        String
-  // The GitHub branch this file belongs to ("" for projects without a repository). Only the
-  // project's active branch is shown, so every branch keeps its own files and edits.
   branch      String    @default("")
   type        FileKind  @default(code)
   language    String?
   yjsState    Bytes?    @map("yjs_state")
-  // Git blob SHA of the content as of the last sync with GitHub; lets a push see what changed.
   sourceSha   String?   @map("source_sha")
   updatedAt   DateTime  @updatedAt @map("updated_at")
-  // A deleted file stays in the project's trash: its path moves under ".trash/<id>/" and the original is kept here.
   deletedAt   DateTime? @map("deleted_at")
   trashedPath String?   @map("trashed_path")
 
@@ -171,16 +159,11 @@ model File {
   @@map("files")
 }
 
-// Earlier states of a code or Markdown file, taken by the sync server while people edit.
 model FileVersion {
   id        String   @id @default(uuid())
   fileId    String   @map("file_id")
-  // Plain text rather than Yjs state: a version is only ever shown or put back as text (a restore
-  // is a new edit, not a rollback of the CRDT), and text has no edit history inside, so it is smaller.
   content   String
-  // Bytes of the UTF-8 text, so the list does not have to load the contents.
   size      Int
-  // Whose edit was being saved when the snapshot was taken; null once that account is gone.
   authorId  String?  @map("author_id")
   createdAt DateTime @default(now()) @map("created_at")
 

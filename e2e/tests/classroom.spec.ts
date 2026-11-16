@@ -9,7 +9,6 @@ test("a teacher starts a class, a guest student gets their own copy, and the tea
   const teacherPage = await openAs(browser, teacher, `/projects/${task.id}/files/${file.id}`);
   await expect(teacherPage.getByText("Synced")).toBeVisible();
   await typeInEditor(teacherPage, "# TODO: print the sum of 1..10");
-  // The sync server stores the text within three seconds; the copy is made from the stored text.
   await teacherPage.waitForTimeout(3500);
 
   await teacherPage.getByRole("button", { name: /project actions/ }).click();
@@ -35,7 +34,6 @@ test("a teacher starts a class, a guest student gets their own copy, and the tea
   await expect(teacherPage).toHaveURL(/\/projects\/[\w-]+/);
   await expect(teacherPage.getByRole("button", { name: /Loops: Vlad: project actions/ })).toBeVisible();
 
-  // The copies stay out of the teacher's project list; the class is listed instead.
   await teacherPage.goto("/");
   await expect(teacherPage.getByRole("heading", { name: "Your classes" })).toBeVisible();
   await expect(teacherPage.getByText("Loops: Vlad")).toHaveCount(0);
@@ -63,7 +61,6 @@ test("a C program compiles and runs for everyone", async ({ browser, request }) 
   const file = await createFile(request, owner, project.id, "main.c");
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
   await expect(page.getByText("Synced")).toBeVisible();
-  // Monaco closes brackets and quotes by itself, so the program is pasted rather than typed.
   await page.locator(".monaco-editor").first().click();
   await page.keyboard.insertText('#include <stdio.h>\nint main(void) { printf("%d\\n", 6 * 7); return 0; }\n');
   await page.getByRole("button", { name: "Run", exact: true }).click();

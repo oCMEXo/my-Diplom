@@ -6,7 +6,6 @@ import { createOutputGate } from "./output-gate.js";
 import type { TerminalSession, TerminalSessionOptions } from "./session.js";
 
 export interface TerminalServerOptions {
-  /** Returns the ticket's data and forgets it (a ticket works once), or null. */
   takeTicket: (ticket: string) => Promise<TerminalTicketData | null>;
   openSession: (options: TerminalSessionOptions) => Promise<TerminalSession>;
   maxMs: number;
@@ -18,7 +17,6 @@ export interface TerminalServerOptions {
 const clamp = (value: number, min: number, max: number, fallback: number) =>
   Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
 
-/** Terminal WebSocket: ws://…/?ticket=…&cols=…&rows=…. Closing the tab ends the session and removes the container. */
 export function createTerminalServer(options: TerminalServerOptions) {
   const server = http.createServer((_request, response) => {
     response.writeHead(426, { "Content-Type": "text/plain; charset=utf-8" });
@@ -40,8 +38,6 @@ export function createTerminalServer(options: TerminalServerOptions) {
     socket.alive = true;
     socket.on("pong", () => (socket.alive = true));
 
-    // Listen for close before any await, or a tab closed during setup would keep its container
-    // (and its place in the limits) for half an hour.
     let gone = false;
     let session: TerminalSession | null = null;
     let release = () => {};
@@ -76,7 +72,6 @@ export function createTerminalServer(options: TerminalServerOptions) {
     open.add(owner);
     socket.on("close", () => open.delete(owner));
 
-    // Buffer keystrokes until the shell is ready.
     const early: string[] = [];
     socket.on("message", (raw) => {
       let parsed: unknown;
@@ -143,7 +138,6 @@ export function createTerminalServer(options: TerminalServerOptions) {
     wss.close();
   });
 
-  /** Access to the project changed: the person's terminals close (everybody's when no user is given). */
   const closeFor = (projectId: string, userId?: string) => {
     for (const entry of open) {
       if (entry.projectId !== projectId || (userId && entry.userId !== userId)) continue;

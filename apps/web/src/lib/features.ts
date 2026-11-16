@@ -11,7 +11,6 @@ export function useFeatures(): Features | undefined {
   return data;
 }
 
-/** Whether this server runs code (and the terminal): for everyone, after an access code, or not at all. */
 export function useRunMode(): RunMode | undefined {
   return useFeatures()?.run;
 }

@@ -7,7 +7,6 @@ import { createProject, inviteMember } from "../projects/projects.service.js";
 import { createFile, deleteFile } from "../files/files.service.js";
 import { getVersion, listVersions, restoreVersion } from "./versions.service.js";
 
-/** Stands in for the sync server: remembers who asked to restore what, and answers with `status`. */
 function fakeCollab(status = 204) {
   const calls: { path: string; userId: string }[] = [];
   const fetchImpl: typeof fetch = async (input, init) => {
@@ -34,7 +33,6 @@ describe("versions.service", () => {
     return created;
   }
 
-  /** A project with a viewer and a file that has two versions (the newer one by the owner). */
   async function fileWithHistory() {
     const owner = await user("Anna");
     const viewer = await user("Viewer");

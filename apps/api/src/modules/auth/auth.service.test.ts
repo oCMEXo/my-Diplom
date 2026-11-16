@@ -82,7 +82,6 @@ describe("purgeStaleGuests", () => {
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   });
 
-  /** A guest whose account is `days` old; the session ended unless `liveSession` is set. */
   async function guestFrom(days: number, { liveSession = false } = {}) {
     const { user } = await loginAsGuest({ name: "Guest" });
     userIds.push(user.id);
@@ -101,7 +100,6 @@ describe("purgeStaleGuests", () => {
     const project = await createProject(owner.user.id, { name: "Project" });
     projectIds.push(project.id);
     const guest = await guestFrom(45);
-    // The guest wrote in the chat and was then removed from the project.
     await prisma.projectMember.create({ data: { projectId: project.id, userId: guest.id, role: "editor" } });
     const message = await createMessage(guest.id, project.id, { body: "hello" });
     await prisma.projectMember.delete({ where: { projectId_userId: { projectId: project.id, userId: guest.id } } });

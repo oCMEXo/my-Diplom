@@ -9,10 +9,6 @@ import { issueTokens, toAuthUser } from "./auth.service.js";
 const STATE_TTL_MS = 10 * 60 * 1000;
 const EXCHANGE_TTL_MS = 60 * 1000;
 
-/**
- * Kept in memory: a sign-in takes a minute at most, and the API runs as one instance. The state
- * protects the callback from forged requests; the exchange code keeps the tokens out of the address bar.
- */
 const states = new Map<string, { redirect: string; expires: number }>();
 const exchanges = new Map<string, { auth: AuthResponse; expires: number }>();
 
@@ -24,7 +20,6 @@ export function githubSignInEnabled() {
   return Boolean(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET);
 }
 
-/** Only a path on this site, so the sign-in cannot be used to send people elsewhere. */
 export function safeRedirect(value: string | undefined) {
   return value && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\") ? value : "/";
 }
@@ -66,7 +61,6 @@ async function githubJson<T>(fetchImpl: typeof fetch, url: string, init: Request
   return (await response.json()) as T;
 }
 
-/** Finds the account for this GitHub user, links it by a confirmed email, or creates a new one. */
 async function accountFor(github: GithubUser, email: string) {
   const githubId = String(github.id);
   const linked = await prisma.user.findUnique({ where: { githubId } });
@@ -84,14 +78,12 @@ async function accountFor(github: GithubUser, email: string) {
       email,
       name: (github.name || github.login).slice(0, 100),
       githubId,
-      // Nobody knows this password; the person signs in with GitHub or sets one with a reset link.
       passwordHash: await hashPassword(randomUUID()),
       emailVerifiedAt: new Date(),
     },
   });
 }
 
-/** The callback: checks the state, asks GitHub who this is, signs them in and returns a one-time code. */
 export async function completeGithubSignIn(code: string, state: string, fetchImpl: typeof fetch = fetch) {
   const pending = states.get(state);
   states.delete(state);
@@ -109,7 +101,6 @@ export async function completeGithubSignIn(code: string, state: string, fetchImp
   });
   if (!token.access_token) throw new AppError("GitHub did not accept the sign-in. Please try again.", 400);
 
-  // The GitHub token is used for these two requests only and is not stored.
   const headers = { Accept: "application/vnd.github+json", Authorization: `Bearer ${token.access_token}`, "User-Agent": "collab" };
   const user = await githubJson<GithubUser>(fetchImpl, "https://api.github.com/user", { headers });
   const emails = await githubJson<GithubEmail[]>(fetchImpl, "https://api.github.com/user/emails", { headers });
@@ -124,7 +115,6 @@ export async function completeGithubSignIn(code: string, state: string, fetchImp
   return { exchange, redirect: pending.redirect };
 }
 
-/** The web app trades the one-time code for the session; a code works once. */
 export function exchangeGithubCode(code: string) {
   const pending = exchanges.get(code);
   exchanges.delete(code);

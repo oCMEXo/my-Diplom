@@ -40,7 +40,6 @@ function Failure({ message }: { message: string }) {
   );
 }
 
-/** A student opens the class link: a guest enters a name, a signed-in person goes straight to the copy. */
 export function ClassJoinPage() {
   const { code = "" } = useParams<{ code: string }>();
   const { isAuthenticated, continueAsGuest } = useAuth();

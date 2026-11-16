@@ -8,7 +8,6 @@ const VARIANTS: Record<Variant, string> = {
   primary: "bg-accent text-accent-fg hover:brightness-90 active:brightness-75",
   secondary: "bg-control text-fg hover:bg-control-hover",
   ghost: "text-muted hover:bg-raised hover:text-fg",
-  // The same solid red in both themes: white text reads on it.
   danger: "bg-danger text-white hover:brightness-90",
 };
 

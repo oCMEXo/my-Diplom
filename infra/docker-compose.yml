@@ -1,9 +1,3 @@
-# Production stack for ONE EC2 host (ADR-004). PostgreSQL lives in RDS and the
-# frontend is served from S3 + CloudFront, so neither appears here.
-#
-#   cp infra/.env.prod.example infra/.env     # then edit
-#   docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build
-#   docker compose -f infra/docker-compose.yml --env-file infra/.env run --rm migrate
 name: collab
 
 x-node-service: &node-service
@@ -52,7 +46,6 @@ services:
       dockerfile: infra/docker/Dockerfile
       target: runner
       args: { APP: runner }
-    # It holds the Docker socket and has no use for the JWT or database secrets in .env.
     env_file: []
     environment:
       REDIS_URL: redis://redis:6379

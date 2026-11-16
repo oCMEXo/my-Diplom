@@ -40,7 +40,6 @@ describe("hub.disconnect", () => {
     expect(hub.presence(projectId).map((u) => u.id)).toEqual([stays.id]);
     expect(colleague.sent.at(-1)).toMatchObject({ type: "presence.updated", users: [stays] });
 
-    // Nothing reaches a closed tab any more.
     const before = tabA.sent.length;
     hub.broadcast(projectId, { type: "project.members", projectId });
     expect(tabA.sent).toHaveLength(before);

@@ -39,7 +39,6 @@ function nextEvent(ws: WebSocket, type: string, accept: (event: WsEvent) => bool
   });
 }
 
-/** Resolves once the server has registered the connection (it announces presence right away). */
 function connect(url: string): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(url);

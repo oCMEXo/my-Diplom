@@ -16,7 +16,6 @@ export function Avatar({
   name: string;
   title?: string;
   size?: keyof typeof SIZES;
-  /** `undefined` hides the presence dot. */
   online?: boolean;
   ring?: boolean;
   className?: string;

@@ -67,7 +67,6 @@ export function runInSandbox(
       kill();
     }, timeoutMs);
 
-    // Stop can come before the container exists: the kill is repeated until the program is gone.
     let stopped = false;
     let stopping: NodeJS.Timeout | undefined;
     const stop = () => {
@@ -109,7 +108,6 @@ export function runInSandbox(
     child.on("close", (code) => finish(code, false));
 
     child.stdin.on("error", () => undefined);
-    // The project is sent as a tar archive on stdin; the entry file is the editor's current text.
     const entry = entryFile(job.language, job.entry);
     child.stdin.end(
       buildTar([...(job.files ?? []).filter((file) => file.path !== entry), { path: entry, content: job.code }]),

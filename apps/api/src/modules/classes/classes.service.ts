@@ -32,7 +32,6 @@ function toClassDto(classroom: ClassLike) {
 
 const withCount = { _count: { select: { copies: true } } } as const;
 
-/** Turns a project the teacher owns into the task of a class; a project has at most one class. */
 export async function createClass(userId: string, projectId: string, input: CreateClassInput) {
   await requireProjectRole(projectId, userId, "owner");
   const project = await prisma.project.findUniqueOrThrow({ where: { id: projectId } });
@@ -59,7 +58,6 @@ export async function listClasses(userId: string) {
 
 async function requireTeacher(userId: string, classId: string) {
   const classroom = await prisma.classroom.findUnique({ where: { id: classId }, include: withCount });
-  // Like projects: a stranger cannot tell a missing class from someone else's.
   if (!classroom || classroom.teacherId !== userId) throw new AppError("Class not found", 404);
   return classroom;
 }
@@ -87,7 +85,6 @@ export async function getClass(userId: string, classId: string) {
         name: copy.owner.name,
         isGuest: copy.owner.isGuest,
         joinedAt: copy.createdAt.toISOString(),
-        // The copied files share the creation time; only a later change counts as an edit.
         lastEditAt: lastEdit && lastEdit.getTime() - copy.createdAt.getTime() > 1000 ? lastEdit.toISOString() : null,
         online: hub.presence(copy.id).some((person) => person.id === copy.owner.id),
       };
@@ -105,7 +102,6 @@ export async function regenerateClassLink(userId: string, classId: string) {
   return toClassDto(updated);
 }
 
-/** The students keep their copies; they only stop being part of a class. */
 export async function deleteClass(userId: string, classId: string) {
   await requireTeacher(userId, classId);
   await prisma.classroom.delete({ where: { id: classId } });
@@ -120,10 +116,6 @@ export async function previewClass(joinCode: string) {
   return { className: classroom.name, teacherName: classroom.teacher.name };
 }
 
-/**
- * Gives the student their own copy of the task: the student owns it, the teacher is an editor. Opening
- * the link again leads to the same copy.
- */
 export async function joinClass(userId: string, joinCode: string) {
   const classroom = await prisma.classroom.findUnique({ where: { joinCode } });
   if (!classroom) throw new AppError(BAD_LINK, 404);
@@ -159,7 +151,6 @@ export async function joinClass(userId: string, joinCode: string) {
   return { projectId: copy.id };
 }
 
-/** The teacher of a class stays in every student's copy, so they can always help. */
 export async function isClassTeacherOf(projectId: string, userId: string) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },

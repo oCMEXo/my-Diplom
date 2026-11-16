@@ -37,7 +37,6 @@ export interface ProjectOutletContext {
 
 const WIDE = "(min-width: 1280px)";
 const NAV_WIDE = "(min-width: 1024px)";
-/** Wide enough for the chat, the search and an editor between them. */
 const ROOM_FOR_BOTH = "(min-width: 1536px)";
 
 function BranchWatcher({ projectId }: { projectId: string }) {
@@ -107,7 +106,6 @@ export function ProjectPage() {
   const openFind = useCallback(() => {
     setFinding(true);
     setFindFocus((value) => value + 1);
-    // On narrower screens the chat is a drawer that would cover the search, or takes the editor's room.
     if (!window.matchMedia(ROOM_FOR_BOTH).matches) setPanelOpen(false);
   }, []);
 
@@ -125,22 +123,18 @@ export function ProjectPage() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      // Ctrl+P (or Ctrl+K) opens "go to file" instead of the browser's print dialog.
       if ((event.ctrlKey || event.metaKey) && !event.altKey && ["p", "k"].includes(event.key.toLowerCase())) {
         event.preventDefault();
         setSearching(true);
       }
-      // Ctrl+Shift+F searches inside the files, as in VS Code; the key code works in any keyboard layout.
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "KeyF") {
         event.preventDefault();
         openFind();
       }
-      // Ctrl+` opens and closes the terminal, as in VS Code.
       if (event.ctrlKey && event.code === "Backquote") {
         event.preventDefault();
         setTerminalOpen((open) => !open);
       }
-      // Escape closes a drawer that covers the page; a dialog on top closes first.
       if (event.key === "Escape" && !document.querySelector('[role="dialog"]')) {
         setNavOpen(false);
         closePanelIfDrawer();
@@ -150,7 +144,6 @@ export function ProjectPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [openFind, closePanelIfDrawer]);
 
-  // The mobile drawers should not stay open after moving to another page.
   useEffect(() => setNavOpen(false), [location.pathname]);
 
   const { data: project, error: projectError, refetch: refetchProject } = useQuery({
@@ -176,7 +169,6 @@ export function ProjectPage() {
 
   const loadError = projectError ?? filesError;
   if ((!project || !files) && loadError) {
-    // 400 is what the server says about an address that is not a project id at all.
     const missing = loadError instanceof ApiError && [400, 403, 404].includes(loadError.status);
     return (
       <ErrorScreen
@@ -200,7 +192,6 @@ export function ProjectPage() {
   if (!project || !files) return <FullScreenLoader label="Opening the project…" />;
 
   const canEdit = project.myRole === "owner" || project.myRole === "editor";
-  // The server gives the link only to those who may hand it out; a viewer gets none.
   const openInvite = project.inviteCode ? () => setInviteOpen(true) : undefined;
   const shell: ShellActions = {
     openNav: () => setNavOpen(true),
@@ -236,7 +227,6 @@ export function ProjectPage() {
         <div
           className={cn(
             "fixed inset-y-0 left-0 z-40 shrink-0 transition-transform duration-200 lg:visible lg:static lg:translate-x-0",
-            // Off-screen is not enough: its buttons would still catch the keyboard focus.
             navOpen ? "translate-x-0" : "invisible -translate-x-full",
           )}
         >
@@ -271,7 +261,6 @@ export function ProjectPage() {
                 focusSignal={findFocus}
                 onClose={() => setFinding(false)}
                 onOpen={(fileId, match) => {
-                  // On a phone the panel covers the editor, so it steps aside once a result is chosen.
                   if (!window.matchMedia(NAV_WIDE).matches) setFinding(false);
                   navigate(`/projects/${project.id}/files/${fileId}?line=${match.line}&col=${match.column}`);
                 }}

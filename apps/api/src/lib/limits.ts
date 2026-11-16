@@ -9,7 +9,6 @@ export async function checkProjectLimit(userId: string, max = env.MAX_PROJECTS_P
   }
 }
 
-/** How many more files the project can take (files in the trash count too: they can come back). */
 export async function filesRoomLeft(projectId: string, max = env.MAX_FILES_PER_PROJECT) {
   const count = await prisma.file.count({ where: { projectId } });
   return Math.max(0, max - count);
@@ -24,10 +23,6 @@ export async function checkFileLimit(projectId: string, max = env.MAX_FILES_PER_
 const WINDOW_MS = 60_000;
 const recentRuns = new Map<string, number[]>();
 
-/**
- * Counts runs and terminals per person over the last minute. Kept in memory: the API runs as one
- * instance, and a restart only forgets the last minute.
- */
 export function takeRunSlot(userId: string, max = env.RUNS_PER_MINUTE, now = Date.now()) {
   const times = (recentRuns.get(userId) ?? []).filter((time) => now - time < WINDOW_MS);
   if (times.length >= max) {

@@ -7,7 +7,6 @@ export interface Mail {
   text: string;
 }
 
-/** What the tests "sent", newest last. */
 export const testOutbox: Mail[] = [];
 
 let transport: Transporter | null | undefined;
@@ -21,7 +20,6 @@ export function mailConfigured() {
   return Boolean(env.SMTP_URL) || env.NODE_ENV !== "production";
 }
 
-/** Never throws: a failed email must not fail the request that caused it. */
 export async function sendMail(mail: Mail) {
   if (env.NODE_ENV === "test") {
     testOutbox.push(mail);

@@ -10,7 +10,6 @@ import { yjsStateToText } from "../../lib/yjs-text.js";
 import { takeRunSlot } from "../../lib/limits.js";
 import { recordUsage } from "../../lib/usage.js";
 
-/** The project's other text files for a run or a terminal: shallow files first when limits apply, no node_modules. */
 export async function projectTextFiles(projectId: string, branch: string, exceptId?: string) {
   const rows = await prisma.file.findMany({
     where: {
@@ -38,7 +37,6 @@ export async function projectTextFiles(projectId: string, branch: string, except
   return files;
 }
 
-/** With Redis down the queue waits forever, so give up after `ms`. */
 const ENQUEUE_TIMEOUT_MS = 5000;
 
 function failAfter(ms: number) {

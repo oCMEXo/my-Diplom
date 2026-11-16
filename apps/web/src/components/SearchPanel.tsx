@@ -19,7 +19,6 @@ const LEAD_CHARS = 18;
 
 function Preview({ match }: { match: SearchMatch }) {
   const end = match.previewOffset + match.length;
-  // The panel is narrow: keep only a little text before the match so the match itself stays visible.
   const start = match.previewOffset > LEAD_CHARS ? match.previewOffset - LEAD_CHARS + 1 : 0;
   return (
     <span className="truncate font-mono text-sm">
@@ -31,7 +30,6 @@ function Preview({ match }: { match: SearchMatch }) {
   );
 }
 
-/** Find in project (Ctrl+Shift+F). */
 export function SearchPanel({
   projectId,
   files,
@@ -41,7 +39,6 @@ export function SearchPanel({
 }: {
   projectId: string;
   files: FileRecord[];
-  /** Changes whenever the shortcut is pressed again, to put the cursor back into the field. */
   focusSignal: number;
   onOpen: (fileId: string, match: SearchMatch) => void;
   onClose: () => void;
@@ -57,7 +54,6 @@ export function SearchPanel({
     inputRef.current?.select();
   }, [focusSignal]);
 
-  // Debounced. Not cached: results would go stale after the next edit anyway.
   const term = query.trim();
   useEffect(() => {
     if (term.length < SEARCH_LIMITS.minQuery) {

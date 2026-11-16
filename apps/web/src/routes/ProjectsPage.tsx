@@ -17,7 +17,6 @@ import { VerifyEmailBanner } from "../components/VerifyEmailBanner";
 import { ClassesSection } from "../components/ClassesSection";
 
 function projectCode(value: string) {
-  // Accepts a full invite link or just the code.
   const match = value.trim().match(/\/join\/([^/?#\s]+)/);
   return match?.[1] ?? value.trim();
 }
@@ -26,7 +25,6 @@ export function ProjectsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  // Set when a project was taken away while open (removed, deleted); shown once, until dismissed.
   const [notice, setNotice] = useState<string | null>(
     () => (location.state as { notice?: string } | null)?.notice ?? null,
   );

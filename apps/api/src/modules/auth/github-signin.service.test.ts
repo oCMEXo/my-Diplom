@@ -19,7 +19,6 @@ beforeAll(() => {
   Object.assign(env, { GITHUB_CLIENT_ID: "test-client", GITHUB_CLIENT_SECRET: "test-secret" });
 });
 
-/** A stand-in for github.com and api.github.com. */
 function fakeGithub(user: { id: number; login: string; name: string | null }, mails: { email: string; primary: boolean; verified: boolean }[]) {
   const calls: string[] = [];
   const fetchImpl = (async (input: string | URL, init?: RequestInit) => {

@@ -12,7 +12,6 @@ import { listProjectBranches, switchBranch } from "./branches.service.js";
 
 type ResponseBody = ConstructorParameters<typeof Response>[0];
 
-/** A public repository with a few branches, as GitHub's API and codeload would serve it. */
 function fakeRepo(branches: Record<string, Record<string, string>>, defaultBranch = "main") {
   const downloads: string[] = [];
   const fetchImpl: typeof fetch = async (input) => {
@@ -32,7 +31,7 @@ function fakeRepo(branches: Record<string, Record<string, string>>, defaultBranc
     const files = branches[name];
     if (!files) return new Response(null, { status: 404 });
     const entries: Record<string, Uint8Array> = {};
-    for (const [path, content] of Object.entries(files)) entries[`demo-${name.replaceAll("/", "-")}/${path}`] = strToU8(content); // GitHub turns "/" into "-" here
+    for (const [path, content] of Object.entries(files)) entries[`demo-${name.replaceAll("/", "-")}/${path}`] = strToU8(content);
     return new Response(zipSync(entries) as ResponseBody, { status: 200 });
   };
   return { fetchImpl, downloads };
@@ -90,11 +89,9 @@ describe("branches", () => {
     expect(toDev).toEqual({ branch: "dev", imported: 3 });
     expect(await paths(owner.id, project.id)).toEqual(["README.md", "app.js", "feature.js"]);
 
-    // An edit made on dev…
     const devApp = await prisma.file.findFirstOrThrow({ where: { projectId: project.id, branch: "dev", path: "app.js" } });
     await prisma.file.update({ where: { id: devApp.id }, data: { yjsState: Buffer.from(textToYjsState("edited on dev")) } });
 
-    // …does not touch main, which comes back without downloading anything.
     const downloadsBefore = github.downloads.length;
     expect(await switchBranch(owner.id, project.id, "main", github.fetchImpl)).toEqual({ branch: "main", imported: 0 });
     expect(github.downloads.length).toBe(downloadsBefore);
@@ -102,7 +99,6 @@ describe("branches", () => {
     const mainApp = await prisma.file.findFirstOrThrow({ where: { projectId: project.id, branch: "main", path: "app.js" } });
     expect(yjsStateToText(mainApp.yjsState)).toBe("console.log('main')");
 
-    // Back on dev, the edit is still there.
     await switchBranch(owner.id, project.id, "dev", github.fetchImpl);
     const again = await prisma.file.findUniqueOrThrow({ where: { id: devApp.id } });
     expect(yjsStateToText(again.yjsState)).toBe("edited on dev");

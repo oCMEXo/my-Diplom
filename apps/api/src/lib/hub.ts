@@ -47,7 +47,6 @@ class Hub {
     }
   }
 
-  /** Closes a user's connections to the project (everyone's if userId is null). Returns the count. */
   disconnect(projectId: string, userId: string | null, code: number, reason: string) {
     const room = this.rooms.get(projectId);
     if (!room) return 0;
@@ -55,7 +54,6 @@ class Hub {
     let presenceChanged = false;
     for (const [socket, user] of room) {
       if (userId !== null && user?.id !== userId) continue;
-      // Remove first, so nothing is sent during the close handshake.
       room.delete(socket);
       socket.close?.(code, reason);
       closed += 1;
@@ -69,7 +67,6 @@ class Hub {
   presence(projectId: string): PresenceUser[] {
     const unique = new Map<string, PresenceUser>();
     for (const user of this.rooms.get(projectId)?.values() ?? []) {
-      // Prefer the tab that has a file open.
       if (user && (user.fileId || !unique.get(user.id)?.fileId)) unique.set(user.id, user);
     }
     return [...unique.values()].sort((a, b) => a.name.localeCompare(b.name));

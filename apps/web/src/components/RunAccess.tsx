@@ -54,7 +54,6 @@ export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; 
   );
 }
 
-/** Runs an action that needs the access code: asks for it once per browser, and again if the server rejects it. */
 export function useRunAccess() {
   const mode = useRunMode();
   const [pending, setPending] = useState<(() => void) | null>(null);
@@ -64,7 +63,6 @@ export function useRunAccess() {
     else action();
   };
 
-  /** Call with a failed request's error; true when it was the code that was refused (and we asked again). */
   const refused = (error: unknown, retry: () => void) => {
     if (mode !== "code" || !(error instanceof ApiError) || error.status !== 403 || !/access code/i.test(error.message)) return false;
     runCode.clear();

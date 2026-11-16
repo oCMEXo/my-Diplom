@@ -14,7 +14,6 @@ function toolchainReady() {
   }
 }
 
-// The image is built by the runner on its first start; without it these tests are skipped.
 const suite = toolchainReady() ? describe : describe.skip;
 
 async function run(language: RunnableLanguage, code: string, entry?: string) {

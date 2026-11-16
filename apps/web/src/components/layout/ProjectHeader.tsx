@@ -12,18 +12,14 @@ export interface ShellActions {
   openNav: () => void;
   togglePanel: () => void;
   panelOpen: boolean;
-  /** Undefined when this person may not hand out the invitation link. */
   openInvite?: () => void;
-  /** Opens the chat with this text added to the message being written. */
   shareInChat: (text: string) => void;
   unread: number;
-  /** The terminal's switch; undefined where there is no terminal or this person may not use it. */
   terminal?: { open: boolean; toggle: () => void };
 }
 
 export function SyncPill({ status }: { status: SyncStatus }) {
   const config = {
-    // All is well: a quiet icon. A problem: a word in colour, the full sentence in the tooltip.
     connected: { label: "Synced", short: "", tone: "inline-flex text-faint", icon: Cloud },
     connecting: { label: "Connecting…", short: "Connecting…", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: Cloud },
     offline: { label: "Offline: edits are saved on this device", short: "Offline", tone: "inline-flex bg-warn/12 px-2.5 py-1 text-warn", icon: CloudOff },
@@ -105,7 +101,6 @@ export function ProjectHeader({
       <IconButton label="Project menu" onClick={shell.openNav} className="lg:hidden">
         <Menu size={20} />
       </IconButton>
-      {/* The name must stay readable however many buttons the page puts on the right. */}
       <div className="flex min-w-[5rem] items-center gap-2.5">
         {icon}
         <h2 title={title} className="truncate text-base font-semibold">

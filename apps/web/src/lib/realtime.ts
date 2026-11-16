@@ -35,7 +35,6 @@ export function useProjectEvents(
     socket.send(JSON.stringify({ type: "presence.file", fileId: fileRef.current } satisfies PresenceFileMessage));
   }, []);
 
-  /** Tells the others which file this tab has open, now and after every reconnect. */
   const announceFile = useCallback(
     (fileId: string | null) => {
       fileRef.current = fileId;
@@ -72,14 +71,12 @@ export function useProjectEvents(
           const parsed = realtimeEventSchema.safeParse(JSON.parse(message.data));
           if (parsed.success) handlerRef.current(parsed.data);
         } catch {
-          // ignore malformed frames
         }
       };
       socket.onclose = async (event) => {
         if (disposed) return;
         setStatus("closed");
         if (event.code === CLOSE_FORBIDDEN) return;
-        // Removed from the project (or it is gone) while it was open: no point in reconnecting.
         if (event.code === CLOSE_ACCESS_REVOKED) {
           const reason = accessChangeReasonSchema.safeParse(event.reason);
           revokedRef.current?.(reason.success ? reason.data : "removed");

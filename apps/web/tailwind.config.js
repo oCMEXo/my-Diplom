@@ -26,7 +26,6 @@ export default {
         bad: token("bad"),
         warn: token("warn"),
       },
-      // Discord's proportions: 16 px for what is read, 14 for what goes with it, 12 for labels.
       fontSize: {
         base: ["1rem", "1.375rem"],
       },
@@ -73,7 +72,6 @@ export default {
     },
   },
   plugins: [
-    // For children of an element with `[container-type:inline-size]`: its width decides, not the window's.
     ({ addVariant }) => {
       addVariant("bar-md", "@container (min-width: 34rem)");
       addVariant("bar-lg", "@container (min-width: 44rem)");

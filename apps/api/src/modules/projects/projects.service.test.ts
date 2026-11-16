@@ -269,7 +269,6 @@ describe("projects.service", () => {
       subscriber.disconnect();
     });
 
-    /** Other test files publish too, so only this project's messages count. */
     async function changesFor(projectId: string, count: number) {
       const started = Date.now();
       for (;;) {
@@ -329,7 +328,6 @@ describe("projects.service", () => {
 
       await expect(removeMember(editor.id, p.id, owner.id)).rejects.toMatchObject({ statusCode: 403 });
       await expect(deleteProject(editor.id, p.id)).rejects.toMatchObject({ statusCode: 403 });
-      // Messages arrive in order, so once this one is here the refused ones would have been too.
       await updateMemberRole(owner.id, p.id, editor.id, "viewer");
 
       expect(await changesFor(p.id, 1)).toEqual([{ projectId: p.id, userId: editor.id, reason: "role" }]);
@@ -363,11 +361,9 @@ describe("projects.service", () => {
     const p = await project(owner.id);
     await joinViaInvite(member.id, p.inviteCode!);
 
-    // Demoted: they saw the link and must not come back as an editor under another account.
     await updateMemberRole(owner.id, p.id, member.id, "viewer");
     await expect(joinViaInvite(stranger.id, p.inviteCode!)).rejects.toMatchObject({ statusCode: 404 });
 
-    // Removed: the link they still have does not let them back in.
     const afterDemotion = (await getProject(owner.id, p.id)).inviteCode!;
     await updateMemberRole(owner.id, p.id, member.id, "editor");
     await removeMember(owner.id, p.id, member.id);

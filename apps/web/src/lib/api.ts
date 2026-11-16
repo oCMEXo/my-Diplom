@@ -5,7 +5,6 @@ import { tokenStore } from "./tokenStore";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/** A WebSocket connecting with a token this close to expiry may be refused, so it gets a new one first. */
 const EXPIRY_MARGIN_MS = 30_000;
 
 export class ApiError extends Error {
@@ -20,7 +19,6 @@ export class ApiError extends Error {
 let refreshPromise: Promise<void> | null = null;
 
 async function renewTokens(seenAccessToken: string): Promise<void> {
-  // While this tab was waiting for its turn, another one may have renewed the pair already.
   const auth = tokenStore.reload();
   if (!auth) throw new ApiError("Please sign in again", 401);
   if (auth.tokens.accessToken !== seenAccessToken) return;
@@ -32,7 +30,6 @@ async function renewTokens(seenAccessToken: string): Promise<void> {
   });
 
   if (response.status === 401) {
-    // Without Web Locks another tab can win the race, and its answer may still be on the way to storage.
     if (!navigator.locks) await new Promise((resolve) => setTimeout(resolve, 500));
     const latest = tokenStore.reload();
     if (latest && latest.tokens.refreshToken !== auth.tokens.refreshToken) return;
@@ -40,7 +37,6 @@ async function renewTokens(seenAccessToken: string): Promise<void> {
     throw new ApiError("Your session has expired. Please sign in again", 401);
   }
 
-  // A 429 or a 502 says nothing about the session, so it must not sign the person out.
   if (!response.ok) throw new ApiError("The server is not answering. Please try again a bit later", response.status);
 
   const data = await response.json();
@@ -52,7 +48,6 @@ async function renewOneTabAtATime(seenAccessToken: string): Promise<void> {
   await navigator.locks.request("collab.auth-refresh", () => renewTokens(seenAccessToken));
 }
 
-/** Renews the tokens once, however many requests and tabs need that at the same moment. */
 function refreshTokens(): Promise<void> {
   refreshPromise ??= renewOneTabAtATime(tokenStore.get()?.tokens.accessToken ?? "").finally(() => {
     refreshPromise = null;
@@ -60,11 +55,9 @@ function refreshTokens(): Promise<void> {
   return refreshPromise;
 }
 
-/** The access token for a new WebSocket connection, which, unlike a request, has no 401 to retry after. */
 export async function freshAccessToken(): Promise<string> {
   const token = tokenStore.get()?.tokens.accessToken;
   if (token && expiresWithin(token, EXPIRY_MARGIN_MS)) {
-    // No network: connecting fails anyway, and the next attempt comes back here.
     await refreshTokens().catch(() => undefined);
   }
   return tokenStore.get()?.tokens.accessToken ?? "";
@@ -79,7 +72,6 @@ async function send(path: string, options: RequestInit = {}, retry = true): Prom
   if (auth) {
     headers.set("Authorization", `Bearer ${auth.tokens.accessToken}`);
   }
-  // Only the site owner's access code lets code run on a public host; the server ignores it elsewhere.
   const code = currentRunCode();
   if (code) headers.set(RUN_CODE_HEADER, code);
 

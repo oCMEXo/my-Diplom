@@ -16,7 +16,6 @@ interface Entry {
   content: string;
 }
 
-/** A tiny in-memory GitHub: just the Git Data endpoints the push uses. */
 function fakeGithub(initial: Record<string, string>, options: { canPush?: boolean; defaultBranch?: string } = {}) {
   const defaultBranch = options.defaultBranch ?? "main";
   const trees = new Map<string, Entry[]>();
@@ -100,12 +99,10 @@ function fakeGithub(initial: Record<string, string>, options: { canPush?: boolea
     calls,
     branches,
     commits,
-    /** Content of a file on a branch, as GitHub would serve it. */
     read(branch: string, path: string) {
       const commit = commits.get(branches.get(branch)!)!;
       return trees.get(commit.tree)!.find((item) => item.path === path)?.content;
     },
-    /** Simulates someone else committing to the branch. */
     commitElsewhere(branch: string, path: string, content: string) {
       const commit = commits.get(branches.get(branch)!)!;
       const entries = trees.get(commit.tree)!.filter((item) => item.path !== path);
@@ -129,7 +126,6 @@ describe("pushToGithub", () => {
     return created;
   }
 
-  /** A project whose files were "imported" from the given repository contents. */
   async function linkedProject(ownerId: string, files: Record<string, string>, link = true) {
     const project = await createProject(ownerId, { name: "Push test project" });
     projectIds.push(project.id);

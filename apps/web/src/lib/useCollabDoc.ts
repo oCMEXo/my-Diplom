@@ -10,7 +10,6 @@ const COLLAB_URL = import.meta.env.VITE_COLLAB_URL;
 
 export type CollabStatus = "connecting" | "connected" | "offline";
 
-/** Connects one Yjs document (one file) to the sync server and keeps a local offline copy. */
 export function useCollabDoc(fileId: string) {
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
   const [status, setStatus] = useState<CollabStatus>("connecting");
@@ -22,7 +21,6 @@ export function useCollabDoc(fileId: string) {
     const next = new HocuspocusProvider({
       url: wsUrl(COLLAB_URL, window.location.origin),
       name: fileId,
-      // Asked for again on every reconnect: after a long time offline the old token has expired.
       token: freshAccessToken,
       onStatus: ({ status: value }) =>
         setStatus(value === "connected" ? "connected" : value === "connecting" ? "connecting" : "offline"),

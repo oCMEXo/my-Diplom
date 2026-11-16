@@ -16,7 +16,6 @@ export function classLink(joinCode: string) {
   return `${window.location.origin}/class/${joinCode}`;
 }
 
-/** The teacher's view of a class: the link for students and every student's copy, refreshed every few seconds. */
 export function ClassPage() {
   const { classId = "" } = useParams<{ classId: string }>();
   const navigate = useNavigate();
@@ -56,7 +55,6 @@ export function ClassPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // The link stays selectable in the field.
     }
   }
 

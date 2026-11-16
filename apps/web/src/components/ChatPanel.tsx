@@ -10,7 +10,6 @@ import { Spinner } from "./ui/Spinner";
 import { Avatar } from "./ui/Avatar";
 import { IconButton } from "./ui/Button";
 
-/** Text to add to the message being written; `key` tells two identical requests apart. */
 export interface ChatInsert {
   text: string;
   key: number;
@@ -98,7 +97,6 @@ export function ChatPanel({
     insertedKey.current = insert.key;
     setDraft((current) => `${current}${current && !/\s$/.test(current) ? " " : ""}${insert.text} `);
     onInsertDone();
-    // The panel has only just been shown: wait for it before moving the caret to the end of the text.
     requestAnimationFrame(() => {
       const el = composer.current;
       if (!el) return;

@@ -4,7 +4,6 @@ import { api, ApiError } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { Button } from "./ui/Button";
 
-/** A soft reminder: the account works without it, but a password reset needs a confirmed address. */
 export function VerifyEmailBanner() {
   const { user } = useAuth();
   const [state, setState] = useState<"idle" | "sending" | "sent" | string>("idle");

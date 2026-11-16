@@ -125,7 +125,6 @@ let terminal: http.Server;
     seen.url = undefined;
     const person = await get("/join/abc123", { headers: { "User-Agent": "Mozilla/5.0" } });
     expect(await person.text()).toContain("<title>app</title>");
-    // Only pages that have a preview go to the API: a robot asking for a file gets the file.
     const file = await get("/assets/app-abc123.js", robot);
     expect(await file.text()).toBe("console.log(1)");
     expect(seen.url).toBeUndefined();

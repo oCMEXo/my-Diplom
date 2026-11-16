@@ -75,7 +75,6 @@ export function ResetPasswordPage() {
     setLoading(true);
     try {
       await api.post("/auth/reset-password", { token, password });
-      // The old sessions are gone on the server; this browser signs in again with the new password.
       tokenStore.clear();
       navigate("/login?reset=1");
     } catch (err) {
@@ -123,7 +122,6 @@ export function VerifyEmailPage() {
   const started = useRef(false);
 
   useEffect(() => {
-    // The link works once, so React's double effect in development must not spend it twice.
     if (started.current) return;
     started.current = true;
     api

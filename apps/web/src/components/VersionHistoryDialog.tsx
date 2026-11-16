@@ -43,7 +43,6 @@ export function VersionHistoryDialog({
   const versions = useQuery({
     queryKey: ["versions", file.id],
     queryFn: () => api.get<FileVersion[]>(base),
-    // New versions appear while people edit, so the list is loaded again every time the dialog opens.
     refetchOnMount: "always",
   });
   const selected = versions.data?.find((version) => version.id === selectedId) ?? versions.data?.[0] ?? null;
@@ -52,12 +51,10 @@ export function VersionHistoryDialog({
     queryKey: ["version", selected?.id],
     queryFn: () => api.get<FileVersionContent>(`${base}/${selected!.id}`),
     enabled: !!selected,
-    // A version never changes; its text can be large, so it is not kept in the saved cache after closing.
     staleTime: Infinity,
     gcTime: 0,
   });
   const text = content.data?.id === selected?.id ? content.data?.content : undefined;
-  // Line breaks do not count: a restore gives the version the ones the file uses now.
   const same = text !== undefined && text.replace(/\r\n/g, "\n") === current.replace(/\r\n/g, "\n");
 
   return (

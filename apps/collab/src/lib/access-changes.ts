@@ -3,7 +3,6 @@ import { Redis } from "ioredis";
 import { ACCESS_CHANGES_CHANNEL, accessChangeSchema, type AccessChange } from "@collab/shared";
 import type { FileAccess } from "./access.js";
 
-// The provider reconnects after a reset (and gets the new role) but gives up after "forbidden".
 const RECONNECT = { code: 4205, reason: "Reset Connection" };
 const FORBIDDEN = { code: 4403, reason: "Forbidden" };
 
@@ -21,7 +20,6 @@ export function applyAccessChange(hocuspocus: Hocuspocus, change: AccessChange) 
   return closed;
 }
 
-/** Subscribes to access changes without blocking startup: documents work without Redis, and it subscribes once Redis is up. */
 export function startAccessChangeListener(
   redisUrl: string,
   hocuspocus: Hocuspocus,

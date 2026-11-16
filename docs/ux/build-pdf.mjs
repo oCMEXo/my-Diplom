@@ -1,7 +1,3 @@
-// Builds docs/ux/UX_Harminovich_Artsiom.pdf from docs/ux/ux-spec.html in Chrome.
-//   node docs/ux/build-pdf.mjs
-// The screenshots come from `UX_SCREENS=1 pnpm --filter @collab/e2e e2e -- ux-screens`, and the flow
-// diagrams from `DIAGRAMS_SRC=docs/ux/diagrams DIAGRAMS_OUT=docs/ux/img node docs/ba/build/render-diagrams.mjs`.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";

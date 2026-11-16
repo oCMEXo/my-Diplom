@@ -17,7 +17,6 @@ const DESCRIPTION: Record<FileType, string> = {
 export function EmptyProjectView() {
   const { project, files, canEdit, shell, createFile, importRepo } = useOutletContext<ProjectOutletContext>();
 
-  // A project that already has files opens on one of them rather than on an empty screen.
   const start = pickStartFile(project.id, files);
   if (start) return <Navigate to={`/projects/${project.id}/files/${start.id}`} replace />;
 

@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Runs on the VM as root, called by infra/gcp/deploy.mjs:
-#   remote-deploy.sh <source tar.gz> <web tar.gz> <site domain>
-# Unpacks the new release, makes the secrets on the first run, builds the images, migrates, starts.
 set -euo pipefail
 
 SRC_TAR=$1
@@ -24,7 +21,6 @@ CORS_ORIGIN=https://$DOMAIN
 RATE_LIMIT_PER_MINUTE=600
 RATE_LIMIT_AUTH_PER_MINUTE=20
 TRUST_PROXY=true
-# Running code and the terminal take this code: the site is public.
 RUN_ACCESS_CODE=$(openssl rand -hex 12)
 EOF
   echo "created $ENV_FILE with new secrets"

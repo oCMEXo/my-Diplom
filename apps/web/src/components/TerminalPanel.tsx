@@ -35,7 +35,6 @@ function savedHeight() {
   }
 }
 
-// Git Bash-like colours on a dark background, whatever the app's theme.
 const THEME = {
   background: "#1e1f22",
   foreground: "#dbdee1",
@@ -63,14 +62,12 @@ function HeaderButton({ label, ...rest }: ButtonHTMLAttributes<HTMLButtonElement
   );
 }
 
-/** Sandbox shell with the project files. One session per open panel. */
 export function TerminalPanel({ projectId, onClose }: { projectId: string; onClose: () => void }) {
   const mode = useRunMode();
   const host = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState(0);
   const [phase, setPhase] = useState<Phase>({ name: "connecting", message: "Starting the terminal…" });
   const [height, setHeight] = useState(savedHeight);
-  /** Sends keys to the shell from outside the terminal, for the Ctrl+C button. */
   const sendKeys = useRef<((data: string) => void) | null>(null);
   const termRef = useRef<Terminal | null>(null);
 
@@ -149,7 +146,6 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
       try {
         fit.fit();
       } catch {
-        // Hidden for a moment: nothing to measure.
       }
     });
     observer.observe(host.current);
@@ -181,7 +177,6 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
       try {
         localStorage.setItem(HEIGHT_KEY, String(latest));
       } catch {
-        // Not remembered: fine.
       }
     };
     window.addEventListener("pointermove", move);
@@ -203,7 +198,6 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
         </span>
         <span className="flex-1" />
         {phase.name === "ready" && (
-          // Ctrl+C for those without a Ctrl key, such as on a phone, and for those who do not know it.
           <button
             type="button"
             onClick={() => {

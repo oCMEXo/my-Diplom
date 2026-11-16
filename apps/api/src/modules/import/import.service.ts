@@ -9,7 +9,6 @@ import { extractRepoFiles } from "../../lib/repo-files.js";
 import { textToYjsState } from "../../lib/yjs-text.js";
 import { filesRoomLeft } from "../../lib/limits.js";
 
-/** The name of a public repository's default branch, or `null` when GitHub cannot be asked. */
 export async function defaultBranchName(repo: RepoRef, fetchImpl: typeof fetch = fetch): Promise<string | null> {
   try {
     const info = await new GithubApi("", fetchImpl).get<{ default_branch?: unknown }>(`/repos/${repo.owner}/${repo.repo}`);
@@ -82,11 +81,9 @@ export async function importFromGithub(
   let branch = project.githubBranch ?? "";
   const defaultBranch = project.githubOwner ? null : (repo.ref ?? (await defaultBranchName(repo, fetchImpl)));
 
-  // Download first, so a broken repo never becomes the project's link.
   const downloaded = await downloadRepoFiles(repo, fetchImpl);
 
   if (!project.githubOwner) {
-    // The first repo becomes the project's link; files created before join its default branch.
     const name = defaultBranch;
     branch = name ?? "";
     await prisma.$transaction([

@@ -75,7 +75,6 @@ describe("access changes from the API", () => {
     return u.id;
   }
 
-  /** A project of `ownerId` with two files; `editors` are added as editors. */
   async function project(ownerId: string, editors: string[] = []) {
     const p = await prisma.project.create({
       data: {
@@ -101,7 +100,6 @@ describe("access changes from the API", () => {
     return (document?.getConnections() ?? []).filter((c) => c.context.userId === userId);
   }
 
-  /** Opens a file the way the web app does (one socket per document) and waits until the server has it. */
   async function open(fileId: string, userId: string) {
     const socket = new HocuspocusProviderWebsocket({ url, WebSocketPolyfill: WebSocket });
     const provider = new HocuspocusProvider({
@@ -134,7 +132,6 @@ describe("access changes from the API", () => {
     expect(connectionsOf(other.files[0]!, member)).toHaveLength(1);
     expect(connectionsOf(p.files[0]!, owner)).toHaveLength(1);
 
-    // The removed member's editor does not come back.
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(connectionsOf(p.files[0]!, member)).toHaveLength(0);
   });
@@ -188,6 +185,6 @@ describe("access changes from the API", () => {
 
     socket.send(Buffer.alloc(WEBSOCKET_OPTIONS.maxPayload + 1));
 
-    expect(await closed).toBe(1009); // "message too big"
+    expect(await closed).toBe(1009);
   });
 });

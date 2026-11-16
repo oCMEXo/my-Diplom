@@ -5,13 +5,10 @@ import { requireProjectRole } from "../../lib/authorization.js";
 import { activeBranch } from "../../lib/branch.js";
 import { yjsStateToText } from "../../lib/yjs-text.js";
 
-/** The query is plain text: characters like "." or "(" mean themselves. */
 function plainTextPattern(query: string): RegExp {
-  // The regex engine's case folding keeps indexes in the original line, which lowercasing both sides would not.
   return new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "giu");
 }
 
-/** A long line (minified code) is cut to a window around the match so the result stays readable. */
 function previewOf(text: string, index: number, length: number): { preview: string; previewOffset: number } {
   const indent = text.length - text.trimStart().length;
   const line = text.trim();
@@ -43,7 +40,6 @@ function findMatches(text: string, pattern: RegExp, limit: number): { matches: S
   return { matches, more: false };
 }
 
-/** Case-insensitive plain-text search in the active branch. Files are stored as Yjs state, so each one is decoded. */
 export async function searchProject(userId: string, projectId: string, rawQuery: string): Promise<SearchResult> {
   await requireProjectRole(projectId, userId, "viewer");
   const query = rawQuery.trim();
@@ -68,8 +64,6 @@ export async function searchProject(userId: string, projectId: string, rawQuery:
   let left: number = SEARCH_LIMITS.totalMatches;
   for (const file of files) {
     if (left === 0) {
-      // Only report truncation if a skipped file really had something to show.
-      // `search` ignores the pattern's lastIndex, unlike `test` on a global regex.
       if (yjsStateToText(file.yjsState).search(pattern) !== -1) {
         result.truncated = true;
         break;

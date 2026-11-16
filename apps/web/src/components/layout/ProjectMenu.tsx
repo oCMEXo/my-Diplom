@@ -35,7 +35,6 @@ function Item({
   );
 }
 
-/** Project actions, opened from the project name (like a server name in Discord). */
 export function ProjectMenu({
   project,
   canEdit,
@@ -49,7 +48,6 @@ export function ProjectMenu({
   project: ProjectWithMembers;
   canEdit: boolean;
   canPush: boolean;
-  /** Undefined when this person may not hand out the invitation link. */
   onInvite?: () => void;
   onBranches: () => void;
   onImport: () => void;

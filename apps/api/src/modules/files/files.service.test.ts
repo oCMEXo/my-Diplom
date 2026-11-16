@@ -205,7 +205,6 @@ describe("files.service", () => {
     const now = new Date();
     const daysAgo = (days: number) => new Date(now.getTime() - days * DAY_MS);
 
-    /** A file deleted `days` ago (or a live one for `null`), as the hourly job would find it. */
     async function fileDeleted(projectId: string, ownerId: string, path: string, days: number | null) {
       const file = await createFile(ownerId, projectId, { path, type: "code" });
       if (days !== null) {

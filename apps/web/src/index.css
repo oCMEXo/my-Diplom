@@ -5,7 +5,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design tokens are space-separated RGB triplets so Tailwind can apply opacity to them. */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -69,7 +68,6 @@
     outline-offset: 2px;
   }
 
-  /* Thin scrollbars that follow the theme. */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--line)) transparent;
@@ -163,14 +161,12 @@
 .markdown-body th { background: rgb(var(--raised)); text-align: left; }
 .markdown-body input[type="checkbox"] { margin-right: 0.4em; accent-color: rgb(var(--accent)); }
 
-/* Dotted paper behind the design board. */
 .board-paper {
   background-color: #fbfbfd;
   background-image: radial-gradient(#d4d8e4 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
-/* There is no hover on a touch screen, so actions that appear on hover are always shown there. */
 @media (hover: none) {
   .touch-visible {
     opacity: 1 !important;

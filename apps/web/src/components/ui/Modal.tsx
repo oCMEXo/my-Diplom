@@ -8,7 +8,6 @@ const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:
 
 let openDialogs = 0;
 
-/** While a dialog is open, the page under it can be neither clicked nor reached with the keyboard. */
 function setPageInert(inert: boolean) {
   const page = document.getElementById("root");
   if (page) page.inert = inert;
@@ -27,7 +26,6 @@ export function Modal({
   onClose: () => void;
   children: ReactNode;
   width?: string;
-  /** A full-height panel at the right edge (its content can then fill the height), instead of a centred card. */
   side?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -37,12 +35,10 @@ export function Modal({
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const onKey = (event: KeyboardEvent) => {
-      // With a confirmation open over this dialog, the keys belong to the one on top.
       const dialogs = document.querySelectorAll('[role="dialog"]');
       if (dialogs[dialogs.length - 1] !== panel.current) return;
       if (event.key === "Escape") closeRef.current();
       if (event.key !== "Tab" || !panel.current) return;
-      // Tab goes round inside the dialog.
       const focusable = [...panel.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -56,7 +52,6 @@ export function Modal({
     document.addEventListener("keydown", onKey);
     openDialogs += 1;
     setPageInert(true);
-    // A dialog can name the field to start in; otherwise the first control gets the focus.
     (
       panel.current?.querySelector<HTMLElement>("[data-autofocus]") ??
       panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-close])")

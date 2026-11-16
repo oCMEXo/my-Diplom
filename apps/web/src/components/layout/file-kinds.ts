@@ -29,7 +29,6 @@ const TONES_BY_EXTENSION: Record<string, string> = {
   gitignore: "text-[#94a3b8]",
 };
 
-/** Icon colour of a file in the tree: by language for code, by kind for documents and boards. */
 export function fileTone(path: string, type: FileType): string {
   if (type !== "code") return FILE_KINDS[type].tone;
   const name = path.split("/").pop() ?? path;

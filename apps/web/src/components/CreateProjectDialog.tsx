@@ -10,7 +10,6 @@ import { Segmented } from "./ui/Segmented";
 
 type Source = "empty" | "example" | "github";
 
-/** "https://github.com/owner/repo/tree/dev" -> "repo"; falls back to the raw text. */
 export function projectNameFromRepoUrl(url: string) {
   const path = url.trim().replace(/[?#].*$/, "").replace(/^git@github\.com:/i, "").replace(/^https?:\/\//i, "");
   const segments = path.split("/").filter(Boolean);
@@ -69,7 +68,6 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
         )}
         {source !== "github" ? (
           <>
-            {/* Different keys make React create a new field on switching, so autoFocus moves the cursor there. */}
             <Field
               key={source}
               autoFocus

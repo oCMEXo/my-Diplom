@@ -2,7 +2,6 @@ import { Redis } from "ioredis";
 import { prisma } from "@collab/db";
 import { env } from "../env.js";
 
-// The first query of a fresh process also starts the database engine, which can take a few seconds.
 const CHECK_TIMEOUT_MS = 5000;
 
 let redis: Redis | null = null;
@@ -23,7 +22,6 @@ async function check(work: () => Promise<unknown>) {
   }
 }
 
-/** For an uptime monitor: the API answers only if it can also reach the database and Redis. */
 export async function readiness() {
   redis ??= new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 1, enableOfflineQueue: false });
   const [database, cache] = await Promise.all([

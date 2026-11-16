@@ -6,13 +6,11 @@ export type TreeNode =
 
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 
-/** Folders first, then files, each in natural order (file2 before file10). */
 function sortNodes(nodes: TreeNode[]) {
   nodes.sort((a, b) => (a.kind === b.kind ? collator.compare(a.name, b.name) : a.kind === "dir" ? -1 : 1));
   for (const node of nodes) if (node.kind === "dir") sortNodes(node.children);
 }
 
-/** Turns flat file paths ("scripts/deploy.js") into a nested folder tree. */
 export function buildFileTree(files: FileRecord[]): TreeNode[] {
   const root: TreeNode[] = [];
   for (const file of files) {
@@ -33,7 +31,6 @@ export function buildFileTree(files: FileRecord[]): TreeNode[] {
   return root;
 }
 
-/** Folder paths that contain the given file, outermost first: "a/b/c.js" -> ["a", "a/b"]. */
 export function ancestorDirs(path: string): string[] {
   const parts = path.split("/");
   return parts.slice(0, -1).map((_, index) => parts.slice(0, index + 1).join("/"));

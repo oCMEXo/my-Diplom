@@ -103,7 +103,6 @@ test("code run output is shared with everyone in the project", async ({ browser,
   const ownerPage = await openAs(browser, owner, path);
   const guestPage = await openAs(browser, visitor, path);
 
-  // Run output reaches others only over the live connection, so the guest must be connected before the run.
   await expect(guestPage.getByTitle("online")).toHaveCount(2);
   await typeInEditor(ownerPage, "print(6 * 7)");
   await ownerPage.getByRole("button", { name: "Run", exact: true }).click();
@@ -154,7 +153,6 @@ test("a text label can be put on the board with one click", async ({ browser, re
   const box = await page.locator("canvas").first().boundingBox();
   if (!box) throw new Error("board canvas is not visible");
   await page.mouse.click(box.x + 120, box.y + 120);
-  // The text field must keep the focus after the click, or the empty label disappears at once.
   await expect(boardArea.locator("textarea")).toBeFocused();
   await page.keyboard.type("Database");
   await page.keyboard.press("Enter");
@@ -167,7 +165,6 @@ test("a file can be created from the sidebar and the theme choice is remembered"
   const page = await openAs(browser, owner, `/projects/${project.id}`);
 
   await page.getByRole("button", { name: "Create a file" }).click();
-  // The name field takes the focus, so one can start typing straight away.
   await expect(page.getByLabel("File name")).toBeFocused();
   await page.getByRole("radio", { name: "Document" }).click();
   await page.getByLabel("File name").fill("notes.md");
@@ -220,7 +217,6 @@ test("a file can be deleted from the sidebar after confirmation", async ({ brows
   await page.getByRole("button", { name: "Move to trash" }).click();
   await expect(file).toHaveCount(0);
 
-  // The file is not gone: it waits in the trash and comes back with a click.
   await page.getByRole("button", { name: /Trash/ }).click();
   await page.getByRole("button", { name: "Restore extra.py" }).click();
   await expect(page.getByRole("link", { name: "extra.py" })).toBeVisible();
@@ -317,7 +313,6 @@ test("an invite link shows where it leads and lets a guest choose a name", async
 
   await expect(page).toHaveURL(/\/projects\//);
   await page.getByRole("tab", { name: /Members/ }).click();
-  // In the member list: the name is also on the user card at the bottom of the sidebar.
   await expect(page.getByRole("listitem").filter({ hasText: "you" })).toContainText("Vlad");
   await context.close();
 });
@@ -430,7 +425,6 @@ test("opened files become tabs that can be switched and closed", async ({ browse
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${first.id}`);
   const strip = page.getByRole("tablist", { name: "Open files" });
 
-  // One open file needs no tab strip.
   await expect(strip.getByRole("tab")).toHaveCount(0);
 
   await page.getByRole("link", { name: "two.md" }).click();
@@ -468,9 +462,7 @@ test("switching the repository branch changes the files for everyone in the proj
   await dialog.getByRole("button", { name: /^test-branch/ }).click();
   await expect(dialog).toBeHidden({ timeout: 30_000 });
 
-  // The other person did nothing: their sidebar follows the switch.
   await expect(friendPage.getByRole("link", { name: "test.md" })).toBeVisible();
-  // Both land on a file of the new branch, not on the old branch's README that no longer exists here.
   for (const page of [ownerPage, friendPage]) {
     await expect(page.getByRole("heading", { name: "README.md" })).toBeVisible();
     await expect(page.getByText("File not found")).toHaveCount(0);
@@ -500,8 +492,6 @@ test("an endless program is stopped with the Stop button, for everyone", async (
   await expect(stop).toBeVisible({ timeout: 30_000 });
   await stop.click();
   await expect(page.getByRole("status").filter({ hasText: "stopped" })).toBeVisible({ timeout: 15_000 });
-  // The runner's own clock, without the trip to the browser: a run the 10-second limit
-  // ended would have lasted 10 s or more.
   const duration = await page.getByRole("button", { name: /^Output · [\d.]+ s$/ }).textContent();
   expect(Number(duration?.match(/([\d.]+) s/)?.[1])).toBeLessThan(10);
   await expect(page.getByRole("button", { name: "Run", exact: true })).toBeVisible();
@@ -516,7 +506,6 @@ test("the terminal runs the project's files in a sandbox, like Git Bash", async 
   const file = await createFile(request, owner, project.id, "main.js");
   const page = await openAs(browser, owner, `/projects/${project.id}/files/${file.id}`);
   await typeInEditor(page, "console.log('answer', 6 * 7)");
-  // The sync server saves edits within three seconds; the terminal copies the saved files.
   await page.waitForTimeout(3500);
 
   await page.getByRole("button", { name: "Terminal" }).click();
@@ -530,7 +519,6 @@ test("the terminal runs the project's files in a sandbox, like Git Bash", async 
   await expect(screen).toContainText("answer 42", { timeout: 20_000 });
   await expect(screen).toContainText("main.js");
 
-  // An endless program stops with the button, as with Ctrl+C: a phone has no Ctrl key.
   await page.keyboard.type('node -e "while(true){}"');
   await page.keyboard.press("Enter");
   await page.waitForTimeout(1500);
@@ -539,7 +527,6 @@ test("the terminal runs the project's files in a sandbox, like Git Bash", async 
   await page.keyboard.press("Enter");
   await expect(screen).toContainText("42done", { timeout: 10_000 });
 
-  // Ctrl+` closes it, and the session ends with the panel.
   await page.keyboard.press("Control+Backquote");
   await expect(terminal).toBeHidden();
 });

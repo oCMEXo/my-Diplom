@@ -1,6 +1,5 @@
 const CODE_KEY = "collab.runCode";
 
-/** The access code this browser entered; kept so it is asked once, not before every run. */
 export const runCode = {
   get(): string | null {
     try {
@@ -13,7 +12,6 @@ export const runCode = {
     try {
       localStorage.setItem(CODE_KEY, code);
     } catch {
-      // Private mode: the code works until the page is reloaded.
       memory = code;
     }
   },
@@ -22,7 +20,6 @@ export const runCode = {
     try {
       localStorage.removeItem(CODE_KEY);
     } catch {
-      // Nothing stored.
     }
   },
 };

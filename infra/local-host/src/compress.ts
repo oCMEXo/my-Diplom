@@ -25,7 +25,6 @@ async function isFresh(copy: string, source: Date) {
   }
 }
 
-/** Precompresses the text files of the build (.br and .gz) so the host server can send them as they are. */
 export async function compressWebRoot(root: string) {
   for await (const file of filesIn(root)) {
     if (!COMPRESSIBLE.test(file)) continue;

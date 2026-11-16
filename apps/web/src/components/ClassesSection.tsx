@@ -4,7 +4,6 @@ import { GraduationCap } from "lucide-react";
 import type { Classroom } from "@collab/shared";
 import { api } from "../lib/api";
 
-/** The classes this person teaches; nothing at all for someone who teaches none. */
 export function ClassesSection() {
   const { data } = useQuery({ queryKey: ["classes"], queryFn: () => api.get<Classroom[]>("/classes") });
   if (!data || data.length === 0) return null;

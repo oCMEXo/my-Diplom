@@ -58,7 +58,6 @@ export async function listTrash(userId: string, projectId: string) {
   }));
 }
 
-/** Purges trash older than `days`, in batches to avoid huge IN lists and long locks. Returns the count. */
 export async function purgeExpiredTrash(now = new Date(), days = env.TRASH_RETENTION_DAYS, batchSize = 500) {
   const cutoff = new Date(now.getTime() - days * DAY_MS);
   let purged = 0;
@@ -135,7 +134,6 @@ export async function updateFile(
       where: { id: fileId },
       data: {
         ...(input.path !== undefined ? { path: input.path } : {}),
-        // A new extension means a new language, unless the caller names one explicitly.
         ...(input.language !== undefined
           ? { language: input.language }
           : input.path !== undefined && existing.type === "code"
@@ -153,7 +151,6 @@ export async function updateFile(
   }
 }
 
-/** Soft delete: the file goes to the trash. */
 export async function deleteFile(userId: string, projectId: string, fileId: string) {
   await requireProjectRole(projectId, userId, "editor");
   const file = await findOwnedFile(projectId, fileId);
@@ -182,7 +179,6 @@ export async function restoreFile(userId: string, projectId: string, fileId: str
   }
 }
 
-/** Permanent delete, owner only. */
 export async function purgeFile(userId: string, projectId: string, fileId: string) {
   await requireProjectRole(projectId, userId, "owner");
   await findTrashedFile(projectId, fileId);

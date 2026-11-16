@@ -5,7 +5,6 @@ import type { RunJob } from "@collab/shared";
 import { env } from "../env.js";
 import { AppError } from "./errors.js";
 
-/** Above this many waiting runs, new ones are rejected instead of queued. */
 export const MAX_WAITING_RUNS = 100;
 
 let connection: Redis | null = null;

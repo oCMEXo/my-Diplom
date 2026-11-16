@@ -1,8 +1,3 @@
-// The keystroke-level estimate behind the KPI-1 baseline (Appendix D of the BA block).
-//   node docs/ba/build/klm-estimate.mjs   prints the tables and totals that go into BA-back.md
-//
-// Operator times are from Card, Moran and Newell (1980): K for an average skilled typist.
-// Each step lists how many operators it takes; R is the assumed system response in seconds.
 const TIME = { M: 1.35, P: 1.1, K: 0.2, H: 0.4 };
 
 const SCENARIOS = {

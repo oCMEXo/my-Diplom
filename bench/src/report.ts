@@ -18,7 +18,6 @@ export interface BenchRun {
   growth: GrowthResult[];
 }
 
-/** Above this event-loop lag in the bot processes the load generator, not the server, is the bottleneck. */
 export const RIG_LAG_LIMIT_MS = 100;
 
 const COLORS = { yjs: "#2563eb", sharedb: "#dc2626" } as const;

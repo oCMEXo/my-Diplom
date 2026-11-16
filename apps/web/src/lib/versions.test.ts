@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatSize, versionAge } from "./versions";
 
-// Local time, like the browser: 5 October 2026, 15:30.
 const now = new Date(2026, 9, 5, 15, 30);
 const ago = (ms: number) => new Date(now.getTime() - ms).toISOString();
 const at = (...parts: [number, number, number, number, number]) => new Date(...parts).toISOString();

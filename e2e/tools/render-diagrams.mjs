@@ -1,5 +1,3 @@
-// Renders docs/thesis/diagrams/*.svg to PNG (2x) so they can be pasted into Word.
-//   pnpm --filter @collab/e2e exec node tools/render-diagrams.mjs
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "@playwright/test";

@@ -9,7 +9,6 @@ import { generateRefreshToken, hashRefreshToken } from "../../lib/refresh-token.
 type Kind = "verify" | "reset";
 
 const LIFETIME_MS: Record<Kind, number> = { verify: 3 * 24 * 60 * 60 * 1000, reset: 60 * 60 * 1000 };
-/** One email of a kind per person per minute, however often the button is pressed. */
 const RESEND_GAP_MS = 60 * 1000;
 
 const BAD_LINK = "This link is not valid or has expired. Ask for a new one.";
@@ -29,7 +28,6 @@ async function createToken(userId: string, kind: Kind) {
   return token;
 }
 
-/** Takes the token out of the database: a link works once. */
 async function useToken(token: string, kind: Kind) {
   const stored = await prisma.emailToken.findUnique({ where: { tokenHash: hashRefreshToken(token) } });
   if (!stored || stored.kind !== kind) throw new AppError(BAD_LINK, 400);
@@ -67,7 +65,6 @@ export async function verifyEmail(token: string) {
   return prisma.user.update({ where: { id: userId }, data: { emailVerifiedAt: new Date() } });
 }
 
-/** Answers the same whether the address is registered or not, so it cannot be used to find accounts. */
 export async function requestPasswordReset(email: string) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.isGuest) return;
@@ -87,7 +84,6 @@ export async function requestPasswordReset(email: string) {
   });
 }
 
-/** A new password signs the account out everywhere; opening the link also proves the address. */
 export async function resetPassword(input: ResetPasswordInput) {
   const userId = await useToken(input.token, "reset");
   const passwordHash = await hashPassword(input.password);

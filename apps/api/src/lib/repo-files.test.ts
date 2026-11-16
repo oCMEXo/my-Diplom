@@ -43,7 +43,6 @@ describe("extractRepoFiles", () => {
 
   it("records the git blob sha of the original bytes", () => {
     const { files } = extractRepoFiles(archive({ "hello.txt": "hello\n" }));
-    // Same value as: printf 'hello\n' | git hash-object --stdin
     expect(files[0]?.sha).toBe("ce013625030ba8dba906f756967f9e9ca394464a");
   });
 

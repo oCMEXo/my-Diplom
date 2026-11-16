@@ -27,7 +27,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const UUID_NAME = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** The offline copies of documents are databases named after the file. */
 async function deleteOfflineCopies() {
   const databases = (await indexedDB.databases?.()) ?? [];
   for (const { name } of databases) {
@@ -39,8 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const auth = useSyncExternalStore(tokenStore.subscribe, tokenStore.get);
   const queryClient = useQueryClient();
 
-  // Never leave one user's cached projects behind for the next person on this device,
-  // whichever way the session ended: this tab, another tab or an expired token.
   const userId = auth?.user.id;
   const previousUser = useRef(userId);
   useEffect(() => {
@@ -70,7 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updated = await api.patch<AuthUser>("/auth/me", { name });
     const current = tokenStore.get();
     if (current) tokenStore.set({ ...current, user: updated });
-    // Names are shown in lists the server answered earlier; fetch them again.
     queryClient.invalidateQueries();
   }
 

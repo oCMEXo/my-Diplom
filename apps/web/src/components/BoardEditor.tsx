@@ -173,7 +173,6 @@ export function BoardEditor({
     const base: BoardShape = { id, type: tool, x, y, w: 0, h: 0, x2: x, y2: y, fill: color, text: "" };
 
     if (tool === "text") {
-      // Otherwise the browser focuses the board and the new, still empty text field is removed.
       event.evt.preventDefault();
       addShape(board, { ...base, w: 220, h: TEXT_SIZE * 1.4 });
       setSelectedId(id);
@@ -226,11 +225,9 @@ export function BoardEditor({
     setTool("select");
   }
 
-  /** Keyboard drawing: adds the shape in the middle of the visible board. */
   function placeShape(type: ShapeType) {
     if (!board || !canEdit) return;
     const id = newShapeId();
-    // Shapes added one after another do not land exactly on top of each other.
     const offset = (shapes.length % 5) * 16;
     const cx = size.width / 2 + offset;
     const cy = size.height / 2 + offset;
@@ -279,7 +276,6 @@ export function BoardEditor({
       const [dx, dy] = move;
       update(current.id, { x: current.x + dx, y: current.y + dy, x2: current.x2 + dx, y2: current.y2 + dy });
     } else if ((event.key === "]" || event.key === "[") && shapes.length > 0) {
-      // Choosing a shape without a mouse: [ and ] go through them in the order they were drawn.
       event.preventDefault();
       const index = shapes.findIndex((shape) => shape.id === selectedId);
       const next = event.key === "]" ? (index + 1) % shapes.length : index <= 0 ? shapes.length - 1 : index - 1;
@@ -471,13 +467,11 @@ export function BoardEditor({
     >
       <div ref={containerRef} className="board-paper absolute inset-0 overflow-hidden">
         {canEdit && (
-          // Centred by the wrapper: a transform here would be overridden by the appearing animation.
           <div className="pointer-events-none absolute inset-x-2 bottom-5 z-10 flex justify-center">
             <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-surface/95 p-1.5 shadow-pop backdrop-blur [scrollbar-width:none] animate-pop">
               {TOOLS.map((item) => (
                 <button
                   key={item.id}
-                  // From the keyboard (detail is 0) a tool adds its shape right away.
                   onClick={(event) => (event.detail === 0 && item.id !== "select" ? placeShape(item.id) : setTool(item.id))}
                   aria-label={item.label}
                   aria-pressed={tool === item.id}
@@ -569,7 +563,6 @@ export function BoardEditor({
           onTouchMove={handleMouseMove}
           onTouchEnd={handleMouseUp}
           onMouseLeave={() => provider?.setAwarenessField("cursor", null)}
-          // A finger on the board draws; it must not scroll the page at the same time.
           style={{ cursor: tool === "select" ? "default" : "crosshair", touchAction: "none" }}
         >
           <Layer ref={shapesLayerRef}>{shapes.map(renderShape)}</Layer>

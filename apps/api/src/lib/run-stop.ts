@@ -5,7 +5,6 @@ import { AppError } from "./errors.js";
 
 let publisher: Redis | null = null;
 
-/** Broadcasts a stop request; only the runner that owns the run reacts. */
 export async function publishRunStop(stop: RunStop) {
   publisher ??= new Redis(env.REDIS_URL, { maxRetriesPerRequest: 1 });
   try {

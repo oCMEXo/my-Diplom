@@ -9,7 +9,6 @@ import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 
 const TOKEN_KEY = "collab.github-token";
-/** Collab saves edits to the DB within 3 s; wait a bit longer before reading them. */
 const SYNC_WAIT_MS = 3500;
 const LOOKUP_DELAY_MS = 600;
 
@@ -26,7 +25,6 @@ function storeToken(token: string | null) {
     if (token) window.localStorage.setItem(TOKEN_KEY, token);
     else window.localStorage.removeItem(TOKEN_KEY);
   } catch {
-    // storage may be blocked; the token then simply is not remembered
   }
 }
 
@@ -68,8 +66,6 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
   const tokenReady = token.trim().length >= 10;
   const repoReady = !!linked || repoUrl.trim().length > 3;
 
-  // Load the branches once token and repo are filled in. The token only goes in the request body,
-  // never into the persisted query cache.
   useEffect(() => {
     if (!tokenReady || !repoReady) {
       setLookup({ state: "idle" });
@@ -98,7 +94,6 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
 
   const branch = target === "new" ? newBranch.trim() : existingBranch;
 
-  // Preview the push for the selected branch.
   const lookupReady = lookup.state === "ready" && lookup.data.canPush;
   useEffect(() => {
     if (!lookupReady || !branch) {

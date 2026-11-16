@@ -22,9 +22,7 @@ test(`a project of ${FILES} files opens within ${LIMIT_MS} ms over 10 Mbit/s (NF
 
   const times: { tree: number; editor: number; bytes: number }[] = [];
   for (let run = 0; run < RUNS; run += 1) {
-    // A new context each time: an empty cache and no service worker, as on a first visit.
     const context = await browser.newContext(
-      // For comparison: the same visit from a browser that does not accept compressed files.
       process.env.LOAD_TIME_UNCOMPRESSED ? { extraHTTPHeaders: { "Accept-Encoding": "identity" } } : {},
     );
     await context.addInitScript((stored) => {

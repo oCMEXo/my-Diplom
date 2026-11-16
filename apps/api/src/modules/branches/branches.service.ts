@@ -16,7 +16,6 @@ async function linkedProject(projectId: string) {
   return { ...project, githubOwner: project.githubOwner, githubRepo: project.githubRepo };
 }
 
-/** Projects imported before branches existed keep their files under "". Name them after the default branch first. */
 async function nameCurrentBranch(project: Awaited<ReturnType<typeof linkedProject>>, fetchImpl: typeof fetch) {
   if (project.githubBranch) return project.githubBranch;
   const name = await defaultBranchName({ owner: project.githubOwner, repo: project.githubRepo, ref: null }, fetchImpl);
@@ -59,7 +58,6 @@ export async function listProjectBranches(
   };
 }
 
-/** Switches the active branch for the whole project. The first visit downloads it; later visits keep unpushed edits. */
 export async function switchBranch(
   userId: string,
   projectId: string,

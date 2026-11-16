@@ -5,12 +5,10 @@ import { purgeOldUsage } from "./usage.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 
-/** Purges expired trash, unused guest accounts and old usage events now and then every hour. Returns a stop function. */
 export function startCleanup(log: FastifyBaseLogger, intervalMs = HOUR_MS) {
   let running = false;
 
   const run = async () => {
-    // Don't let a slow pass overlap the next one.
     if (running) return;
     running = true;
     try {

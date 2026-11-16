@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Run on the EC2 host from the repository root: ./infra/deploy.sh
 set -euo pipefail
 
 COMPOSE="docker compose -f infra/docker-compose.yml --env-file infra/.env"

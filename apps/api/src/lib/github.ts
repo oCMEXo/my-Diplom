@@ -4,7 +4,6 @@ import { AppError } from "./errors.js";
 export interface RepoRef {
   owner: string;
   repo: string;
-  /** Branch or tag; `null` means the repository's default branch. */
   ref: string | null;
 }
 
@@ -12,7 +11,6 @@ const OWNER = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 const REPO = /^[A-Za-z0-9._-]{1,100}$/;
 const REF = /^[A-Za-z0-9._/-]{1,200}$/;
 
-/** Accepts https://github.com/o/r, .git, /tree/<branch>, github.com/o/r, git@github.com:o/r.git and o/r. */
 export function parseGithubUrl(input: string): RepoRef | null {
   let value = input.trim().replace(/[?#].*$/, "");
   const ssh = value.match(/^git@github\.com:(.+)$/i);
@@ -50,7 +48,6 @@ function tooBig() {
   );
 }
 
-/** Downloads the zip, following redirects only within GitHub. */
 export async function downloadRepoZip(
   repo: RepoRef,
   fetchImpl: typeof fetch = fetch,

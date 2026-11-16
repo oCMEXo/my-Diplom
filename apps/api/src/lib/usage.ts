@@ -1,11 +1,5 @@
 import { prisma } from "@collab/db";
 
-/**
- * Usage statistics, kept on this server only: no cookies, no third-party service, nothing in the
- * browser. An event holds its kind, the account and project ids and the time, and is deleted after
- * USAGE_RETENTION_DAYS. They answer three questions: do people start working together quickly, do
- * sessions with two or more people happen, and do people come back.
- */
 export type UsageKind = "active_day" | "project_created" | "shared_session" | "run_started" | "class_joined";
 
 export const USAGE_RETENTION_DAYS = 180;
@@ -13,7 +7,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 const pending = new Set<Promise<unknown>>();
 
-/** Never throws and never delays the request that caused it. */
 export function recordUsage(kind: UsageKind, ids: { userId?: string; projectId?: string } = {}) {
   const write = prisma.usageEvent
     .create({ data: { kind, userId: ids.userId ?? null, projectId: ids.projectId ?? null } })
@@ -22,7 +15,6 @@ export function recordUsage(kind: UsageKind, ids: { userId?: string; projectId?:
   pending.add(write);
 }
 
-/** Waits for the writes that are still on their way (tests, shutdown). */
 export async function usageWritten() {
   await Promise.all([...pending]);
 }
@@ -30,7 +22,6 @@ export async function usageWritten() {
 const activeToday = new Set<string>();
 let activeDay = "";
 
-/** One "active" event per person per day is enough to count daily and returning users. */
 export function recordActive(userId: string, now = new Date()) {
   const day = now.toISOString().slice(0, 10);
   if (day !== activeDay) {
@@ -44,7 +35,6 @@ export function recordActive(userId: string, now = new Date()) {
 
 const lastCount = new Map<string, number>();
 
-/** Called whenever the number of people connected to a project changes. */
 export function notePresence(projectId: string, people: number) {
   const before = lastCount.get(projectId) ?? 0;
   if (people === 0) lastCount.delete(projectId);
@@ -66,7 +56,6 @@ function median(values: number[]) {
   return sorted.length % 2 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
-/** The numbers for the last 7 days (and the 7 before, to see who came back). */
 export async function usageStats(now = new Date()) {
   const weekAgo = new Date(now.getTime() - 7 * DAY_MS);
   const twoWeeksAgo = new Date(now.getTime() - 14 * DAY_MS);
@@ -85,7 +74,6 @@ export async function usageStats(now = new Date()) {
   const lastWeek = await activeUsers(twoWeeksAgo, weekAgo);
   const count = (kind: UsageKind) => prisma.usageEvent.count({ where: { kind, createdAt: { gte: weekAgo, lt: now } } });
 
-  // Minutes from creating a project to the first moment two people were in it, for new projects.
   const projects = await prisma.project.findMany({
     where: { createdAt: { gte: monthAgo, lt: now } },
     select: { id: true, createdAt: true },

@@ -20,7 +20,6 @@ export interface TerminalSessionOptions {
   userName: string;
   cols: number;
   rows: number;
-  /** The container stops by itself after this long, even if nobody closes the session. */
   maxMs: number;
   onOutput: (data: string) => void;
   onExit: (message: string) => void;
@@ -29,19 +28,16 @@ export interface TerminalSessionOptions {
 export interface TerminalSession {
   write(data: string): void;
   resize(cols: number, rows: number): void;
-  /** Stop and start reading the program's output; a paused program soon blocks on writing. */
   pause(): void;
   resume(): void;
   close(message?: string): void;
 }
 
-/** Letters, digits and a few signs: the name only decorates the prompt. */
 export function promptName(name: string) {
   const clean = name.normalize("NFC").replace(/[^\p{L}\p{N}_.-]+/gu, "_").replace(/^_+|_+$/g, "");
   return clean.slice(0, 24) || "user";
 }
 
-/** The container settings: no network, a read-only system, small memory, and nothing to escalate. */
 export function terminalContainerConfig(
   name: string,
   userName: string,
@@ -51,7 +47,6 @@ export function terminalContainerConfig(
   return {
     name,
     Image: TERMINAL_IMAGE,
-    // The container only sleeps; shells are execs inside it.
     Cmd: ["sleep", String(Math.ceil(maxMs / 1000))],
     User: "65534:65534",
     WorkingDir: TERMINAL_WORKDIR,
@@ -87,7 +82,6 @@ async function waitForExec(exec: Docker.Exec, timeoutMs = 10_000) {
   }
 }
 
-/** Unpacks the project into the container's tmpfs via stdin. */
 async function copyFiles(container: Docker.Container, files: TarFile[]) {
   if (files.length === 0) return;
   const exec = await container.exec({
@@ -105,7 +99,6 @@ async function copyFiles(container: Docker.Container, files: TarFile[]) {
   if (code !== 0) throw new Error(`copying files failed (${code})`);
 }
 
-/** Starts a sandbox container with the project files and bash on a TTY, so colours, line editing and Ctrl+C work. */
 export async function openTerminalSession(
   docker: Docker,
   options: TerminalSessionOptions,
@@ -141,7 +134,6 @@ export async function openTerminalSession(
     shell = await exec.start({ hijack: true, stdin: true, Tty: true });
     await exec.resize({ w: options.cols, h: options.rows }).catch(() => undefined);
 
-    // A chunk can end in the middle of a multi-byte letter; the streaming decoder keeps the tail.
     const decoder = new TextDecoder();
     shell.on("data", (chunk: Buffer) => {
       const text = decoder.decode(chunk, { stream: true });

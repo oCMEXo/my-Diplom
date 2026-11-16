@@ -7,7 +7,6 @@ import { storeTerminalTicket } from "../../lib/terminal-tickets.js";
 import { projectTextFiles } from "../runs/runs.service.js";
 import { takeRunSlot } from "../../lib/limits.js";
 
-/** Leaves a one-time ticket with the current files of the active branch for the runner. */
 export async function openTerminal(
   userId: string,
   projectId: string,

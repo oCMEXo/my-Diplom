@@ -10,7 +10,6 @@ if (env.RUN_ENABLED) {
   app.addHook("onClose", stopRelay);
 }
 
-// Here and not in buildApp, so tests never delete anything behind their own backs.
 app.addHook("onClose", startCleanup(app.log));
 
 app

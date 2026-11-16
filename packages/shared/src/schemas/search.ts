@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-/** Caps for "find in project", so a common word in a big repository cannot produce a huge answer. */
 export const SEARCH_LIMITS = {
   minQuery: 2,
   maxQuery: 200,
@@ -15,11 +14,9 @@ export const searchQuerySchema = z.object({
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
 export const searchMatchSchema = z.object({
-  /** 1-based, as the editor counts lines and columns. */
   line: z.number().int(),
   column: z.number().int(),
   length: z.number().int(),
-  /** The line around the match, cut to a readable size; `previewOffset` is where the match starts in it (0-based). */
   preview: z.string(),
   previewOffset: z.number().int(),
 });
@@ -34,7 +31,6 @@ export type SearchFileResult = z.infer<typeof searchFileResultSchema>;
 
 export const searchResultSchema = z.object({
   files: z.array(searchFileResultSchema),
-  /** Some matches were left out because of the limits. */
   truncated: z.boolean(),
 });
 export type SearchResult = z.infer<typeof searchResultSchema>;

@@ -1,5 +1,3 @@
-// Draws the picture that messengers show next to a link to the site (apps/web/public/og.png, 1200 x 630).
-//   pnpm --filter @collab/e2e exec node tools/make-og-image.mjs
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "@playwright/test";

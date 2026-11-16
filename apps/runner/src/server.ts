@@ -24,7 +24,6 @@ const publisher = new Redis(env.REDIS_URL);
 
 const publish = (event: RunEvent) => publisher.publish(RUN_EVENTS_CHANNEL, JSON.stringify(event));
 
-// Runs executing here, so a stop request can find them.
 const active = new Map<string, { projectId: string; controller: AbortController }>();
 
 const worker = new Worker(
@@ -53,7 +52,6 @@ stops.on("message", (_channel, raw) => {
     const run = stop.success ? active.get(stop.data.runId) : undefined;
     if (run && stop.success && run.projectId === stop.data.projectId) run.controller.abort();
   } catch {
-    // a malformed message stops nothing
   }
 });
 
@@ -84,7 +82,6 @@ const terminals =
       })
     : null;
 
-// The API announces when access is taken away; a terminal already open must not outlive it.
 const accessChanges = new Redis(env.REDIS_URL);
 if (terminals) {
   void accessChanges.subscribe(ACCESS_CHANGES_CHANNEL);
@@ -93,14 +90,12 @@ if (terminals) {
       const change = accessChangeSchema.safeParse(JSON.parse(raw));
       if (change.success) terminals.closeFor(change.data.projectId, change.data.userId);
     } catch {
-      // a malformed message changes nothing
     }
   });
   terminals.listen(env.TERMINAL_PORT, env.TERMINAL_HOST, () => {
     console.log(`terminals on ws://${env.TERMINAL_HOST}:${env.TERMINAL_PORT}`);
   });
 }
-// The terminal image also runs C, C++ and Java programs, so it is built in advance either way.
 ensureTerminalImage(docker).catch((error) => console.error("toolchain image:", error.message));
 
 async function shutdown() {

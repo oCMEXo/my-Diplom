@@ -3,7 +3,6 @@ export interface StoredUser {
   email: string;
   name: string;
   isGuest: boolean;
-  /** Missing in sessions saved before email confirmation existed. */
   emailVerified?: boolean;
 }
 
@@ -44,7 +43,6 @@ function persist() {
   notify();
 }
 
-// Signing in or out in one tab, or renewing the tokens there, applies to the other tabs too.
 globalThis.addEventListener?.("storage", (event) => {
   const { key } = event as StorageEvent;
   if (key !== null && key !== STORAGE_KEY) return;
@@ -56,7 +54,6 @@ export const tokenStore = {
   get(): StoredAuth | null {
     return current;
   },
-  /** Reads the saved copy, which another tab may have renewed a moment ago. */
   reload(): StoredAuth | null {
     const stored = loadFromStorage();
     if (stored?.tokens.refreshToken !== current?.tokens.refreshToken) {

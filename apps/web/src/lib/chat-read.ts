@@ -6,7 +6,6 @@ export function markRead(projectId: string, at = new Date().toISOString()): stri
   try {
     localStorage.setItem(key(projectId), at);
   } catch {
-    // the mark then only lasts until the page is reloaded
   }
   return at;
 }
@@ -16,9 +15,7 @@ export function readMark(projectId: string): string {
     const stored = localStorage.getItem(key(projectId));
     if (stored) return stored;
   } catch {
-    // no storage: everything before now counts as read
   }
-  // First visit from this browser: the old conversation is not "new" to the person.
   return markRead(projectId);
 }
 

@@ -2,10 +2,6 @@ import { AppError } from "./errors.js";
 
 const API_BASE = "https://api.github.com";
 
-/**
- * Minimal GitHub REST client. The token is only sent to api.github.com, never stored or logged.
- * 401 is mapped to 400 so the web app doesn't take it for an expired session.
- */
 export class GithubApi {
   constructor(
     private readonly token: string,
@@ -16,7 +12,6 @@ export class GithubApi {
     return this.request<T>("GET", path);
   }
 
-  /** Like get(), but 404 returns null. */
   async getOrNull<T>(path: string): Promise<T | null> {
     try {
       return await this.request<T>("GET", path);

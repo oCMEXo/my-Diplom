@@ -6,11 +6,9 @@ const key = (projectId: string) => `collab.tabs.${projectId}`;
 export function addTab(tabs: string[], id: string): string[] {
   if (tabs.includes(id)) return tabs;
   const next = [...tabs, id];
-  // Beyond the limit the oldest tab that is not the new one goes.
   return next.length > MAX_TABS ? next.slice(next.length - MAX_TABS) : next;
 }
 
-/** Closing a tab returns the remaining tabs and the one to show next (its right neighbour, else the left). */
 export function closeTab(tabs: string[], id: string): { tabs: string[]; next: string | null } {
   const index = tabs.indexOf(id);
   if (index === -1) return { tabs, next: null };
@@ -32,7 +30,6 @@ function load(projectId: string): string[] {
   }
 }
 
-/** The files a person has open in this project, remembered per browser. */
 export function useOpenTabs(projectId: string, existingIds: string[], activeId: string | undefined) {
   const [tabs, setTabs] = useState<string[]>(() => load(projectId));
   const idsKey = existingIds.join(",");
@@ -52,7 +49,6 @@ export function useOpenTabs(projectId: string, existingIds: string[], activeId: 
     try {
       window.localStorage.setItem(key(projectId), JSON.stringify(tabs));
     } catch {
-      // storage may be blocked; tabs then only last for this visit
     }
   }, [projectId, tabs]);
 

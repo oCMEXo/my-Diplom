@@ -1,4 +1,3 @@
-/** Hands a file made in the browser over to the person's downloads. */
 export function saveBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

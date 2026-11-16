@@ -4,7 +4,6 @@ import { Eye } from "lucide-react";
 import { useFollowing, useOnlineUsers, useRealtimeStatus } from "../lib/RealtimeContext";
 import { Button } from "./ui/Button";
 
-/** While following somebody, goes to the files they open and says how to stop. */
 export function FollowBar({ projectId }: { projectId: string }) {
   const { following, follow } = useFollowing();
   const online = useOnlineUsers();
@@ -19,15 +18,12 @@ export function FollowBar({ projectId }: { projectId: string }) {
     if (!following) return;
     lastVisited.current = theirFile;
     if (theirFile && theirFile !== currentFile) navigate(`/projects/${projectId}/files/${theirFile}`);
-    // Only their moves lead here: when this person moves, the effect below ends the following instead.
   }, [following, theirFile, projectId, navigate]);
 
-  // Opening another file by hand means this person wants to look at something else.
   useEffect(() => {
     if (following && lastVisited.current && currentFile && currentFile !== lastVisited.current) follow(null);
   }, [currentFile]);
 
-  // They left the project. During a reconnect the list is simply out of date.
   useEffect(() => {
     if (following && status === "open" && !person) follow(null);
   }, [following, status, person, follow]);

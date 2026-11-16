@@ -1,7 +1,5 @@
 name: Deploy
 
-# Manual: builds the web app into S3/CloudFront and redeploys the services on
-# the EC2 host (ADR-004). Needs the repository secrets listed in docs/deploy-aws.md.
 on:
   workflow_dispatch:
 

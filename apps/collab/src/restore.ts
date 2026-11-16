@@ -9,13 +9,11 @@ const RESTORE_URL = /^\/files\/([0-9a-f-]{36})\/versions\/([0-9a-f-]{36})\/resto
 const isHighSurrogate = (code: number) => code >= 0xd800 && code <= 0xdbff;
 const isLowSurrogate = (code: number) => code >= 0xdc00 && code <= 0xdfff;
 
-/** Replaces only the part that differs, so cursors outside it don't move. */
 export function replaceText(text: YText, next: string) {
   const current = text.toString();
   const max = Math.min(current.length, next.length);
   let start = 0;
   while (start < max && current[start] === next[start]) start++;
-  // Never split an emoji (a surrogate pair) between the kept and the replaced part.
   if (start > 0 && isHighSurrogate(current.charCodeAt(start - 1))) start--;
   let end = 0;
   while (end < max - start && current[current.length - 1 - end] === next[next.length - 1 - end]) end++;
@@ -26,14 +24,12 @@ export function replaceText(text: YText, next: string) {
   if (next.length - start - end > 0) text.insert(start, next.slice(start, next.length - end));
 }
 
-/** Uses the line breaks of `current`. Monaco normalizes them, so other line breaks would make the texts drift. */
 export function withLineBreaksOf(text: string, current: string) {
   if (!current.includes("\n")) return text;
   const lf = text.replace(/\r\n/g, "\n");
   return current.includes("\r\n") ? lf.replace(/\n/g, "\r\n") : lf;
 }
 
-/** Applies a version as a normal edit in the live document, so connected clients get it like any other change. */
 export async function restoreVersion(instance: Hocuspocus, fileId: string, versionId: string, userId: string) {
   const version = await prisma.fileVersion.findFirst({ where: { id: versionId, fileId }, select: { content: true } });
   if (!version) throw new AccessError("Version not found", 404);
@@ -44,23 +40,19 @@ export async function restoreVersion(instance: Hocuspocus, fileId: string, versi
       const document = connection.document!;
       let before = "";
       let after = "";
-      // One transaction, so everybody gets a single update and the text kept below is exactly what was replaced.
       document.transact(() => {
         const text = document.getText("monaco");
         before = text.toString();
         after = withLineBreaksOf(version.content, before);
         replaceText(text, after);
       });
-      // The replaced text becomes a version too, so a restore can be undone the same way.
       if (before !== after) await keepReplacedText(fileId, before, userId);
     } finally {
-      // Stores the document right away and unloads it if nobody has it open.
       await connection.disconnect();
     }
   });
 }
 
-/** POST /files/:fileId/versions/:versionId/restore, called by the API with the user's access token. */
 export const restoreExtension: Extension = {
   async onRequest({ request, response, instance }) {
     const path = new URL(request.url ?? "/", "http://collab").pathname;
@@ -69,7 +61,6 @@ export const restoreExtension: Extension = {
     const [, fileId, versionId] = match;
 
     try {
-      // Check the role again: this endpoint is reachable from outside.
       const token = /^Bearer (.+)$/.exec(request.headers.authorization ?? "")?.[1] ?? "";
       const access = await resolveFileAccess(token, fileId);
       if (access.role === "viewer") throw new AccessError("Viewers cannot restore versions", 403);
@@ -82,7 +73,6 @@ export const restoreExtension: Extension = {
         .writeHead(status, { "Content-Type": "application/json" })
         .end(JSON.stringify({ message: err instanceof AccessError ? err.message : "Restore failed" }));
     }
-    // An empty rejection tells Hocuspocus the request is answered, so it does not reply "OK" on top.
     return Promise.reject();
   },
 };

@@ -28,7 +28,6 @@ export function SidePanel({
   onTabChange: (tab: PanelTab) => void;
   onChatInsertDone: () => void;
   onFileLink: () => void;
-  /** Undefined when this person may not hand out the invitation link. */
   onInvite?: () => void;
   onClose: () => void;
 }) {

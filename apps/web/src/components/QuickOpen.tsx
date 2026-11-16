@@ -8,7 +8,6 @@ import { FILE_KINDS, fileTone } from "./layout/file-kinds";
 
 const MAX_RESULTS = 12;
 
-/** Go to file (Ctrl+P). */
 export function QuickOpen({
   files,
   onOpen,

@@ -9,7 +9,6 @@ function octal(value: number, length: number) {
   return value.toString(8).padStart(length - 1, "0") + "\0";
 }
 
-/** Paths that cannot escape the working directory and fit a ustar header (name 100 + prefix 155 bytes). */
 export function safeTarPath(path: string): string | null {
   if (!path || path.startsWith("/") || path.includes("\\") || path.includes("\0")) return null;
   const parts = path.split("/");
@@ -47,7 +46,6 @@ function header(path: string, size: number): Buffer {
   return block;
 }
 
-/** Packs text files into an in-memory ustar archive. Unsafe paths are skipped. */
 export function buildTar(files: TarFile[]): Buffer {
   const chunks: Buffer[] = [];
   const seen = new Set<string>();

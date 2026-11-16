@@ -53,7 +53,6 @@ export function MembersPanel({
   const sorted = [...members].sort(
     (a, b) => Number(onlineById.has(b.userId)) - Number(onlineById.has(a.userId)) || a.name.localeCompare(b.name),
   );
-  // Guests who came through an invite link are in the project's presence list too.
   const memberIds = new Set(members.map((member) => member.userId));
   const visitors = online.filter((person) => !memberIds.has(person.id));
 

@@ -9,7 +9,6 @@ import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Spinner } from "./ui/Spinner";
 
-/** Refetches everything that depends on the branch. Resolves once the new file list is loaded. */
 export async function refreshProjectFiles(queryClient: ReturnType<typeof useQueryClient>, projectId: string) {
   await Promise.all(
     ["project", "files", "trash", "branches"].map((key) => queryClient.invalidateQueries({ queryKey: [key, projectId] })),

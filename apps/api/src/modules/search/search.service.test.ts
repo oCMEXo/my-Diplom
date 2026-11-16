@@ -26,7 +26,6 @@ describe("search", () => {
     return created;
   }
 
-  /** Files are written straight to the database, the way the sync server stores an edited document. */
   async function file(
     projectId: string,
     path: string,
@@ -74,7 +73,6 @@ describe("search", () => {
 
     expect((await searchProject(owner.id, p.id, "hello")).files[0]!.matches.map((m) => m.line)).toEqual([1, 2]);
     expect((await searchProject(owner.id, p.id, "  école ")).files[0]!.matches).toMatchObject([{ line: 3, column: 8 }]);
-    // "." and "(" are not regex syntax here.
     expect(paths(await searchProject(owner.id, p.id, "hell."))).toEqual([]);
     expect((await searchProject(owner.id, p.id, "o()")).files[0]!.matches).toMatchObject([{ line: 2, column: 5 }]);
   });
@@ -124,7 +122,6 @@ describe("search", () => {
     expect(total.files.reduce((sum, f) => sum + f.matches.length, 0)).toBe(SEARCH_LIMITS.totalMatches);
     expect(total.truncated).toBe(true);
 
-    // Exactly at the limit nothing is missing.
     const exact = await project(owner.id);
     await file(exact.id, "one.txt", "hit\n".repeat(SEARCH_LIMITS.matchesPerFile));
     await file(exact.id, "two.txt", "nothing");

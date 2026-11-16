@@ -2,8 +2,6 @@ import path from "node:path";
 import { test, expect, type Page } from "@playwright/test";
 import { API, createFile, createProject, guest, join, openAs, register, typeInEditor } from "./helpers.js";
 
-// Produces the interface screenshots used in the thesis:
-//   SCREENSHOTS=1 pnpm --filter @collab/e2e e2e -- screenshots
 test.skip(process.env.SCREENSHOTS !== "1", "documentation screenshots are generated on demand");
 
 const OUT = path.resolve(import.meta.dirname, "../../docs/thesis/screenshots");
@@ -54,7 +52,6 @@ test("interface screenshots", async ({ browser, request }) => {
   const ownerPage = await open(owner, codePath);
   const guestPage = await open(visitor, codePath);
   await expect(ownerPage.getByText("Synced")).toBeVisible();
-  // Pasted, not typed: the editor's auto-indent would add to the indents in the text.
   await ownerPage.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await ownerPage.evaluate(
     (text) => navigator.clipboard.writeText(text),
@@ -89,7 +86,6 @@ test("interface screenshots", async ({ browser, request }) => {
   if (!box) throw new Error("board canvas is not visible");
   const draw = async (tool: string, from: [number, number], to: [number, number], swatch?: string) => {
     if (swatch) {
-      // Picking a color recolors the selected shape, so deselect before choosing the next one.
       await boardPage.getByRole("button", { name: "Select" }).click();
       await boardPage.mouse.click(box.x + 40, box.y + 600);
       await boardPage.getByRole("button", { name: swatch }).click();

@@ -1,6 +1,5 @@
 **/node_modules
 **/dist
-# Hidden files and folders at the top level: Git, CI and local tool settings
 .*
 **/.env
 bench/results

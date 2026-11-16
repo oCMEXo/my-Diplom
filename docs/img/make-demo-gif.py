@@ -1,9 +1,3 @@
-"""Builds docs/img/demo.gif for the README from the interface screenshots.
-
-    python docs/img/make-demo-gif.py        (needs Pillow: pip install pillow)
-
-The screenshots come from `SCREENSHOTS=1 pnpm --filter @collab/e2e e2e -- screenshots`.
-"""
 from pathlib import Path
 
 from PIL import Image
@@ -18,7 +12,6 @@ frames = []
 for name in FRAMES:
     shot = Image.open(SHOTS / f"{name}.png").convert("RGB")
     shot = shot.resize((WIDTH, round(shot.height * WIDTH / shot.width)), Image.LANCZOS)
-    # One palette per frame keeps the dark interface clean; dithering would add noise and size.
     frames.append(shot.quantize(colors=128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE))
 
 out = HERE / "demo.gif"

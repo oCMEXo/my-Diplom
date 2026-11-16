@@ -3,12 +3,10 @@ import { defineConfig } from "@playwright/test";
 const API_PORT = 3101;
 const COLLAB_PORT = 1334;
 const WEB_PORT = 5199;
-// The runner's terminal server: start the runner with TERMINAL_PORT=3103 for the terminal scenario.
 const TERMINAL_PORT = 3103;
 
 const database =
   process.env.DATABASE_URL ?? "postgresql://collab:collab@localhost:5433/collab_test?schema=public";
-// Database 1, so a runner started for development (database 0) never picks up the tests' jobs.
 const redis = process.env.REDIS_URL ?? "redis://localhost:6380/1";
 const secrets = {
   JWT_ACCESS_SECRET: "e2e-access-secret-0123456789",
@@ -21,12 +19,10 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  // In CI a failed scenario also becomes a note on the run, visible without opening the log.
   reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     colorScheme: "dark",
-    // Locally the installed Chrome is used so no browser download is needed; CI installs Chromium.
     channel: process.env.CI ? undefined : "chrome",
     trace: "retain-on-failure",
   },

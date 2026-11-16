@@ -24,7 +24,6 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
     if (run?.status === "running") setOpen(true);
   }, [run?.runId, run?.status]);
 
-  // Follow new output while running. After a failure show the top, where the error message is.
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
@@ -43,7 +42,6 @@ export function RunPanel({ run }: { run: RunState | undefined }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // clipboard may be unavailable; the output stays selectable
     }
   }
 

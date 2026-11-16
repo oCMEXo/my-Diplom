@@ -50,7 +50,6 @@ export function FileEditorPage() {
     setHistoryOpen(false);
   }, [fileId]);
 
-  // A search result links here with ?line=…; the location key changes even when the same result is clicked twice.
   useEffect(() => {
     if (!activeController || !revealLine) return;
     return activeController.revealLine(revealLine, revealColumn);
@@ -202,7 +201,6 @@ export function FileEditorPage() {
         onClick={() => shareLine(activeController?.getCursorLine() ?? 1)}
         title="Mention this line in the chat (Alt+L)"
         aria-label="Mention this line in the chat"
-        // On the narrowest phones the header has no room; Alt+L and the editor's menu still do it.
         className="hidden bar-md:inline-flex"
       >
         <MessageSquarePlus size={16} />
@@ -218,7 +216,6 @@ export function FileEditorPage() {
             </span>
           )}
           {access.dialog}
-          {/* While the program runs, the same place stops it: an endless loop need not wait for the time limit. */}
           {running ? (
             <Button size="sm" onClick={() => access.ensure(() => void stopRun())} aria-label="Stop" title="Stop the program">
               <Square size={14} className="fill-current text-bad" />

@@ -3,7 +3,6 @@ import type { Awareness } from "y-protocols/awareness";
 const SAFE_COLOR = /^#[0-9a-f]{6}$/i;
 const FALLBACK_COLOR = "#64748b";
 
-/** Awareness comes from other clients, so everything is sanitized before it reaches CSS. */
 function safeColor(value: unknown): string {
   return typeof value === "string" && SAFE_COLOR.test(value) ? value : FALLBACK_COLOR;
 }
@@ -31,7 +30,6 @@ export function remoteCursorCss(awareness: Awareness): string {
   return rules.join("\n");
 }
 
-/** Keeps one <style> element in sync with the participants' cursors. Returns a cleanup function. */
 export function installRemoteCursorStyles(awareness: Awareness): () => void {
   const element = document.createElement("style");
   document.head.appendChild(element);

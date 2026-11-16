@@ -89,7 +89,6 @@ export function ProjectNav({
   canEdit: boolean;
   onCreateFile: (type: FileType) => void;
   onCreateProject: () => void;
-  /** Undefined when this person may not hand out the invitation link. */
   onInvite?: () => void;
   onImport: () => void;
   onPush: () => void;
@@ -159,7 +158,6 @@ export function ProjectNav({
   );
 }
 
-/** User card at the bottom of the sidebar. */
 function UserPanel() {
   const { user } = useAuth();
   const status = useRealtimeStatus();

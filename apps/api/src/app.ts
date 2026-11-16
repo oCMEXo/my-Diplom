@@ -41,7 +41,6 @@ import { closeHealthChecks, readiness } from "./lib/health.js";
 import { clientErrorsRoutes } from "./modules/client-errors/client-errors.routes.js";
 
 export interface AppOptions {
-  /** Requests per minute per address (0 = unlimited) and the stricter limit for the auth endpoints. */
   rateLimit?: { perMinute: number; authPerMinute: number };
   trustProxy?: boolean;
   runEnabled?: boolean;
@@ -49,7 +48,6 @@ export interface AppOptions {
   pathPrefix?: string;
 }
 
-/** Endpoints that cost a password hash or create an account: the ones worth limiting harder. */
 const AUTH_LIMITED_URLS = new Set([
   "/auth/register",
   "/auth/login",
@@ -62,7 +60,6 @@ const AUTH_LIMITED_URLS = new Set([
   "/auth/verify-email",
   "/auth/resend-verification",
   "/auth/github/exchange",
-  // Reveals whether an email is registered, so it is limited like login.
   "/projects/:projectId/members",
   "/run-access",
   "/client-errors",
@@ -106,7 +103,6 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(cors, { origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true });
   if (limits.perMinute > 0) {
     const authMax = limits.authPerMinute > 0 ? limits.authPerMinute : limits.perMinute;
-    // Must run before the routes are added, so per-route limits are picked up.
     app.addHook("onRoute", (route) => {
       if (AUTH_LIMITED_URLS.has(route.url) && route.method === "POST") {
         route.config = { ...route.config, rateLimit: { max: authMax, timeWindow: "1 minute" } };
@@ -148,7 +144,6 @@ export async function buildApp(options: AppOptions = {}) {
     { schema: { tags: ["runs"], response: { 200: featuresSchema } } },
     async () => ({ run: runMode(runEnabled, runAccessCode), passwordReset: mailConfigured(), githubSignIn: githubSignInEnabled() }),
   );
-  // Limited like login, so the code can't be brute-forced.
   app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema } }, async (request, reply) => {
     if (!runEnabled) throw new AppError("Running code is turned off on this server", 403);
     if (runAccessCode && !codeMatches(runAccessCode, request.body.code)) throw new AppError("Wrong access code", 403);
@@ -167,7 +162,6 @@ export async function buildApp(options: AppOptions = {}) {
     await app.register(runsRoutes, { prefix: "/projects", accessCode: runAccessCode });
     await app.register(terminalRoutes, { prefix: "/projects", accessCode: runAccessCode });
   } else {
-    // Running is off here: fail fast instead of queueing a job nobody will take.
     for (const url of ["/projects/:projectId/files/:fileId/run", "/projects/:projectId/terminal"]) {
       app.post(url, { preHandler: [app.authenticate] }, async () => {
         throw new AppError("Running code is turned off on this server", 403);

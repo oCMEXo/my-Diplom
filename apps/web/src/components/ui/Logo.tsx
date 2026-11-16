@@ -1,8 +1,6 @@
 import { useId } from "react";
 
 export function LogoMark({ size = 32 }: { size?: number }) {
-  // Each mark needs its own gradient id: with a shared one, a mark hidden on small screens takes
-  // the gradient with it and the visible marks lose their background.
   const gradient = `logo-g-${useId().replace(/:/g, "")}`;
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">

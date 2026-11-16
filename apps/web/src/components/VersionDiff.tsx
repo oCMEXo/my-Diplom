@@ -4,7 +4,6 @@ import * as monaco from "monaco-editor";
 import { MONACO_THEME } from "../lib/monaco-setup";
 import { useTheme } from "../lib/theme";
 
-/** Read-only diff built on Monaco directly: the React DiffEditor disposes the models before the editor, and Monaco throws. */
 export function VersionDiff({ original, modified, language }: { original: string; modified: string; language: string }) {
   const host = useRef<HTMLDivElement>(null);
   const models = useRef<{ original: monaco.editor.ITextModel; modified: monaco.editor.ITextModel } | null>(null);
@@ -41,7 +40,6 @@ export function VersionDiff({ original, modified, language }: { original: string
     models.current?.original.setValue(original);
   }, [original, language]);
 
-  // The current text changes while people type; an edit (not setValue) keeps the scroll position.
   useEffect(() => {
     const model = models.current?.modified;
     if (model && model.getValue() !== modified) {

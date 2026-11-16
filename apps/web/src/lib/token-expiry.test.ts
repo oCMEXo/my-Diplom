@@ -16,7 +16,6 @@ describe("tokenExpiry", () => {
       const bytes = String.fromCharCode(...new TextEncoder().encode(JSON.stringify({ name, exp: 5 })));
       return btoa(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     });
-    // "Zoë" encodes to a payload with "_", which plain base64 would not accept.
     expect(payloads.some((payload) => /[-_]/.test(payload))).toBe(true);
     for (const payload of payloads) expect(tokenExpiry(`a.${payload}.c`)).toBe(5000);
   });

@@ -1,6 +1,3 @@
-// Builds docs/ba/BA_Harminovich_Artsiom.docx from BA.md (main text) and BA-back.md (references,
-// appendices, statement).   node docs/ba/build/build-docx.mjs
-// Markers [[TBD: …]] are kept in the text and highlighted in yellow until they are filled in.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -14,15 +11,11 @@ import { references } from "./references.mjs";
 const here = import.meta.dirname;
 const root = path.resolve(here, "..");
 const FONT = "Times New Roman";
-const PAGE_W = 11906; // A4, DXA
-const MARGIN = { top: 1134, bottom: 1134, left: 1701, right: 851 }; // 2 / 2 / 3 / 1.5 cm
-const TEXT_W = PAGE_W - MARGIN.left - MARGIN.right; // 9354 DXA ≈ 16.5 cm
+const PAGE_W = 11906;
+const MARGIN = { top: 1134, bottom: 1134, left: 1701, right: 851 };
+const TEXT_W = PAGE_W - MARGIN.left - MARGIN.right;
 const EMU_PER_PX = 9525;
 
-// ---------- citations: Chicago notes ----------
-// [@key] (or several, separated by commas) becomes one footnote. The document has a full bibliography,
-// so every note uses the short form (Chicago Manual of Style, 17th ed., 14.19). The note number goes
-// after a following punctuation mark.
 const footnotes = {};
 let footnoteCount = 0;
 
@@ -30,9 +23,8 @@ function footnote(keys) {
   const joined = keys.map((key) => {
     const source = references[key];
     if (!source) throw new Error(`unknown source [@${key}]`);
-    return source.short.replace(/\.("?)$/, "$1"); // drop the final period, also one before a closing quote
+    return source.short.replace(/\.("?)$/, "$1");
   }).join("; ");
-  // Chicago puts the final period inside a closing quotation mark.
   const text = joined.endsWith('"') ? `${joined.slice(0, -1)}."` : `${joined}.`;
   footnoteCount += 1;
   footnotes[footnoteCount] = { children: [new Paragraph({ spacing: { after: 0, line: 240 }, children: runs(text, { size: 20 }) })] };
@@ -47,7 +39,6 @@ function bibliography() {
     .map((entry) => new Paragraph({ indent: { left: 567, hanging: 567 }, spacing: { after: 80 }, children: runs(entry) }));
 }
 
-// ---------- inline text ----------
 function runs(text, base = {}) {
   const out = [];
   const pattern = /( ?\[@[a-z0-9]+\](?:,\s*\[@[a-z0-9]+\])*[.,;:]?|\[\[TBD:[^\]]*\]\]|\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`)/g;
@@ -75,7 +66,6 @@ function runs(text, base = {}) {
   return out;
 }
 
-// ---------- images ----------
 function imageSize(buffer) {
   if (buffer[0] === 0x89) return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
   for (let i = 2; i < buffer.length; ) {
@@ -104,7 +94,6 @@ function image(file, { maxWidthCm, maxHeightCm }) {
   });
 }
 
-// ---------- tables ----------
 const border = { style: BorderStyle.SINGLE, size: 4, color: "808080" };
 const borders = { top: border, bottom: border, left: border, right: border };
 
@@ -113,7 +102,6 @@ function table(lines) {
     .filter((line) => !/^\|\s*-+/.test(line))
     .map((line) => line.trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim()));
   const cols = rows[0].length;
-  // Column widths follow the length of the content, within sensible bounds.
   const weight = Array.from({ length: cols }, (_, c) =>
     Math.min(60, Math.max(8, Math.max(...rows.map((row) => (row[c] ?? "").length)) ** 0.8)),
   );
@@ -141,7 +129,6 @@ function table(lines) {
   });
 }
 
-// Mockups in the main text go in two columns: the volume limit counts them, and Appendix B has full-size copies.
 const noBorder = { style: BorderStyle.NONE, size: 0, color: "auto" };
 const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder, insideHorizontal: noBorder, insideVertical: noBorder };
 
@@ -176,7 +163,6 @@ function mockupGrid(lines, chapter) {
   return new Table({ width: { size: half * 2, type: WidthType.DXA }, columnWidths: [half, half], borders: noBorders, rows });
 }
 
-// ---------- markdown blocks ----------
 let listInstance = 0;
 const figureCount = {};
 
@@ -269,7 +255,6 @@ function convert(markdown) {
       i--;
       continue;
     }
-    // Given/When/Then steps of an acceptance criterion: one compact, indented block.
     if (/^\*\*(Given|When|Then)\*\* /.test(line)) {
       blocks.push(new Paragraph({ indent: { left: 360 }, spacing: { after: line.startsWith("**Then") ? 160 : 0, line: 264 }, keepNext: line.startsWith("**Given") || line.startsWith("**When"), children: runs(line) }));
       continue;
@@ -279,7 +264,6 @@ function convert(markdown) {
   return blocks;
 }
 
-// ---------- title page ----------
 const center = (text, options = {}) => new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: runs(text, options) });
 const titlePage = [
   new Paragraph({ spacing: { before: 2400 }, children: [] }),
@@ -295,16 +279,12 @@ const titlePage = [
   center("November 2026", { size: 24 }),
 ];
 
-// ---------- document ----------
 const main = readFileSync(path.join(root, "BA.md"), "utf8");
 const back = readFileSync(path.join(root, "BA-back.md"), "utf8");
-// Converted before the document, so that all footnotes exist when it is made.
 const body = [...convert(main), ...convert(back)];
 
 const doc = new Document({
   footnotes,
-  // Page numbers worked out as Word lays the pages out, so the table of contents arrives filled in
-  // and Word does not ask to update it on opening. It stays a real table that Word can update.
   pageNumbers: estimatePageNumbersWith({ guess: true }),
   creator: "Artsiom Harminovich",
   title: "Real-Time Collaborative Code Editing Platform Based on CRDT — Business Analysis",
@@ -340,7 +320,6 @@ const doc = new Document({
         default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ children: [PageNumber.CURRENT] })] })] }),
       },
       children: [
-        // Not a heading, so that it does not list itself.
         new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: "Table of contents", bold: true, size: 32 })] }),
         new TableOfContents("Contents", { hyperlink: true, headingStyleRange: "1-2" }),
         ...body,

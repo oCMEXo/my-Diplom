@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# Runs code and terminals under gVisor, a kernel in user space, so a program never talks to the
-# host's kernel directly. Run once on the VM, after the first deployment:
-#   gcloud compute ssh collab --zone=europe-north1-a --command "sudo bash /opt/collab/src/infra/gcp/enable-gvisor.sh"
-# Docker restarts once; the site is back in about a minute.
 set -euo pipefail
 
 if ! command -v runsc >/dev/null 2>&1; then

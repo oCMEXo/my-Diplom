@@ -14,7 +14,6 @@ import {
   withExpiringToken,
 } from "./helpers.js";
 
-/** Lets the test cut the page off from the sync server and let it back in. */
 async function controlSyncConnection(page: Page) {
   const sockets = new Set<{ close: () => Promise<void> }>();
   let blocked = false;
@@ -56,7 +55,6 @@ test("a new file and a new member appear for everyone without a reload", async (
   await guestPage.getByRole("button", { name: "Create", exact: true }).click();
   await expect(tree(ownerPage)).toBeVisible();
 
-  // The dialog hands the keyboard over to the new file.
   await expect(guestPage.locator(".monaco-editor textarea").first()).toBeFocused();
 
   await ownerPage.getByRole("button", { name: "Delete note.py" }).click({ force: true });
@@ -92,7 +90,6 @@ test("a viewer is offered no invitation and a failed file creation stays in the 
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("Please check the form");
 
-  // Tab goes round inside the dialog, never to the page underneath.
   for (let press = 0; press < 12; press += 1) {
     await ownerPage.keyboard.press("Tab");
     expect(await ownerPage.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true);
@@ -170,7 +167,6 @@ test("a new project can start from an example with a guide and code that is read
   await page.getByRole("radio", { name: "JavaScript" }).click();
   await page.getByRole("button", { name: "Create", exact: true }).click();
 
-  // The project opens on the guide, which says what to do first.
   await expect(page.getByRole("heading", { name: "Getting started" })).toBeVisible();
   await page.getByRole("link", { name: "main.js" }).click();
   await expect.poll(() => editorText(page)).toContain("function fib(n)");
@@ -197,7 +193,6 @@ test("following a participant goes to their file and keeps their cursor in view"
   await expect(guestPage).toHaveURL(new RegExp(`/files/${second.id}`));
   await expect(ownerPage.getByText("Synced")).toBeVisible();
 
-  // A long file: the end is far below the first screen until the cursor of the person followed goes there.
   await typeInEditor(ownerPage, Array.from({ length: 50 }, (_, line) => `# ${line + 1}`).join("\n"));
   await expect.poll(() => editorText(guestPage), { timeout: 20_000 }).toContain("# 50");
 
@@ -259,7 +254,6 @@ test("messages missed while the chat was hidden are counted until it is opened",
   await expect(page.getByRole("button", { name: /New chat messages/ })).toHaveCount(0);
   await expect(page.getByText("second")).toBeVisible();
 
-  // With the panel closed the header button keeps counting, across a reload too.
   await page.getByRole("button", { name: "Hide chat and members" }).click();
   await send("third");
   await expect(page.getByRole("button", { name: "New chat messages: 1" })).toBeVisible();
@@ -300,7 +294,6 @@ test("edits made without a connection are merged after it returns", async ({ bro
   await typeInEditor(ownerPage, "start");
   await expect.poll(() => editorText(guestPage)).toContain("start");
 
-  // Now the same page, but its connection can be cut.
   const connection = await controlSyncConnection(guestPage);
   await guestPage.reload();
   await expect(guestPage.getByText("Synced")).toBeVisible();
@@ -318,7 +311,6 @@ test("edits made without a connection are merged after it returns", async ({ bro
   expect(await editorText(ownerPage)).not.toContain("guest");
 
   connection.restore();
-  // The label of a cursor breaks the rendered line in two for innerText, so spaces are compared loosely.
   const merged = async (page: Page) => (await editorText(page)).replace(/\s+/g, " ");
   await expect.poll(() => merged(ownerPage), { timeout: 30_000 }).toContain("Anna start guest");
   await expect.poll(() => merged(guestPage), { timeout: 30_000 }).toContain("Anna start guest");
@@ -336,7 +328,6 @@ test("reconnecting after the access token ran out gets a new one", async ({ brow
   const ownerPage = await openAs(browser, owner, path);
   await expect(ownerPage.getByText("Synced")).toBeVisible();
 
-  // Just outside the margin in which the app renews a token before connecting.
   const lifetime = 36;
   const started = Date.now();
   const context = await browser.newContext();
@@ -363,7 +354,6 @@ test("a server hiccup during renewal keeps the session, and signing out reaches 
   const expired = withExpiringToken(owner, -60);
 
   const context = await browser.newContext();
-  // Once only: every later page and reload must see the tokens the app has renewed by then.
   await context.addInitScript((value) => {
     if (!localStorage.getItem("e2e.seeded")) {
       localStorage.setItem("e2e.seeded", "1");
@@ -413,7 +403,6 @@ test("a shape can be added, moved and deleted on the board with the keyboard alo
   await page.keyboard.press("Shift+ArrowDown");
   await expect(board).toHaveAttribute("data-selected-shape", `${x! + 20},${y! + 1}`);
 
-  // The drawing leaves the board as a picture (US-12).
   for (const format of ["PNG", "SVG"]) {
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: format, exact: true }).click();
@@ -449,7 +438,6 @@ test("the new-file dialog tells what happens to each language, and lists them al
 
   await name.fill("main.go");
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
-  // The editor names the language it took the file for; Go is highlighted but cannot be run.
   await expect(page.getByRole("button", { name: "Go: highlighting, no running" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Run", exact: true })).toHaveCount(0);
   await page.context().close();
@@ -521,7 +509,6 @@ test("the cursor of another person is shown with a name, and a replaced link sto
 
   const cursor = guestPage.locator(".yRemoteSelectionHead").first();
   await expect(cursor).toBeAttached();
-  // The name is written by a style rule that follows the awareness update.
   await expect.poll(() => cursor.evaluate((element) => getComputedStyle(element, "::after").content)).toContain("Anna");
 
   const regenerated = await request.post(`${API}/projects/${project.id}/invite/regenerate`, {

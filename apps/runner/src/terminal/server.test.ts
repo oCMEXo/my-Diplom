@@ -8,7 +8,6 @@ import type { TerminalSessionOptions } from "./session.js";
 const USER = "11111111-1111-4111-8111-111111111111";
 const PROJECT = "22222222-2222-4222-8222-222222222222";
 
-/** A session that echoes what it gets, so the protocol can be checked without Docker. */
 function fakeSessions() {
   const opened: { options: TerminalSessionOptions; written: string[]; sizes: [number, number][]; closed: boolean }[] = [];
   const openSession = async (options: TerminalSessionOptions) => {
@@ -91,7 +90,6 @@ describe("terminal server", () => {
     const { url, sessions } = await start({ t1: ticketData() });
     const client = connect(url("ticket=t1&cols=120&rows=40"));
     await new Promise((resolve) => client.socket.on("open", resolve));
-    // Typed before the shell is ready: must not be lost.
     client.socket.send(JSON.stringify({ type: "input", data: "ls\r" }));
     await client.until((all) => all.some((m) => m.type === "ready"));
 

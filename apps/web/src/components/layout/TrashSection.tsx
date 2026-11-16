@@ -9,7 +9,6 @@ import { FILE_KINDS } from "./file-kinds";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Whole days until the server empties this file from the trash (at least one: it runs hourly). */
 function daysLeft(purgeAt: string) {
   return Math.max(1, Math.ceil((new Date(purgeAt).getTime() - Date.now()) / DAY_MS));
 }

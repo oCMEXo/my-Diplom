@@ -1,4 +1,3 @@
-# Files that run on Linux keep LF endings, also on a Windows checkout with core.autocrlf.
 *.sh text eol=lf
 infra/gcp/Caddyfile text eol=lf
 infra/Caddyfile text eol=lf

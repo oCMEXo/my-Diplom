@@ -1,6 +1,3 @@
-// Sources of the BA in Chicago notes-bibliography style (17th edition).
-// The text cites a source as [@key]. The first citation gets the full note, later ones the short note.
-// The bibliography is sorted by the first word of `bib`.
 export const references = {
   stackoverflow: {
     note: 'Stack Overflow, "Work," *2024 Developer Survey*, 2024, https://survey.stackoverflow.co/2024/work.',
@@ -144,7 +141,6 @@ export const references = {
   },
 };
 
-// The old IEEE numbers of the first 22 sources, used once to convert the text.
 export const oldNumbers = [
   "stackoverflow", "xinogalos", "ofs", "brun", "card", "ellis", "sun", "shapiro", "nicolaescu", "kleppmannjson",
   "localfirst", "egwalker", "yjs", "nielsen", "iso25010", "gdpr", "wcag", "owasp", "liveshare", "replit", "codeshare", "excalidraw",

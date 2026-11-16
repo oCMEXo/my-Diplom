@@ -7,10 +7,8 @@ export interface BoardShape {
   type: ShapeType;
   x: number;
   y: number;
-  /** Width / height for rect, ellipse and text. */
   w: number;
   h: number;
-  /** End point of an arrow (x, y is the start). */
   x2: number;
   y2: number;
   fill: string;
@@ -21,7 +19,6 @@ export const PALETTE = ["#fde68a", "#bfdbfe", "#bbf7d0", "#fecaca", "#e9d5ff", "
 
 export const TEXT_SIZE = 18;
 
-/** Pastel fills are too faint for a thin line, so arrows use a deeper shade of the chosen color. */
 const ARROW_STROKES: Record<string, string> = {
   "#fde68a": "#d97706",
   "#bfdbfe": "#2563eb",
@@ -61,7 +58,6 @@ function isShapeType(value: unknown): value is ShapeType {
   return value === "rect" || value === "ellipse" || value === "text" || value === "arrow";
 }
 
-/** Shapes in layer order (bottom first). Tolerates ids that were deleted or duplicated concurrently. */
 export function readShapes({ shapes, order }: BoardDoc): BoardShape[] {
   const seen = new Set<string>();
   const result: BoardShape[] = [];
@@ -129,7 +125,6 @@ function escapeXml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
-/** Colors come from other clients, so only well-formed hex values are written into the SVG. */
 function safeFill(value: string) {
   return /^#[0-9a-f]{6}$/i.test(value) ? value : "#e2e8f0";
 }
