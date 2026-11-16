@@ -106,7 +106,7 @@ describe("requestRun", () => {
 
   it("refuses languages that cannot be run", async () => {
     const owner = await user();
-    const { project, file } = await projectWithFile(owner.id, "Main.java");
+    const { project, file } = await projectWithFile(owner.id, "main.go");
     await expect(
       requestRun(owner.id, project.id, file.id, "x", async () => undefined),
     ).rejects.toMatchObject({ statusCode: 400 });

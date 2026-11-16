@@ -17,7 +17,7 @@ test("a teacher starts a class, a guest student gets their own copy, and the tea
   await expect(teacherPage.getByRole("heading", { name: "Loops" })).toBeVisible();
   await expect(teacherPage.getByText("No students yet")).toBeVisible();
   const link = await teacherPage.getByLabel("Class link").inputValue();
-  expect(link).toMatch(/\/class\/\w+/);
+  expect(link).toMatch(/\/class\/[\w-]+$/);
 
   const studentContext = await browser.newContext();
   const student = await studentContext.newPage();
