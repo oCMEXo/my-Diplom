@@ -27,3 +27,4 @@ infra/gcp/.state/
 infra/gcp/web/
 
 .~lock.*#
+__pycache__/
