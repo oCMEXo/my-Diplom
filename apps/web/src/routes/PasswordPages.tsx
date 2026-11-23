@@ -7,6 +7,8 @@ import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
 import { Spinner } from "../components/ui/Spinner";
+import { forgotPasswordSchema, resetPasswordSchema } from "@collab/shared";
+import { FIELD_MESSAGES, useFormValidation } from "../lib/form-validation";
 import { authService } from "../services/auth.service";
 
 export function ForgotPasswordPage() {
@@ -14,10 +16,12 @@ export function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const form = useFormValidation(forgotPasswordSchema, { email: FIELD_MESSAGES.email });
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    if (!form.validate({ email })) return;
     setLoading(true);
     try {
       await authService.forgotPassword(email);
@@ -43,9 +47,20 @@ export function ForgotPasswordPage() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} noValidate className="space-y-4">
           {error && <ErrorNote>{error}</ErrorNote>}
-          <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Field
+            label="Email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            error={form.errors.email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              form.revalidate({ email: e.target.value });
+            }}
+          />
           <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
             {loading ? "Sending…" : "Send the link"}
           </Button>
@@ -68,10 +83,12 @@ export function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const form = useFormValidation(resetPasswordSchema, { token: "The link is not complete. Open it again from the email.", password: FIELD_MESSAGES.newPassword });
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    if (!form.validate({ token, password })) return;
     setLoading(true);
     try {
       await authService.resetPassword(token, password);
@@ -86,7 +103,7 @@ export function ResetPasswordPage() {
 
   return (
     <AuthShell title="Choose a new password" subtitle="After this you are signed out on all devices.">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} noValidate className="space-y-4">
         {!token && <ErrorNote>The link is not complete. Open it again from the email.</ErrorNote>}
         {error && <ErrorNote>{error}</ErrorNote>}
         <Field
@@ -98,7 +115,11 @@ export function ResetPasswordPage() {
           autoComplete="new-password"
           hint="At least 8 characters"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          error={form.errors.password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            form.revalidate({ token, password: e.target.value });
+          }}
         />
         <Button type="submit" variant="primary" size="lg" disabled={loading || !token} className="w-full">
           {loading ? "Saving…" : "Save the new password"}

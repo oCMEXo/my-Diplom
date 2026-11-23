@@ -33,6 +33,11 @@ export function CreateFileDialog({
   const trimmed = path.trim();
   const duplicate = files.some((file) => file.path === trimmed);
   const invalid = trimmed.startsWith("/") || trimmed.endsWith("/") || trimmed.includes("..");
+  const nameError = duplicate
+    ? "A file with this name already exists"
+    : invalid
+      ? "The name must not start or end with “/” or contain “..”"
+      : undefined;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -68,15 +73,8 @@ export function CreateFileDialog({
           maxLength={500}
           value={path}
           onChange={(event) => setPath(event.target.value)}
-          hint={
-            duplicate ? <span className="text-bad">A file with this name already exists</span> : invalid ? (
-              <span className="text-bad">The name must not start or end with “/” or contain “..”</span>
-            ) : type === "code" ? (
-              <LanguageHint path={trimmed} />
-            ) : (
-              HINT[type]
-            )
-          }
+          error={nameError}
+          hint={type === "code" ? <LanguageHint path={trimmed} /> : HINT[type]}
         />
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" onClick={onClose} disabled={creating}>

@@ -7,6 +7,8 @@ import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
 import { useFeatures } from "../lib/features";
+import { loginSchema } from "@collab/shared";
+import { FIELD_MESSAGES, useFormValidation } from "../lib/form-validation";
 import { GithubSignInButton } from "./GithubSignIn";
 
 export function LoginPage() {
@@ -20,10 +22,12 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const form = useFormValidation(loginSchema, { email: FIELD_MESSAGES.email, password: "Enter your password" });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!form.validate({ email, password })) return;
     setLoading(true);
     try {
       await login({ email, password });
@@ -52,21 +56,36 @@ export function LoginPage() {
 
   return (
     <AuthShell title="Welcome back" subtitle="Sign in to continue working on your projects.">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} noValidate className="space-y-4">
         {justReset && !error && (
           <p role="status" className="rounded-xl bg-ok/10 px-4 py-3 text-base text-ok">
             Your password is changed. Sign in with the new one.
           </p>
         )}
         {error && <ErrorNote>{error}</ErrorNote>}
-        <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Field
+          label="Email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          error={form.errors.email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            form.revalidate({ email: e.target.value, password });
+          }}
+        />
         <Field
           label="Password"
           type="password"
           required
           autoComplete="current-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          error={form.errors.password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            form.revalidate({ email, password: e.target.value });
+          }}
         />
         {features?.passwordReset && (
           <p className="-mt-2 text-right text-sm">

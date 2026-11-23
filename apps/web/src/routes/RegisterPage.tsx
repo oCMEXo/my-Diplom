@@ -6,6 +6,8 @@ import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
 import { GithubSignInButton } from "./GithubSignIn";
+import { registerSchema } from "@collab/shared";
+import { FIELD_MESSAGES, useFormValidation } from "../lib/form-validation";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -17,10 +19,16 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const form = useFormValidation(registerSchema, {
+    name: FIELD_MESSAGES.name,
+    email: FIELD_MESSAGES.email,
+    password: FIELD_MESSAGES.newPassword,
+  });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!form.validate({ name: name.trim(), email, password })) return;
     setLoading(true);
     try {
       await register({ name, email, password });
@@ -36,10 +44,31 @@ export function RegisterPage() {
 
   return (
     <AuthShell title="Create an account" subtitle="Your projects, invitations and history in one place.">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} noValidate className="space-y-4">
         {error && <ErrorNote>{error}</ErrorNote>}
-        <Field label="Name" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
-        <Field label="Email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Field
+          label="Name"
+          required
+          autoComplete="name"
+          value={name}
+          error={form.errors.name}
+          onChange={(e) => {
+            setName(e.target.value);
+            form.revalidate({ name: e.target.value.trim(), email, password });
+          }}
+        />
+        <Field
+          label="Email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          error={form.errors.email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            form.revalidate({ name: name.trim(), email: e.target.value, password });
+          }}
+        />
         <Field
           label="Password"
           type="password"
@@ -48,7 +77,11 @@ export function RegisterPage() {
           autoComplete="new-password"
           hint="At least 8 characters"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          error={form.errors.password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            form.revalidate({ name: name.trim(), email, password: e.target.value });
+          }}
         />
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
           {loading ? "Creating…" : "Create account"}

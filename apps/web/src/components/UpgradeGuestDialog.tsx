@@ -4,6 +4,8 @@ import { ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
+import { upgradeGuestSchema } from "@collab/shared";
+import { FIELD_MESSAGES, useFormValidation } from "../lib/form-validation";
 
 export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
   const { upgradeGuest } = useAuth();
@@ -11,10 +13,11 @@ export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const form = useFormValidation(upgradeGuestSchema, { email: FIELD_MESSAGES.email, password: FIELD_MESSAGES.newPassword });
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (saving) return;
+    if (saving || !form.validate({ email, password })) return;
     setSaving(true);
     setError(null);
     try {
@@ -32,7 +35,7 @@ export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
       description="Add an email and a password to come back to your projects from any device. Your projects and chat stay."
       onClose={onClose}
     >
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} noValidate className="space-y-4">
         {error && <ErrorNote>{error}</ErrorNote>}
         <Field
           label="Email"
@@ -40,7 +43,11 @@ export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
           required
           autoComplete="email"
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          error={form.errors.email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            form.revalidate({ email: event.target.value, password });
+          }}
         />
         <Field
           label="Password"
@@ -51,7 +58,11 @@ export function UpgradeGuestDialog({ onClose }: { onClose: () => void }) {
           autoComplete="new-password"
           hint="At least 8 characters"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          error={form.errors.password}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            form.revalidate({ email, password: event.target.value });
+          }}
         />
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={saving}>
