@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { MailWarning } from "lucide-react";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { Button } from "./ui/Button";
+import { authService } from "../services/auth.service";
 
 export function VerifyEmailBanner() {
   const { user } = useAuth();
@@ -12,7 +13,7 @@ export function VerifyEmailBanner() {
   async function resend() {
     setState("sending");
     try {
-      await api.post("/auth/resend-verification");
+      await authService.resendVerification();
       setState("sent");
     } catch (err) {
       setState(err instanceof ApiError ? err.message : "Could not send the email");

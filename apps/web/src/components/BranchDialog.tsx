@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Check, GitBranch, LoaderCircle, Search } from "lucide-react";
-import type { BranchList, BranchSwitchResult, ProjectWithMembers } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import type { ProjectWithMembers } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Spinner } from "./ui/Spinner";
+import { projectsService } from "../services/projects.service";
 
 export async function refreshProjectFiles(queryClient: ReturnType<typeof useQueryClient>, projectId: string) {
   await Promise.all(
@@ -30,12 +31,12 @@ export function BranchDialog({
 
   const branches = useQuery({
     queryKey: ["branches", project.id],
-    queryFn: () => api.get<BranchList>(`/projects/${project.id}/branches`),
+    queryFn: () => projectsService.branches(project.id),
     retry: false,
   });
 
   const switchTo = useMutation({
-    mutationFn: (name: string) => api.post<BranchSwitchResult>(`/projects/${project.id}/branch`, { name }),
+    mutationFn: (name: string) => projectsService.switchBranch(project.id, name),
     onSuccess: async () => {
       await refreshProjectFiles(queryClient, project.id);
       navigate(`/projects/${project.id}`);

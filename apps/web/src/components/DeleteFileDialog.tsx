@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FileRecord } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
+import { filesService } from "../services/files.service";
 
 export function DeleteFileDialog({
   projectId,
@@ -18,7 +19,7 @@ export function DeleteFileDialog({
 }) {
   const queryClient = useQueryClient();
   const remove = useMutation({
-    mutationFn: () => api.delete(`/projects/${projectId}/files/${file.id}`),
+    mutationFn: () => filesService.moveToTrash(projectId, file.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["files", projectId] });
       queryClient.invalidateQueries({ queryKey: ["trash", projectId] });

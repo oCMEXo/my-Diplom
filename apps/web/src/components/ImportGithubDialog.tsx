@@ -3,10 +3,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, GitBranch } from "lucide-react";
 import { IMPORT_LIMITS, type ImportResult, type ProjectWithMembers } from "@collab/shared";
 import { repoSlug } from "../lib/github-url";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
+import { projectsService } from "../services/projects.service";
 
 export function describeSkipped(skipped: ImportResult["skipped"]) {
   const parts: string[] = [];
@@ -24,7 +25,7 @@ export function ImportGithubDialog({ project, onClose }: { project: ProjectWithM
   const [url, setUrl] = useState("");
 
   const importRepo = useMutation({
-    mutationFn: (value: string) => api.post<ImportResult>(`/projects/${projectId}/import/github`, { url: value }),
+    mutationFn: (value: string) => projectsService.importGithub(projectId, value),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["files", projectId] }),
   });
 

@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Features, RunMode } from "@collab/shared";
-import { api } from "./api";
+import { runsService } from "../services/collaboration.service";
 
 export function useFeatures(): Features | undefined {
   const { data } = useQuery({
     queryKey: ["features"],
-    queryFn: () => api.get<Features>("/features"),
+    queryFn: () => runsService.features(),
     staleTime: 5 * 60_000,
   });
   return data;

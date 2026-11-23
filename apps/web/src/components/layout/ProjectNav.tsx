@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
-import type { FileRecord, FileType, Project, ProjectWithMembers } from "@collab/shared";
-import { api } from "../../lib/api";
+import type { FileRecord, FileType, ProjectWithMembers } from "@collab/shared";
 import { gradientFor, initials } from "../../lib/colors";
 import { cn } from "../../lib/cn";
 import { useAuth } from "../../lib/auth";
@@ -12,12 +11,13 @@ import { FileTree } from "./FileTree";
 import { ProjectMenu } from "./ProjectMenu";
 import { TrashSection } from "./TrashSection";
 import { UserMenu } from "./UserMenu";
+import { projectsService } from "../../services/projects.service";
 
 export { FILE_KINDS } from "./file-kinds";
 
 function ProjectRail({ activeId, onCreateProject }: { activeId: string; onCreateProject: () => void }) {
   const navigate = useNavigate();
-  const { data: projects } = useQuery({ queryKey: ["projects"], queryFn: () => api.get<Project[]>("/projects") });
+  const { data: projects } = useQuery({ queryKey: ["projects"], queryFn: () => projectsService.list() });
 
   return (
     <nav aria-label="Projects" className="flex w-[72px] shrink-0 flex-col items-center gap-2 bg-canvas py-3">

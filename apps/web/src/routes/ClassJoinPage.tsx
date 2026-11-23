@@ -2,14 +2,14 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GraduationCap, Sparkles, TriangleAlert } from "lucide-react";
-import type { ClassPreview, JoinClassResult } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
 import { Spinner } from "../components/ui/Spinner";
 import { Wordmark } from "../components/ui/Logo";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
+import { classesService } from "../services/collaboration.service";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -51,7 +51,7 @@ export function ClassJoinPage() {
 
   const preview = useQuery({
     queryKey: ["class-preview", code],
-    queryFn: () => api.get<ClassPreview>(`/class-links/${code}`),
+    queryFn: () => classesService.preview(code),
     retry: false,
   });
 
@@ -59,8 +59,8 @@ export function ClassJoinPage() {
     if (!isAuthenticated || !preview.data || attempted.current) return;
     attempted.current = true;
     setJoining(true);
-    api
-      .post<JoinClassResult>(`/class-links/${code}/join`)
+    classesService
+      .join(code)
       .then(({ projectId }) => navigate(`/projects/${projectId}`, { replace: true }))
       .catch((err) => {
         setError(err instanceof ApiError ? err.message : "Could not join the class");

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, UserMinus, UserPlus } from "lucide-react";
 import type { FileRecord, InviteRole, PresenceUser, ProjectMember } from "@collab/shared";
-import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { cn } from "../lib/cn";
 import { useFollowing, useOnlineUsers } from "../lib/RealtimeContext";
@@ -11,6 +10,7 @@ import { Avatar } from "./ui/Avatar";
 import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { RoleBadge } from "./ui/RoleBadge";
+import { projectsService } from "../services/projects.service";
 
 function FollowButton({ person }: { person: PresenceUser }) {
   const { following, follow } = useFollowing();
@@ -69,7 +69,7 @@ export function MembersPanel({
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["project", projectId] });
   const changeRole = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: InviteRole }) =>
-      api.patch(`/projects/${projectId}/members/${userId}`, { role }),
+      projectsService.setMemberRole(projectId, userId, role),
     onSuccess: refresh,
   });
 
@@ -148,7 +148,7 @@ export function MembersPanel({
           description={`${removing.name} loses access at once, and their open tabs close. The old invite link also stops working, so new people will need a new one.`}
           confirmLabel="Remove"
           danger
-          action={() => api.delete(`/projects/${projectId}/members/${removing.userId}`)}
+          action={() => projectsService.removeMember(projectId, removing.userId)}
           onDone={refresh}
           onClose={() => setRemoving(null)}
         />

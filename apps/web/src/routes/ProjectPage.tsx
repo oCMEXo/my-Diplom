@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import type { AccessChangeReason, FileRecord, FileType, ProjectWithMembers } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { RealtimeProvider, useRealtimeEvents } from "../lib/RealtimeContext";
 import { BranchDialog, refreshProjectFiles } from "../components/BranchDialog";
@@ -25,6 +25,8 @@ import { SidePanel, type PanelTab } from "../components/layout/SidePanel";
 import type { ShellActions } from "../components/layout/ProjectHeader";
 import { ErrorScreen } from "../components/ui/ErrorScreen";
 import { FullScreenLoader } from "../components/ui/Spinner";
+import { filesService } from "../services/files.service";
+import { projectsService } from "../services/projects.service";
 
 export interface ProjectOutletContext {
   files: FileRecord[];
@@ -148,19 +150,19 @@ export function ProjectPage() {
 
   const { data: project, error: projectError, refetch: refetchProject } = useQuery({
     queryKey: ["project", projectId],
-    queryFn: () => api.get<ProjectWithMembers>(`/projects/${projectId}`),
+    queryFn: () => projectsService.get(projectId!),
     enabled: !!projectId,
   });
 
   const { data: files, error: filesError, refetch: refetchFiles } = useQuery({
     queryKey: ["files", projectId],
-    queryFn: () => api.get<FileRecord[]>(`/projects/${projectId}/files`),
+    queryFn: () => filesService.list(projectId!),
     enabled: !!projectId,
   });
 
   const createFile = useMutation({
     mutationFn: (input: { path: string; type: FileType }) =>
-      api.post<FileRecord>(`/projects/${projectId}/files`, input),
+      filesService.create(projectId!, input),
     onSuccess: (file) => {
       queryClient.invalidateQueries({ queryKey: ["files", projectId] });
       navigate(`/projects/${projectId}/files/${file.id}`, { state: { focusEditor: true } });

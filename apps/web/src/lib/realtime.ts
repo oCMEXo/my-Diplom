@@ -7,9 +7,10 @@ import {
   type PresenceFileMessage,
   type RealtimeEvent,
 } from "@collab/shared";
-import { api, API_URL, freshAccessToken } from "./api";
+import { API_URL, freshAccessToken } from "./api";
 import { wsUrl } from "./endpoints";
 import { tokenStore } from "./tokenStore";
+import { authService } from "../services/auth.service";
 
 const CLOSE_UNAUTHORIZED = 4401;
 const CLOSE_FORBIDDEN = 4403;
@@ -83,7 +84,7 @@ export function useProjectEvents(
           return;
         }
         if (event.code === CLOSE_UNAUTHORIZED) {
-          await api.get("/auth/me").catch(() => undefined);
+          await authService.me().catch(() => undefined);
         }
         const delay = Math.min(1000 * 2 ** attempt, MAX_BACKOFF_MS);
         attempt += 1;

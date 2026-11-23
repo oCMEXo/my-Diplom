@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, RotateCcw } from "lucide-react";
-import type { FileRecord, FileVersion, FileVersionContent } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import type { FileRecord } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { formatSize, versionAge, versionMoment } from "../lib/versions";
 import type { EditorController } from "./CollabEditor";
@@ -12,6 +12,7 @@ import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Spinner } from "./ui/Spinner";
+import { filesService } from "../services/files.service";
 
 function useCurrentText(controller: EditorController | null) {
   const [text, setText] = useState(() => controller?.getCode() ?? "");
@@ -38,18 +39,17 @@ export function VersionHistoryDialog({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const current = useCurrentText(controller);
-  const base = `/projects/${projectId}/files/${file.id}/versions`;
 
   const versions = useQuery({
     queryKey: ["versions", file.id],
-    queryFn: () => api.get<FileVersion[]>(base),
+    queryFn: () => filesService.versions(projectId, file.id),
     refetchOnMount: "always",
   });
   const selected = versions.data?.find((version) => version.id === selectedId) ?? versions.data?.[0] ?? null;
 
   const content = useQuery({
     queryKey: ["version", selected?.id],
-    queryFn: () => api.get<FileVersionContent>(`${base}/${selected!.id}`),
+    queryFn: () => filesService.version(projectId, file.id, selected!.id),
     enabled: !!selected,
     staleTime: Infinity,
     gcTime: 0,
@@ -139,7 +139,7 @@ export function VersionHistoryDialog({
           description={`The file text changes for everyone to the version from ${versionMoment(selected!.createdAt)}. The current text stays in the history, so you can undo this.`}
           confirmLabel="Restore"
           pendingLabel="Restoring…"
-          action={() => api.post(`${base}/${selected!.id}/restore`)}
+          action={() => filesService.restoreVersion(projectId, file.id, selected!.id)}
           onDone={() => {
             queryClient.invalidateQueries({ queryKey: ["versions", file.id] });
             onClose();

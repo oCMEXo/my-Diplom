@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Trash2, Undo2 } from "lucide-react";
 import type { TrashedFile } from "@collab/shared";
-import { api, ApiError } from "../../lib/api";
+import { ApiError } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { FILE_KINDS } from "./file-kinds";
+import { filesService } from "../../services/files.service";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -21,7 +22,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
 
   const { data: trash } = useQuery({
     queryKey: ["trash", projectId],
-    queryFn: () => api.get<TrashedFile[]>(`/projects/${projectId}/files/trash`),
+    queryFn: () => filesService.trash(projectId),
   });
 
   const refresh = () => {
@@ -30,7 +31,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
   };
 
   const restore = useMutation({
-    mutationFn: (file: TrashedFile) => api.post(`/projects/${projectId}/files/${file.id}/restore`),
+    mutationFn: (file: TrashedFile) => filesService.restore(projectId, file.id),
     onSuccess: () => {
       setError(null);
       refresh();
@@ -101,7 +102,7 @@ export function TrashSection({ projectId, canEdit, isOwner }: { projectId: strin
           description={`“${purging.path}” will be gone and cannot be restored.`}
           confirmLabel="Delete forever"
           danger
-          action={() => api.delete(`/projects/${projectId}/files/${purging.id}/permanent`)}
+          action={() => filesService.deleteForever(projectId, purging.id)}
           onDone={refresh}
           onClose={() => setPurging(null)}
         />

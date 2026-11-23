@@ -13,11 +13,12 @@ import { useRunAccess } from "../components/RunAccess";
 import { FILE_KINDS } from "../components/layout/ProjectNav";
 import { ProjectHeader, type SyncStatus } from "../components/layout/ProjectHeader";
 import { Button } from "../components/ui/Button";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { rememberFile } from "../lib/last-file";
 import { useAnnounceFile, useFollowing, useRun } from "../lib/RealtimeContext";
 import type { ProjectOutletContext } from "./ProjectPage";
+import { runsService } from "../services/collaboration.service";
 
 const DEFAULT_TITLE = "Collab: work on a project together";
 
@@ -153,9 +154,7 @@ export function FileEditorPage() {
     if (!controller.current) return;
     setRunError(null);
     try {
-      await api.post(`/projects/${projectId}/files/${file!.id}/run`, {
-        code: controller.current.getCode(),
-      });
+      await runsService.run(projectId!, file!.id, controller.current.getCode());
     } catch (err) {
       if (access.refused(err, () => void startRun())) return;
       setRunError(err instanceof ApiError ? err.message : "Could not run");
@@ -166,7 +165,7 @@ export function FileEditorPage() {
     if (!run) return;
     setRunError(null);
     try {
-      await api.post(`/projects/${projectId}/runs/${run.runId}/stop`);
+      await runsService.stop(projectId!, run.runId);
     } catch (err) {
       if (access.refused(err, () => void stopRun())) return;
       setRunError(err instanceof ApiError ? err.message : "Could not stop");

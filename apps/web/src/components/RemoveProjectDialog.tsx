@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Project } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
+import { projectsService } from "../services/projects.service";
 
 export function RemoveProjectDialog({ project, onClose }: { project: Project; onClose: () => void }) {
   const queryClient = useQueryClient();
@@ -13,7 +14,7 @@ export function RemoveProjectDialog({ project, onClose }: { project: Project; on
 
   const remove = useMutation({
     mutationFn: () =>
-      isOwner ? api.delete(`/projects/${project.id}`) : api.delete(`/projects/${project.id}/members/${user?.id}`),
+      isOwner ? projectsService.remove(project.id) : projectsService.removeMember(project.id, user?.id ?? ""),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ["project", project.id] });
       queryClient.removeQueries({ queryKey: ["files", project.id] });

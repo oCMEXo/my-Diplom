@@ -1,15 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type {
-  AuthResponse,
-  AuthUser,
-  DeleteAccountInput,
-  LoginInput,
-  RegisterInput,
-  UpgradeGuestInput,
-} from "@collab/shared";
-import { api } from "./api";
+import type { DeleteAccountInput, LoginInput, RegisterInput, UpgradeGuestInput } from "@collab/shared";
 import { tokenStore, type StoredUser } from "./tokenStore";
+import { authService } from "../services/auth.service";
 
 interface AuthContextValue {
   user: StoredUser | null;
@@ -49,36 +42,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userId, queryClient]);
 
   async function login(input: LoginInput) {
-    const result = await api.post<AuthResponse>("/auth/login", input);
+    const result = await authService.login(input);
     tokenStore.set(result);
   }
 
   async function register(input: RegisterInput) {
-    const result = await api.post<AuthResponse>("/auth/register", input);
+    const result = await authService.register(input);
     tokenStore.set(result);
   }
 
   async function continueAsGuest(name?: string) {
-    const result = await api.post<AuthResponse>("/auth/guest", { name });
+    const result = await authService.guest(name);
     tokenStore.set(result);
   }
 
   async function updateName(name: string) {
-    const updated = await api.patch<AuthUser>("/auth/me", { name });
+    const updated = await authService.updateName(name);
     const current = tokenStore.get();
     if (current) tokenStore.set({ ...current, user: updated });
     queryClient.invalidateQueries();
   }
 
   async function upgradeGuest(input: UpgradeGuestInput) {
-    const updated = await api.post<AuthUser>("/auth/upgrade", input);
+    const updated = await authService.upgradeGuest(input);
     const current = tokenStore.get();
     if (current) tokenStore.set({ ...current, user: updated });
     queryClient.invalidateQueries();
   }
 
   async function deleteAccount(input: DeleteAccountInput) {
-    await api.post("/auth/delete-account", input);
+    await authService.deleteAccount(input);
     await deleteOfflineCopies().catch(() => undefined);
     tokenStore.clear();
   }
@@ -86,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     const current = tokenStore.get();
     if (current) {
-      api.post("/auth/logout", { refreshToken: current.tokens.refreshToken }).catch(() => {});
+      authService.logout(current.tokens.refreshToken).catch(() => {});
     }
     tokenStore.clear();
   }

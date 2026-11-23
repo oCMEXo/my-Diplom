@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FileRecord } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { LanguageHint } from "./Languages";
 import { Modal } from "./ui/Modal";
+import { filesService } from "../services/files.service";
 
 export function RenameFileDialog({
   projectId,
@@ -25,7 +26,7 @@ export function RenameFileDialog({
   const invalid = trimmed.startsWith("/") || trimmed.endsWith("/") || trimmed.includes("..");
 
   const rename = useMutation({
-    mutationFn: () => api.patch(`/projects/${projectId}/files/${file.id}`, { path: trimmed }),
+    mutationFn: () => filesService.rename(projectId, file.id, trimmed),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["files", projectId] });
       onClose();

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GitBranch } from "lucide-react";
-import type { AuthResponse } from "@collab/shared";
-import { api, API_URL, ApiError } from "../lib/api";
+import { API_URL, ApiError } from "../lib/api";
 import { useFeatures } from "../lib/features";
 import { tokenStore } from "../lib/tokenStore";
 import { AuthShell } from "../components/layout/AuthShell";
 import { ErrorNote } from "../components/ui/Field";
 import { Spinner } from "../components/ui/Spinner";
+import { authService } from "../services/auth.service";
 
 export function GithubSignInButton({ redirectTo }: { redirectTo: string }) {
   const features = useFeatures();
@@ -39,8 +39,8 @@ export function GithubCallbackPage() {
       setError(failure ?? "The sign-in link is not complete. Please try again.");
       return;
     }
-    api
-      .post<AuthResponse>("/auth/github/exchange", { code })
+    authService
+      .githubExchange(code)
       .then((auth) => {
         tokenStore.set(auth);
         navigate(params.get("redirect") || "/", { replace: true });

@@ -3,20 +3,15 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { OctagonX, RotateCcw, SquareTerminal, X } from "lucide-react";
-import {
-  TERMINAL_MAX_MINUTES,
-  TERMINAL_WORKDIR,
-  terminalServerMessageSchema,
-  type TerminalClientMessage,
-  type TerminalTicket,
-} from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { TERMINAL_MAX_MINUTES, TERMINAL_WORKDIR, terminalServerMessageSchema, type TerminalClientMessage } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { wsUrl } from "../lib/endpoints";
 import { useRunMode } from "../lib/features";
 import { currentRunCode, runCode } from "../lib/run-code";
 import { Button } from "./ui/Button";
 import { RunCodeForm } from "./RunAccess";
 import { Spinner } from "./ui/Spinner";
+import { runsService } from "../services/collaboration.service";
 
 const TERMINAL_URL = import.meta.env.VITE_TERMINAL_URL ?? "http://localhost:3003";
 const HEIGHT_KEY = "collab.terminalHeight";
@@ -105,7 +100,7 @@ export function TerminalPanel({ projectId, onClose }: { projectId: string; onClo
     (async () => {
       let ticket: string;
       try {
-        ({ ticket } = await api.post<TerminalTicket>(`/projects/${projectId}/terminal`));
+        ({ ticket } = await runsService.openTerminal(projectId));
       } catch (error) {
         if (disposed) return;
         if (mode === "code" && error instanceof ApiError && error.status === 403 && /access code/i.test(error.message)) {

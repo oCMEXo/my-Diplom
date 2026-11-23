@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronRight, TextSearch, X } from "lucide-react";
 import { SEARCH_LIMITS, type FileRecord, type SearchMatch, type SearchResult } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { FILE_KINDS, fileTone } from "./layout/file-kinds";
 import { IconButton } from "./ui/Button";
 import { Spinner } from "./ui/Spinner";
+import { filesService } from "../services/files.service";
 
 const SEARCH_DELAY_MS = 300;
 
@@ -63,8 +64,8 @@ export function SearchPanel({
     const id = ++lookupId.current;
     setLookup((current) => ({ state: "loading", previous: current.state === "ready" ? current.data : undefined }));
     const timer = setTimeout(() => {
-      api
-        .get<SearchResult>(`/projects/${projectId}/search?q=${encodeURIComponent(term)}`)
+      filesService
+        .search(projectId, term)
         .then((data) => {
           if (id !== lookupId.current) return;
           setLookup({ state: "ready", data });

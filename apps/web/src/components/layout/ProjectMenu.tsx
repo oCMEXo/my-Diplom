@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, Download, FolderDown, GitBranch, GraduationCap, LoaderCircle, TextSearch, Upload, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Classroom, ProjectWithMembers } from "@collab/shared";
-import { api, ApiError } from "../../lib/api";
+import type { ProjectWithMembers } from "@collab/shared";
+import { ApiError } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { saveBlob } from "../../lib/save-blob";
+import { classesService } from "../../services/collaboration.service";
+import { projectsService } from "../../services/projects.service";
 
 const ROLE_NAMES = { owner: "owner", editor: "editor", viewer: "viewer" } as const;
 
@@ -85,7 +87,7 @@ export function ProjectMenu({
     setExporting(true);
     setError(null);
     try {
-      saveBlob(await api.download(`/projects/${project.id}/export`), `${project.name}.zip`);
+      saveBlob(await projectsService.exportZip(project.id), `${project.name}.zip`);
       setOpen(false);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not download the archive");
@@ -122,8 +124,8 @@ export function ProjectMenu({
               icon={<GraduationCap size={18} />}
               onClick={() => {
                 setError(null);
-                api
-                  .post<Classroom>(`/projects/${project.id}/class`, {})
+                classesService
+                  .createFromProject(project.id)
                   .then((classroom) => navigate(`/classes/${classroom.id}`))
                   .catch((err) => setError(err instanceof ApiError ? err.message : "Could not open the class"));
               }}

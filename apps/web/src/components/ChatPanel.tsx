@@ -2,13 +2,13 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { Link } from "react-router-dom";
 import { SendHorizontal } from "lucide-react";
 import { MESSAGE_PAGE_SIZE, type FileRecord, type Message } from "@collab/shared";
-import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { createFileRefParser } from "../lib/file-refs";
 import { useRealtimeEvents, useRealtimeStatus } from "../lib/RealtimeContext";
 import { Spinner } from "./ui/Spinner";
 import { Avatar } from "./ui/Avatar";
 import { IconButton } from "./ui/Button";
+import { messagesService } from "../services/collaboration.service";
 
 export interface ChatInsert {
   text: string;
@@ -63,9 +63,7 @@ export function ChatPanel({
   const parseRefs = useMemo(() => createFileRefParser(files.filter((file) => file.type !== "board")), [files]);
 
   const loadLatest = useCallback(async () => {
-    const latest = await api.get<Message[]>(
-      `/projects/${projectId}/messages?limit=${MESSAGE_PAGE_SIZE}`,
-    );
+    const latest = await messagesService.latest(projectId);
     setMessages((prev) => mergeById(prev, latest));
     setLoadState("ready");
     if (!loadedOnce.current) {
@@ -127,9 +125,7 @@ export function ChatPanel({
     if (!first) return;
     const el = listRef.current;
     const previousHeight = el?.scrollHeight ?? 0;
-    const older = await api.get<Message[]>(
-      `/projects/${projectId}/messages?limit=${MESSAGE_PAGE_SIZE}&before=${first.id}`,
-    );
+    const older = await messagesService.before(projectId, first.id);
     stickToBottom.current = false;
     setMessages((prev) => mergeById(prev, older));
     setHasMore(older.length === MESSAGE_PAGE_SIZE);
@@ -146,7 +142,7 @@ export function ChatPanel({
     setDraft("");
     stickToBottom.current = true;
     try {
-      const message = await api.post<Message>(`/projects/${projectId}/messages`, { body });
+      const message = await messagesService.send(projectId, body);
       setMessages((prev) => mergeById(prev, [message]));
     } catch {
       setDraft(body);

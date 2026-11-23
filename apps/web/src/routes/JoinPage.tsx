@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Eye, LinkIcon, Pencil, Sparkles, TriangleAlert } from "lucide-react";
-import type { InvitePreview, Project } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import type { InvitePreview } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { gradientFor, initials } from "../lib/colors";
 import { Button } from "../components/ui/Button";
@@ -11,6 +11,7 @@ import { ErrorNote, Field } from "../components/ui/Field";
 import { Spinner } from "../components/ui/Spinner";
 import { Wordmark } from "../components/ui/Logo";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
+import { projectsService } from "../services/projects.service";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -133,7 +134,7 @@ export function JoinPage() {
 
   const preview = useQuery({
     queryKey: ["invite-preview", code],
-    queryFn: () => api.get<InvitePreview>(`/join/${code}`),
+    queryFn: () => projectsService.invitePreview(code),
     enabled: !isAuthenticated && !!code,
     retry: false,
   });
@@ -141,8 +142,8 @@ export function JoinPage() {
   useEffect(() => {
     if (!isAuthenticated || !code || attempted.current) return;
     attempted.current = true;
-    api
-      .post<Project>(`/join/${code}`)
+    projectsService
+      .joinByInvite(code)
       .then((project) => navigate(`/projects/${project.id}`, { replace: true }))
       .catch((err) => setError(err instanceof ApiError ? err.message : "Could not join"));
   }, [isAuthenticated, code, navigate]);

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CircleCheck, MailCheck } from "lucide-react";
-import type { AuthUser } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { tokenStore } from "../lib/tokenStore";
 import { AuthShell } from "../components/layout/AuthShell";
 import { Button } from "../components/ui/Button";
 import { ErrorNote, Field } from "../components/ui/Field";
 import { Spinner } from "../components/ui/Spinner";
+import { authService } from "../services/auth.service";
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -20,7 +20,7 @@ export function ForgotPasswordPage() {
     setError(null);
     setLoading(true);
     try {
-      await api.post("/auth/forgot-password", { email });
+      await authService.forgotPassword(email);
       setSent(true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not send the email");
@@ -74,7 +74,7 @@ export function ResetPasswordPage() {
     setError(null);
     setLoading(true);
     try {
-      await api.post("/auth/reset-password", { token, password });
+      await authService.resetPassword(token, password);
       tokenStore.clear();
       navigate("/login?reset=1");
     } catch (err) {
@@ -124,8 +124,8 @@ export function VerifyEmailPage() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    api
-      .post<AuthUser>("/auth/verify-email", { token })
+    authService
+      .verifyEmail(token)
       .then((user) => {
         const current = tokenStore.get();
         if (current?.user.id === user.id) tokenStore.set({ ...current, user });

@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { MESSAGE_PAGE_SIZE, type Message } from "@collab/shared";
-import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { countUnread, markRead, readMark } from "../lib/chat-read";
 import { useRealtimeEvents, useRealtimeStatus } from "../lib/RealtimeContext";
+import { messagesService } from "../services/collaboration.service";
 
 export function UnreadWatcher({
   projectId,
@@ -37,8 +36,8 @@ export function UnreadWatcher({
   useEffect(() => {
     if (status !== "open" || seenRef.current) return;
     let current = true;
-    api
-      .get<Message[]>(`/projects/${projectId}/messages?limit=${MESSAGE_PAGE_SIZE}`)
+    messagesService
+      .latest(projectId)
       .then((messages) => {
         if (current && !seenRef.current) setUnread(countUnread(messages, readMark(projectId), userId));
       })

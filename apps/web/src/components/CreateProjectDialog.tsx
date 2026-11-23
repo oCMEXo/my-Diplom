@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileCode, FolderPlus, GitBranch } from "lucide-react";
-import type { ImportResult, Project, ProjectTemplate } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import type { Project, ProjectTemplate } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Segmented } from "./ui/Segmented";
+import { projectsService } from "../services/projects.service";
 
 type Source = "empty" | "example" | "github";
 
@@ -27,11 +28,11 @@ export function CreateProjectDialog({ onClose, onCreated }: { onClose: () => voi
 
   const create = useMutation({
     mutationFn: async () => {
-      if (source === "empty") return api.post<Project>("/projects", { name: name.trim() });
-      if (source === "example") return api.post<Project>("/projects", { name: name.trim(), template });
-      const project = created ?? (await api.post<Project>("/projects", { name: projectNameFromRepoUrl(url) }));
+      if (source === "empty") return projectsService.create({ name: name.trim() });
+      if (source === "example") return projectsService.create({ name: name.trim(), template });
+      const project = created ?? (await projectsService.create({ name: projectNameFromRepoUrl(url) }));
       setCreated(project);
-      await api.post<ImportResult>(`/projects/${project.id}/import/github`, { url: url.trim() });
+      await projectsService.importGithub(project.id, url.trim());
       return project;
     },
     onSuccess: (project) => {

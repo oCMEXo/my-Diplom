@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Eye, Pencil, RefreshCw } from "lucide-react";
-import type { InviteLink, InviteRole, ProjectWithMembers } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import type { InviteRole, ProjectWithMembers } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { Button } from "./ui/Button";
 import { ErrorNote } from "./ui/Field";
 import { Modal } from "./ui/Modal";
 import { Segmented } from "./ui/Segmented";
+import { projectsService } from "../services/projects.service";
 
 export function InviteDialog({ project, onClose }: { project: ProjectWithMembers; onClose: () => void }) {
   const queryClient = useQueryClient();
@@ -19,15 +20,15 @@ export function InviteDialog({ project, onClose }: { project: ProjectWithMembers
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["project", project.id] });
 
   const regenerate = useMutation({
-    mutationFn: () => api.post<InviteLink>(`/projects/${project.id}/invite/regenerate`),
+    mutationFn: () => projectsService.regenerateInvite(project.id),
     onSuccess: refresh,
   });
   const changeRole = useMutation({
-    mutationFn: (role: InviteRole) => api.patch<InviteLink>(`/projects/${project.id}/invite`, { role }),
+    mutationFn: (role: InviteRole) => projectsService.setInviteRole(project.id, role),
     onSuccess: refresh,
   });
   const inviteByEmail = useMutation({
-    mutationFn: () => api.post(`/projects/${project.id}/members`, { email, role: emailRole }),
+    mutationFn: () => projectsService.inviteMember(project.id, email, emailRole),
     onSuccess: () => {
       setEmail("");
       refresh();

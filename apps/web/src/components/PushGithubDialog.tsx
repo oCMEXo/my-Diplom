@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ExternalLink, GitBranch, GitCommitHorizontal, LoaderCircle, TriangleAlert } from "lucide-react";
-import type { GithubBranchesResult, ProjectWithMembers, PushPreview, PushResult } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import type { GithubBranchesResult, ProjectWithMembers, PushPreview } from "@collab/shared";
+import { ApiError } from "../lib/api";
 import { cn } from "../lib/cn";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
+import { githubService } from "../services/collaboration.service";
 
 const TOKEN_KEY = "collab.github-token";
 const SYNC_WAIT_MS = 3500;
@@ -74,8 +75,8 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
     const id = ++lookupId.current;
     setLookup({ state: "loading" });
     const timer = setTimeout(() => {
-      api
-        .post<GithubBranchesResult>(`/projects/${project.id}/github/branches`, {
+      githubService
+        .branches(project.id, {
           token: token.trim(),
           ...(linked ? {} : { repoUrl: repoUrl.trim() }),
         })
@@ -103,8 +104,8 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
     const id = ++previewId.current;
     setPreview({ state: "loading" });
     const timer = setTimeout(() => {
-      api
-        .post<PushPreview>(`/projects/${project.id}/github/preview`, {
+      githubService
+        .preview(project.id, {
           token: token.trim(),
           branch,
           ...(linked ? {} : { repoUrl: repoUrl.trim() }),
@@ -131,7 +132,7 @@ export function PushGithubDialog({ project, onClose }: { project: ProjectWithMem
       setPhase("saving");
       await new Promise((resolve) => setTimeout(resolve, SYNC_WAIT_MS));
       setPhase("pushing");
-      return api.post<PushResult>(`/projects/${project.id}/github/push`, {
+      return githubService.push(project.id, {
         token: token.trim(),
         message: message.trim(),
         branch,

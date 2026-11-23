@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Link as LinkIcon, Plus, Trash2, X } from "lucide-react";
 import type { Project } from "@collab/shared";
-import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { gradientFor, initials } from "../lib/colors";
 import { CreateProjectDialog } from "../components/CreateProjectDialog";
@@ -15,6 +14,7 @@ import { RoleBadge } from "../components/ui/RoleBadge";
 import { Spinner } from "../components/ui/Spinner";
 import { VerifyEmailBanner } from "../components/VerifyEmailBanner";
 import { ClassesSection } from "../components/ClassesSection";
+import { projectsService } from "../services/projects.service";
 
 function projectCode(value: string) {
   const match = value.trim().match(/\/join\/([^/?#\s]+)/);
@@ -34,7 +34,7 @@ export function ProjectsPage() {
 
   const { data: projects, isLoading, isError, refetch } = useQuery({
     queryKey: ["projects"],
-    queryFn: () => api.get<Project[]>("/projects"),
+    queryFn: () => projectsService.list(),
   });
 
   function join(event: FormEvent) {

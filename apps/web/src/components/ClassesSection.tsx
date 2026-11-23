@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GraduationCap } from "lucide-react";
-import type { Classroom } from "@collab/shared";
-import { api } from "../lib/api";
+import { classesService } from "../services/collaboration.service";
 
 export function ClassesSection() {
-  const { data } = useQuery({ queryKey: ["classes"], queryFn: () => api.get<Classroom[]>("/classes") });
+  const { data } = useQuery({ queryKey: ["classes"], queryFn: () => classesService.list() });
   if (!data || data.length === 0) return null;
 
   return (

@@ -1,11 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { KeyRound } from "lucide-react";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { useRunMode } from "../lib/features";
 import { currentRunCode, runCode } from "../lib/run-code";
 import { Button } from "./ui/Button";
 import { ErrorNote, Field } from "./ui/Field";
 import { Modal } from "./ui/Modal";
+import { runsService } from "../services/collaboration.service";
 
 export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; onCancel?: () => void }) {
   const [code, setCode] = useState("");
@@ -18,7 +19,7 @@ export function RunCodeForm({ onUnlocked, onCancel }: { onUnlocked: () => void; 
     setChecking(true);
     setError(null);
     try {
-      await api.post("/run-access", { code: code.trim() });
+      await runsService.checkAccessCode(code.trim());
       runCode.set(code.trim());
       onUnlocked();
     } catch (err) {

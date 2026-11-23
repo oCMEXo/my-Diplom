@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, Copy, ExternalLink, GraduationCap, RefreshCw, Trash2, Users } from "lucide-react";
-import type { ClassDetail } from "@collab/shared";
-import { api, ApiError } from "../lib/api";
+import { ApiError } from "../lib/api";
 import { versionAge } from "../lib/versions";
 import { Avatar } from "../components/ui/Avatar";
 import { Button } from "../components/ui/Button";
@@ -11,6 +10,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorScreen } from "../components/ui/ErrorScreen";
 import { FullScreenLoader } from "../components/ui/Spinner";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
+import { classesService } from "../services/collaboration.service";
 
 export function classLink(joinCode: string) {
   return `${window.location.origin}/class/${joinCode}`;
@@ -25,11 +25,11 @@ export function ClassPage() {
 
   const classroom = useQuery({
     queryKey: ["class", classId],
-    queryFn: () => api.get<ClassDetail>(`/classes/${classId}`),
+    queryFn: () => classesService.get(classId),
     refetchInterval: 10_000,
   });
   const regenerate = useMutation({
-    mutationFn: () => api.post(`/classes/${classId}/regenerate-link`),
+    mutationFn: () => classesService.regenerateLink(classId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["class", classId] }),
   });
 
@@ -149,7 +149,7 @@ export function ClassPage() {
           description="The link stops working. Students keep their copies, and you stay an editor in them."
           confirmLabel="Delete the class"
           danger
-          action={() => api.delete(`/classes/${classId}`)}
+          action={() => classesService.remove(classId)}
           onClose={() => setDeleting(false)}
           onDone={() => {
             void queryClient.invalidateQueries({ queryKey: ["classes"] });
