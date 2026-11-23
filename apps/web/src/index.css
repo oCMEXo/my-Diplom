@@ -91,6 +91,24 @@
   }
 }
 
+@media (pointer: coarse) {
+  :where(
+      button,
+      select,
+      textarea,
+      input:not([type="checkbox"], [type="radio"], [type="hidden"]),
+      a[href],
+      [role="button"],
+      [role="menuitem"],
+      [role="tab"],
+      [role="radio"],
+      [role="switch"]
+    ):not(.monaco-editor *, .xterm *) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -167,11 +185,13 @@
   background-size: 22px 22px;
 }
 
-@media (hover: none) {
+@media (hover: none), (pointer: coarse) {
   .touch-visible {
     opacity: 1 !important;
   }
-  .touch-reserve {
-    padding-right: 3.5rem;
+  .touch-show {
+    width: auto !important;
+    padding-right: 0.375rem !important;
+    opacity: 1 !important;
   }
 }

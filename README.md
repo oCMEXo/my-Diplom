@@ -103,6 +103,19 @@ in [docs/api](docs/api/README.md):
 `pnpm api:docs` writes the files again after a change in the API, and `pnpm api:lint` checks them.
 The tests fail if the saved files are out of date or an endpoint has no examples.
 
+## Adaptive UI
+
+The app works on phones, tablets and desktops, in both orientations and with browser zoom.
+Everything is in [docs/adaptive](docs/adaptive/README.md):
+
+- mock-ups for phone, tablet and desktop with the component library:
+  [docs/adaptive/Adaptive_UI_Harminovich_Artsiom.pdf](docs/adaptive/Adaptive_UI_Harminovich_Artsiom.pdf)
+- the component library inside the app: http://localhost:5173/design-system (colors with measured
+  contrast, typography, buttons, fields, badges, breakpoints)
+- on touch screens every control is at least 44 × 44 px; all text passes WCAG 2.1 AA contrast
+- `e2e/tests/adaptive.spec.ts` checks 8 screens on 7 screen sizes in both themes for sideways
+  scrolling, overlapping controls, small touch targets and low contrast
+
 ## Front end
 
 The web app is a single-page app on React 18, TypeScript and Vite, in `apps/web`. Everything about it
@@ -197,6 +210,7 @@ More in [docs/deploy-gcp.md](docs/deploy-gcp.md) and [docs/roadmap.md](docs/road
 
 - [docs/roadmap.md](docs/roadmap.md): what is done to make this a product, and what is next
 - [docs/frontend](docs/frontend/README.md): front end (architecture, user flows, stack, tests)
+- [docs/adaptive](docs/adaptive/README.md): adaptive UI (mock-ups PDF, component library, checks)
 - [docs/db](docs/db): database (data dictionary, ER diagram, migrations, DDL)
 - [docs/ux](docs/ux): UX specification with scenarios, errors, visual style, components and screens (PDF)
 - [docs/ba](docs/ba): business analysis

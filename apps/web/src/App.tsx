@@ -21,6 +21,7 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectPage } from "./pages/ProjectPage";
 import { FileEditorPage } from "./pages/FileEditorPage";
 import { EmptyProjectView } from "./pages/EmptyProjectView";
+import { DesignSystemPage } from "./pages/DesignSystemPage";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -66,6 +67,7 @@ export function App() {
               <Route path="/class/:code" element={<ClassJoinPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/terms" element={<TermsPage />} />
+              <Route path="/design-system" element={<DesignSystemPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />

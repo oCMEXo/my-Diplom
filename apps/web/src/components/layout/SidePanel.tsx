@@ -35,7 +35,7 @@ export function SidePanel({
 
   const tabs: { id: PanelTab; label: string; icon: typeof Users; badge?: number; tone?: string }[] = [
     { id: "chat", label: "Chat", icon: MessageSquare, badge: unread, tone: "bg-danger text-white" },
-    { id: "members", label: "Members", icon: Users, badge: online.length, tone: "bg-ok/20 text-ok" },
+    { id: "members", label: "Members", icon: Users, badge: online.length, tone: "bg-ok/20 text-fg" },
   ];
 
   return (

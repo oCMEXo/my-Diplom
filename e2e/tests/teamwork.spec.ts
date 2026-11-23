@@ -57,7 +57,8 @@ test("a new file and a new member appear for everyone without a reload", async (
 
   await expect(guestPage.locator(".monaco-editor textarea").first()).toBeFocused();
 
-  await ownerPage.getByRole("button", { name: "Delete note.py" }).click({ force: true });
+  await tree(ownerPage).hover();
+  await ownerPage.getByRole("button", { name: "Delete note.py" }).click();
   await ownerPage.getByRole("dialog").getByRole("button", { name: /Delete|Move to trash/ }).click();
   await expect(tree(guestPage).first()).toBeHidden();
 

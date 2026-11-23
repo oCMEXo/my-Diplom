@@ -18,7 +18,7 @@ function MockEditor() {
         <span className="h-2.5 w-2.5 rounded-full bg-[#f87171]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#fbbf24]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#34d399]" />
-        <span className="ml-3 text-sm text-white/40">main.py</span>
+        <span className="ml-3 text-sm text-white/70">main.py</span>
       </div>
       <p>
         <span className="text-[#c4b5fd]">def</span> <span className="text-[#93c5fd]">greet</span>(name):
@@ -79,12 +79,12 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
             ))}
           </ul>
         </div>
-        <p className="relative z-10 text-sm text-white/40">Diploma project ·{" "}
-          <Link to="/privacy" className="underline hover:text-white/70">
+        <p className="relative z-10 text-sm text-white/70">Diploma project ·{" "}
+          <Link to="/privacy" className="underline hover:text-white">
             data and privacy
           </Link>
           {" · "}
-          <Link to="/terms" className="underline hover:text-white/70">
+          <Link to="/terms" className="underline hover:text-white">
             terms of use
           </Link></p>
       </aside>

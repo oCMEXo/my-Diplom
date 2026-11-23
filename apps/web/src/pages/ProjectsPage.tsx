@@ -114,36 +114,38 @@ export function ProjectsPage() {
         {projects && (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <li key={project.id} className="group/card relative">
-                <Link
-                  to={`/projects/${project.id}`}
-                  className="group flex h-full flex-col gap-4 rounded-xl bg-surface p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-glow"
-                >
-                  <span
-                    style={{ background: gradientFor(project.id) }}
-                    className="flex h-12 w-12 items-center justify-center rounded-lg text-base font-bold text-black/70"
-                  >
-                    {initials(project.name)}
-                  </span>
+              <li
+                key={project.id}
+                className="group/card flex h-full flex-col rounded-xl bg-surface shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-glow"
+              >
+                <Link to={`/projects/${project.id}`} className="group flex flex-1 flex-col gap-4 rounded-t-xl p-5 pb-3">
+                  <div className="flex items-start justify-between">
+                    <span
+                      style={{ background: gradientFor(project.id) }}
+                      className="flex h-12 w-12 items-center justify-center rounded-lg text-base font-bold text-black/70"
+                    >
+                      {initials(project.name)}
+                    </span>
+                    <ArrowRight size={18} className="text-faint transition group-hover:translate-x-1 group-hover:text-accent-ink" />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <p title={project.name} className="truncate text-lg font-semibold">{project.name}</p>
                     <p className="mt-1 text-sm text-faint">
                       created {new Date(project.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <RoleBadge role={project.myRole} />
-                    <ArrowRight size={18} className="text-faint transition group-hover:translate-x-1 group-hover:text-accent-ink" />
-                  </div>
                 </Link>
-                <button
-                  onClick={() => setRemoving(project)}
-                  aria-label={project.myRole === "owner" ? `Delete project ${project.name}` : `Leave project ${project.name}`}
-                  title={project.myRole === "owner" ? "Delete project" : "Leave project"}
-                  className="touch-visible absolute right-3 top-3 rounded-lg p-1.5 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/card:opacity-100"
-                >
-                  {project.myRole === "owner" ? <Trash2 size={18} /> : <LogOut size={18} />}
-                </button>
+                <div className="flex items-center justify-between px-5 pb-4">
+                  <RoleBadge role={project.myRole} />
+                  <button
+                    onClick={() => setRemoving(project)}
+                    aria-label={project.myRole === "owner" ? `Delete project ${project.name}` : `Leave project ${project.name}`}
+                    title={project.myRole === "owner" ? "Delete project" : "Leave project"}
+                    className="touch-visible flex items-center justify-center rounded-lg p-1.5 text-faint opacity-0 transition hover:bg-bad/15 hover:text-bad focus-visible:opacity-100 group-hover/card:opacity-100"
+                  >
+                    {project.myRole === "owner" ? <Trash2 size={18} /> : <LogOut size={18} />}
+                  </button>
+                </div>
               </li>
             ))}
             <li>

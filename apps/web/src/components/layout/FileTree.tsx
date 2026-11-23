@@ -68,7 +68,10 @@ export function FileTree({
 
       const kind = FILE_KINDS[node.file.type];
       return (
-        <li key={node.file.id} className="group/file relative">
+        <li
+          key={node.file.id}
+          className="group/file flex items-center rounded-lg transition hover:bg-raised has-[[aria-current=page]]:bg-selected"
+        >
           <NavLink
             to={`/projects/${projectId}/files/${node.file.id}`}
             onClick={onNavigate}
@@ -76,9 +79,8 @@ export function FileTree({
             style={{ paddingLeft: 10 + depth * INDENT_PX + 22 }}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-2 rounded-lg py-1.5 pr-2 text-base font-medium transition",
-                canEdit && "touch-reserve group-focus-within/file:pr-14 group-hover/file:pr-14",
-                isActive ? "bg-selected text-fg" : "text-muted hover:bg-raised hover:text-fg",
+                "flex min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-2 text-base font-medium transition",
+                isActive ? "text-fg" : "text-muted group-hover/file:text-fg",
               )
             }
           >
@@ -86,7 +88,7 @@ export function FileTree({
             <span className="truncate">{node.name}</span>
           </NavLink>
           {canEdit && (
-            <span className="touch-visible absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center opacity-0 transition focus-within:opacity-100 group-hover/file:opacity-100">
+            <span className="touch-show flex w-0 shrink-0 items-center overflow-hidden opacity-0 group-focus-within/file:w-auto group-focus-within/file:pr-1.5 group-focus-within/file:opacity-100 group-hover/file:w-auto group-hover/file:pr-1.5 group-hover/file:opacity-100">
               <button
                 onClick={() => onRenameFile(node.file)}
                 aria-label={`Rename ${node.file.path}`}
