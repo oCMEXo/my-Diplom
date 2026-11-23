@@ -85,6 +85,21 @@ and the migrations are next to it in `packages/db/prisma/migrations`. `pnpm db:m
 whole structure, so nothing is done by hand. `pnpm db:schema-sql` rebuilds `docs/db/schema.sql` from the
 schema.
 
+## Front end
+
+The web app is a single-page app on React 18, TypeScript and Vite, in `apps/web`. Everything about it
+is in [docs/frontend](docs/frontend/README.md): the architecture diagram, user flows, why I chose this
+stack, and where each part is in the code. In short:
+
+- structure: `src/pages` (screens), `src/components` (`ui/`, `layout/` and feature components),
+  `src/services` (all API calls), `src/lib` (API client, contexts, helpers)
+- forms are checked with the same Zod schemas as the server (`src/lib/form-validation.ts`), with an
+  error under each field
+- errors: `ErrorBoundary`, a global handler in `src/lib/report-error.ts`, and `ApiError` in
+  `src/lib/api.ts`
+- loading states on buttons, pages and the connection status
+- component tests: `pnpm --filter @collab/web test`; end-to-end tests: `pnpm --filter @collab/e2e e2e`
+
 ## Tests
 
 - `pnpm lint`, `pnpm typecheck` and `pnpm test` run over all packages. The tests need the Postgres and
@@ -163,6 +178,7 @@ More in [docs/deploy-gcp.md](docs/deploy-gcp.md) and [docs/roadmap.md](docs/road
 ## Documentation
 
 - [docs/roadmap.md](docs/roadmap.md): what is done to make this a product, and what is next
+- [docs/frontend](docs/frontend/README.md): front end (architecture, user flows, stack, tests)
 - [docs/db](docs/db): database (data dictionary, ER diagram, migrations, DDL)
 - [docs/ux](docs/ux): UX specification with scenarios, errors, visual style, components and screens (PDF)
 - [docs/ba](docs/ba): business analysis

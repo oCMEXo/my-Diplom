@@ -1,0 +1,25 @@
+flowchart TB
+  Main["<b>main.tsx</b><br>service worker, handlers for uncaught errors"]
+  App["<b>App.tsx</b><br>TanStack Query with a local cache, Theme, Auth,<br>React Router, ErrorBoundary"]
+  Pages["<b>pages/</b><br>Landing, Login, Register, password pages,<br>Projects, Project, FileEditor, Join, Class"]
+  Components["<b>components/</b><br>ui/: Button, Field, Modal, Spinner, ErrorScreen<br>layout/: header, file tree, side panel<br>features: CollabEditor, BoardEditor, ChatPanel, RunPanel, dialogs"]
+  Services["<b>services/</b><br>auth, projects, files, collaboration"]
+  Lib["<b>lib/</b><br>api.ts: fetch, tokens, ApiError<br>form-validation.ts, report-error.ts"]
+  Realtime["<b>lib/realtime.ts, useCollabDoc</b><br>Yjs documents and the Hocuspocus provider"]
+  IDB[("IndexedDB<br>offline copies")]
+  API["REST API<br>Fastify"]
+  Collab["Collab server<br>Hocuspocus"]
+  Runner["Runner<br>terminal and code runs"]
+
+  Main --> App --> Pages --> Components
+  Pages --> Services
+  Components --> Services
+  Components --> Realtime
+  Services --> Lib
+  Realtime --> IDB
+  Lib -- "HTTPS, JSON" --> API
+  Realtime -- "WebSocket, Yjs updates" --> Collab
+  Components -- "WebSocket" --> Runner
+
+  classDef ext fill:#eef4ff,stroke:#5b7bd5
+  class API,Collab,Runner ext

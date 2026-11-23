@@ -12,10 +12,10 @@ where "a student joins the lesson by a link, without an account" is the strong s
 | Safe for strangers: accounts | Email confirmation and password reset by email (SMTP), "Continue with GitHub" | `apps/api/src/modules/auth/email.service.ts`, `github-signin.service.ts` |
 | Safe for strangers: limits | Projects per person, files per project, runs and terminals per minute | `apps/api/src/lib/limits.ts` |
 | Safe for strangers: operations | Daily database backups kept 7 days, `/health/ready` for an uptime monitor, browser errors in the server log | `infra/backup.sh`, `apps/api/src/lib/health.ts` |
-| Built for teachers: classes | One class link, every student gets their own copy of the task, the class page lists students with their last edit and who is online | `apps/api/src/modules/classes`, `apps/web/src/routes/ClassPage.tsx` |
+| Built for teachers: classes | One class link, every student gets their own copy of the task, the class page lists students with their last edit and who is online | `apps/api/src/modules/classes`, `apps/web/src/pages/ClassPage.tsx` |
 | Built for teachers: languages | C, C++ and Java run next to JavaScript and Python | `apps/runner/src/sandbox.ts` |
 | Measure | Usage events on our own server (no cookies, no third parties, deleted after 180 days) and a `stats` command | `apps/api/src/lib/usage.ts`, `apps/api/src/stats.ts` |
-| First users | A landing page for visitors with "Try it now as a guest" | `apps/web/src/routes/LandingPage.tsx` |
+| First users | A landing page for visitors with "Try it now as a guest" | `apps/web/src/pages/LandingPage.tsx` |
 
 All of it is covered by tests: unit tests with a real database and Redis, real Docker runs of C, C++
 and Java, and end-to-end tests of the class, password and landing flows.
