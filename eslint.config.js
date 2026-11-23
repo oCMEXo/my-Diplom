@@ -13,4 +13,8 @@ export default tseslint.config(
       "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
+  {
+    files: ["**/src/openapi/**/*.ts"],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
+  },
 );

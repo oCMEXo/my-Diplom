@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run",
-    "stats": "tsx src/stats.ts"
+    "stats": "tsx src/stats.ts",
+    "openapi": "tsx src/openapi/export.ts"
   },
   "dependencies": {
     "@collab/db": "workspace:*",
@@ -41,6 +42,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
     "vitest": "^2.1.4",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "yaml": "^2.6.1"
   }
 }

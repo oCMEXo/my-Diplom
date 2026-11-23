@@ -19,10 +19,13 @@
     "test": "pnpm -r test",
     "db:generate": "pnpm --filter @collab/db generate",
     "db:migrate": "pnpm --filter @collab/db migrate",
-    "db:schema-sql": "pnpm --filter @collab/db schema-sql"
+    "db:schema-sql": "pnpm --filter @collab/db schema-sql",
+    "api:docs": "pnpm --filter @collab/api openapi",
+    "api:lint": "redocly lint"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
+    "@redocly/cli": "^1.25.0",
     "eslint": "^9.14.0",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.13.0"

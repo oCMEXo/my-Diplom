@@ -85,6 +85,24 @@ and the migrations are next to it in `packages/db/prisma/migrations`. `pnpm db:m
 whole structure, so nothing is done by hand. `pnpm db:schema-sql` rebuilds `docs/db/schema.sql` from the
 schema.
 
+## API documentation
+
+The REST API is described in OpenAPI 3.0, made from the code and checked with Redocly. Everything is
+in [docs/api](docs/api/README.md):
+
+- the specification: [docs/api/openapi.yaml](docs/api/openapi.yaml) and
+  [docs/api/openapi.json](docs/api/openapi.json): 63 endpoints, with examples, status codes, error
+  messages and data models
+- [Getting started](docs/api/getting-started.md), and two step-by-step guides:
+  [build a team project](docs/api/guides/team-project.md) and
+  [run code and read the output live](docs/api/guides/run-code.md), with scripts you can run
+- while the API runs: Swagger UI at http://localhost:3001/docs and Redoc at
+  http://localhost:3001/docs/reference (live: https://35-228-155-63.sslip.io/api/docs)
+- real-time protocols (Yjs sync, `/ws` events, terminal): [docs/websocket-protocol.md](docs/websocket-protocol.md)
+
+`pnpm api:docs` writes the files again after a change in the API, and `pnpm api:lint` checks them.
+The tests fail if the saved files are out of date or an endpoint has no examples.
+
 ## Front end
 
 The web app is a single-page app on React 18, TypeScript and Vite, in `apps/web`. Everything about it
@@ -187,7 +205,8 @@ More in [docs/deploy-gcp.md](docs/deploy-gcp.md) and [docs/roadmap.md](docs/road
 - [docs/deploy-local.md](docs/deploy-local.md), [docs/deploy-gcp.md](docs/deploy-gcp.md),
   [docs/deploy-aws.md](docs/deploy-aws.md): deployment
 - [docs/thesis](docs/thesis): thesis chapters
-- Swagger: `http://localhost:3001/docs` while the API is running
+- [docs/api](docs/api/README.md): API documentation (OpenAPI file, getting started, integration guides)
+- Swagger UI: `http://localhost:3001/docs`, Redoc: `http://localhost:3001/docs/reference` while the API is running
 
 ## Author
 

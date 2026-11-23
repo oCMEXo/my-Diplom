@@ -1,0 +1,5153 @@
+openapi: 3.0.3
+info:
+  title: Collab API
+  version: 1.0.0
+  description: |-
+    REST API of Collab, a web app where several people write code, documents and boards together in real time.
+
+    This API covers accounts, projects, members, files, versions, chat, classes, code runs and GitHub. The text of files is not sent through REST: it syncs over a WebSocket with the collaboration server (Yjs). Live events (presence, chat, run output, access changes) come over `GET /ws`. Both are described in [docs/websocket-protocol.md](https://github.com/oCMEXo/my-Diplom/blob/main/docs/websocket-protocol.md).
+
+    **Guides:** [Getting started](https://github.com/oCMEXo/my-Diplom/blob/main/docs/api/getting-started.md) · [Integration guides](https://github.com/oCMEXo/my-Diplom/blob/main/docs/api/README.md)
+
+    ## Authentication
+
+    Sign in with `POST /auth/login`, `POST /auth/register` or `POST /auth/guest`. Send the access token in every request that needs it:
+
+    ```
+    Authorization: Bearer <accessToken>
+    ```
+
+    The access token lives 15 minutes. When a request returns 401, call `POST /auth/refresh` with the refresh token (it lives 30 days and works once) and repeat the request.
+
+    ## Errors
+
+    Every error has the same body: `{ "message": "…" }`. The message is written for people and can be shown as it is. Invalid input returns 400 with "Please check the form: some fields are not valid."
+
+    ## Limits
+
+    Requests per IP are limited (429 with "Too many requests. Wait N s and try again."). Sign-in and sign-up have a stricter limit. A user can own up to 100 projects, and a project can have up to 2000 files.
+
+    ## Running code
+
+    Running code may be turned off or need an access code. `GET /features` tells which. With an access code, send it in the `X-Run-Code` header.
+  contact:
+    name: Artsiom Harminovich
+    url: https://github.com/oCMEXo/my-Diplom
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+      additionalProperties: false
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        isGuest:
+          type: boolean
+        emailVerified:
+          type: boolean
+      required:
+        - id
+        - email
+        - name
+        - isGuest
+        - emailVerified
+      additionalProperties: false
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      required:
+        - accessToken
+        - refreshToken
+      additionalProperties: false
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        tokens:
+          $ref: "#/components/schemas/AuthTokens"
+      required:
+        - user
+        - tokens
+      additionalProperties: false
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+      required:
+        - email
+        - password
+        - name
+      additionalProperties: false
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+      required:
+        - email
+        - password
+      additionalProperties: false
+    GuestLoginRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+      additionalProperties: false
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+      required:
+        - refreshToken
+      additionalProperties: false
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+      required:
+        - name
+      additionalProperties: false
+    UpgradeGuestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+      required:
+        - email
+        - password
+      additionalProperties: false
+    DeleteAccountRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+      additionalProperties: false
+    ForgotPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+      additionalProperties: false
+    ResetPasswordRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 20
+          maxLength: 200
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+      required:
+        - token
+        - password
+      additionalProperties: false
+    VerifyEmailRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 20
+          maxLength: 200
+      required:
+        - token
+      additionalProperties: false
+    GithubExchangeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 20
+          maxLength: 200
+      required:
+        - code
+      additionalProperties: false
+    CreateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        template:
+          type: string
+          enum:
+            - python
+            - javascript
+      required:
+        - name
+      additionalProperties: false
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        myRole:
+          type: string
+          enum:
+            - owner
+            - editor
+            - viewer
+        inviteCode:
+          type: string
+          nullable: true
+        inviteRole:
+          type: string
+          enum:
+            - editor
+            - viewer
+        github:
+          type: object
+          properties:
+            owner:
+              type: string
+            repo:
+              type: string
+            branch:
+              type: string
+              nullable: true
+          required:
+            - owner
+            - repo
+            - branch
+          additionalProperties: false
+          nullable: true
+        classId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+        - id
+        - name
+        - ownerId
+        - createdAt
+        - myRole
+        - inviteCode
+        - inviteRole
+        - github
+        - classId
+      additionalProperties: false
+    ProjectWithMembers:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        myRole:
+          type: string
+          enum:
+            - owner
+            - editor
+            - viewer
+        inviteCode:
+          type: string
+          nullable: true
+        inviteRole:
+          type: string
+          enum:
+            - editor
+            - viewer
+        github:
+          type: object
+          properties:
+            owner:
+              type: string
+            repo:
+              type: string
+            branch:
+              type: string
+              nullable: true
+          required:
+            - owner
+            - repo
+            - branch
+          additionalProperties: false
+          nullable: true
+        classId:
+          type: string
+          format: uuid
+          nullable: true
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectMember"
+      required:
+        - id
+        - name
+        - ownerId
+        - createdAt
+        - myRole
+        - inviteCode
+        - inviteRole
+        - github
+        - classId
+        - members
+      additionalProperties: false
+    ProjectMember:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          type: string
+          enum:
+            - owner
+            - editor
+            - viewer
+      required:
+        - userId
+        - name
+        - role
+      additionalProperties: false
+    InviteMemberRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - editor
+            - viewer
+      required:
+        - email
+        - role
+      additionalProperties: false
+    RoleRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - editor
+            - viewer
+      required:
+        - role
+      additionalProperties: false
+    InviteLink:
+      type: object
+      properties:
+        inviteCode:
+          type: string
+        inviteRole:
+          type: string
+          enum:
+            - editor
+            - viewer
+      required:
+        - inviteCode
+        - inviteRole
+      additionalProperties: false
+    InvitePreview:
+      type: object
+      properties:
+        projectName:
+          type: string
+        ownerName:
+          type: string
+        role:
+          type: string
+          enum:
+            - editor
+            - viewer
+      required:
+        - projectName
+        - ownerName
+        - role
+      additionalProperties: false
+    CreateFileRequest:
+      type: object
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^[^/].*[^/]$|^[^/]$
+        type:
+          type: string
+          enum:
+            - code
+            - doc
+            - board
+          default: code
+        language:
+          type: string
+          maxLength: 50
+      required:
+        - path
+      additionalProperties: false
+    UpdateFileRequest:
+      type: object
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^[^/].*[^/]$|^[^/]$
+        language:
+          type: string
+          maxLength: 50
+          nullable: true
+      additionalProperties: false
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        path:
+          type: string
+        type:
+          type: string
+          enum:
+            - code
+            - doc
+            - board
+        language:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - path
+        - type
+        - language
+        - updatedAt
+      additionalProperties: false
+    TrashedFile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        path:
+          type: string
+        type:
+          type: string
+          enum:
+            - code
+            - doc
+            - board
+        language:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
+        purgeAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - path
+        - type
+        - language
+        - updatedAt
+        - deletedAt
+        - purgeAt
+      additionalProperties: false
+    FileVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        size:
+          type: integer
+          minimum: 0
+        authorName:
+          type: string
+          nullable: true
+      required:
+        - id
+        - createdAt
+        - size
+        - authorName
+      additionalProperties: false
+    FileVersionContent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        size:
+          type: integer
+          minimum: 0
+        authorName:
+          type: string
+          nullable: true
+        content:
+          type: string
+      required:
+        - id
+        - createdAt
+        - size
+        - authorName
+        - content
+      additionalProperties: false
+    SearchMatch:
+      type: object
+      properties:
+        line:
+          type: integer
+        column:
+          type: integer
+        length:
+          type: integer
+        preview:
+          type: string
+        previewOffset:
+          type: integer
+      required:
+        - line
+        - column
+        - length
+        - preview
+        - previewOffset
+      additionalProperties: false
+    SearchFileResult:
+      type: object
+      properties:
+        fileId:
+          type: string
+          format: uuid
+        path:
+          type: string
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchMatch"
+      required:
+        - fileId
+        - path
+        - matches
+      additionalProperties: false
+    SearchResult:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchFileResult"
+        truncated:
+          type: boolean
+      required:
+        - files
+        - truncated
+      additionalProperties: false
+    CreateMessageRequest:
+      type: object
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+        - body
+      additionalProperties: false
+    MessageAuthor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        isGuest:
+          type: boolean
+      required:
+        - id
+        - name
+        - isGuest
+      additionalProperties: false
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        author:
+          $ref: "#/components/schemas/MessageAuthor"
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - author
+        - body
+        - createdAt
+      additionalProperties: false
+    CreateClassRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+      additionalProperties: false
+    Class:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        taskProjectId:
+          type: string
+          format: uuid
+        joinCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        studentCount:
+          type: integer
+      required:
+        - id
+        - name
+        - taskProjectId
+        - joinCode
+        - createdAt
+        - studentCount
+      additionalProperties: false
+    ClassStudent:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        isGuest:
+          type: boolean
+        joinedAt:
+          type: string
+          format: date-time
+        lastEditAt:
+          type: string
+          format: date-time
+          nullable: true
+        online:
+          type: boolean
+      required:
+        - projectId
+        - name
+        - isGuest
+        - joinedAt
+        - lastEditAt
+        - online
+      additionalProperties: false
+    ClassDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        taskProjectId:
+          type: string
+          format: uuid
+        joinCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        studentCount:
+          type: integer
+        students:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClassStudent"
+      required:
+        - id
+        - name
+        - taskProjectId
+        - joinCode
+        - createdAt
+        - studentCount
+        - students
+      additionalProperties: false
+    ClassPreview:
+      type: object
+      properties:
+        className:
+          type: string
+        teacherName:
+          type: string
+      required:
+        - className
+        - teacherName
+      additionalProperties: false
+    JoinClassResult:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+      required:
+        - projectId
+      additionalProperties: false
+    Features:
+      type: object
+      properties:
+        run:
+          type: string
+          enum:
+            - open
+            - code
+            - off
+        passwordReset:
+          type: boolean
+        githubSignIn:
+          type: boolean
+      required:
+        - run
+        - passwordReset
+        - githubSignIn
+      additionalProperties: false
+    RunAccessRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+        - code
+      additionalProperties: false
+    RunRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 100000
+      required:
+        - code
+      additionalProperties: false
+    RunAccepted:
+      type: object
+      properties:
+        runId:
+          type: string
+          format: uuid
+      required:
+        - runId
+      additionalProperties: false
+    TerminalTicket:
+      type: object
+      properties:
+        ticket:
+          type: string
+      required:
+        - ticket
+      additionalProperties: false
+    ImportGithubRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 3
+          maxLength: 300
+      required:
+        - url
+      additionalProperties: false
+    ImportResult:
+      type: object
+      properties:
+        repo:
+          type: object
+          properties:
+            owner:
+              type: string
+            name:
+              type: string
+            ref:
+              type: string
+              nullable: true
+          required:
+            - owner
+            - name
+            - ref
+          additionalProperties: false
+        imported:
+          type: integer
+        skipped:
+          type: object
+          properties:
+            existing:
+              type: integer
+            ignored:
+              type: integer
+            binary:
+              type: integer
+            tooLarge:
+              type: integer
+            overLimit:
+              type: integer
+          required:
+            - existing
+            - ignored
+            - binary
+            - tooLarge
+            - overLimit
+          additionalProperties: false
+        skippedPaths:
+          type: array
+          items:
+            type: string
+      required:
+        - repo
+        - imported
+        - skipped
+        - skippedPaths
+      additionalProperties: false
+    GithubBranchesRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 10
+          maxLength: 255
+          pattern: ^\S+$
+        repoUrl:
+          type: string
+          maxLength: 300
+      required:
+        - token
+      additionalProperties: false
+    GithubBranchesResult:
+      type: object
+      properties:
+        repo:
+          type: object
+          properties:
+            owner:
+              type: string
+            name:
+              type: string
+          required:
+            - owner
+            - name
+          additionalProperties: false
+        defaultBranch:
+          type: string
+        branches:
+          type: array
+          items:
+            type: string
+        canPush:
+          type: boolean
+      required:
+        - repo
+        - defaultBranch
+        - branches
+        - canPush
+      additionalProperties: false
+    PushPreviewRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 10
+          maxLength: 255
+          pattern: ^\S+$
+        repoUrl:
+          type: string
+          maxLength: 300
+        branch:
+          type: string
+          maxLength: 200
+        overwrite:
+          type: boolean
+      required:
+        - token
+      additionalProperties: false
+    PushPreview:
+      type: object
+      properties:
+        branch:
+          type: string
+        newBranch:
+          type: boolean
+        added:
+          type: array
+          items:
+            type: string
+        modified:
+          type: array
+          items:
+            type: string
+        conflicts:
+          type: array
+          items:
+            type: string
+        unchanged:
+          type: integer
+      required:
+        - branch
+        - newBranch
+        - added
+        - modified
+        - conflicts
+        - unchanged
+      additionalProperties: false
+    PushRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 10
+          maxLength: 255
+          pattern: ^\S+$
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        branch:
+          type: string
+          maxLength: 200
+        repoUrl:
+          type: string
+          maxLength: 300
+        overwrite:
+          type: boolean
+      required:
+        - token
+        - message
+      additionalProperties: false
+    PushResult:
+      type: object
+      properties:
+        repo:
+          type: object
+          properties:
+            owner:
+              type: string
+            name:
+              type: string
+          required:
+            - owner
+            - name
+          additionalProperties: false
+        branch:
+          type: string
+        newBranch:
+          type: boolean
+        commitSha:
+          type: string
+        commitUrl:
+          type: string
+        added:
+          type: integer
+        modified:
+          type: integer
+        unchanged:
+          type: integer
+      required:
+        - repo
+        - branch
+        - newBranch
+        - commitSha
+        - commitUrl
+        - added
+        - modified
+        - unchanged
+      additionalProperties: false
+    BranchList:
+      type: object
+      properties:
+        repo:
+          type: object
+          properties:
+            owner:
+              type: string
+            name:
+              type: string
+          required:
+            - owner
+            - name
+          additionalProperties: false
+        active:
+          type: string
+        defaultBranch:
+          type: string
+        branches:
+          type: array
+          items:
+            type: string
+        loaded:
+          type: array
+          items:
+            type: string
+      required:
+        - repo
+        - active
+        - defaultBranch
+        - branches
+        - loaded
+      additionalProperties: false
+    BranchSwitchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+        - name
+      additionalProperties: false
+    BranchSwitchResult:
+      type: object
+      properties:
+        branch:
+          type: string
+        imported:
+          type: integer
+      required:
+        - branch
+        - imported
+      additionalProperties: false
+    ClientError:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        stack:
+          type: string
+          maxLength: 4000
+        url:
+          type: string
+          maxLength: 500
+        release:
+          type: string
+          maxLength: 100
+      required:
+        - message
+      additionalProperties: false
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+      required:
+        - status
+      additionalProperties: false
+    Readiness:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - down
+        database:
+          type: string
+          enum:
+            - ok
+            - down
+        redis:
+          type: string
+          enum:
+            - ok
+            - down
+      required:
+        - status
+        - database
+        - redis
+      additionalProperties: false
+  responses:
+    Unauthorized:
+      description: Not signed in, or the token has expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            missing:
+              summary: No token
+              value:
+                message: Missing bearer token
+            expired:
+              summary: Expired or wrong token
+              value:
+                message: Invalid or expired token
+    TooManyRequests:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            message: Too many requests. Wait 42 s and try again.
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            message: Server error. Please try again.
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example:
+                status: ok
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Check that the API is up
+      description: Answers at once without touching the database. Use it for a quick liveness check.
+      operationId: getHealth
+      security: []
+  /health/ready:
+    get:
+      tags:
+        - health
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+              example:
+                status: ok
+                database: ok
+                redis: ok
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          description: Temporarily not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+              example:
+                status: down
+                database: ok
+                redis: down
+      summary: Check the database and Redis
+      description: Checks that PostgreSQL and Redis answer. Returns 200 when both are fine and 503 when one of them is down, so a load balancer can stop sending traffic.
+      operationId: getHealthReady
+      security: []
+  /features:
+    get:
+      tags:
+        - runs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Features"
+              example:
+                run: code
+                passwordReset: true
+                githubSignIn: false
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Find out what this server can do
+      description: "Tells the client which optional features are on: running code (`open`, `code` when an access code is needed, or `off`), password reset by e-mail and sign-in with GitHub."
+      operationId: getFeatures
+      security: []
+  /run-access:
+    post:
+      tags:
+        - runs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunAccessRequest"
+            example:
+              code: spring-2026
+      responses:
+        "204":
+          description: The code is right
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Wrong access code
+                  value:
+                    message: Wrong access code
+                case2:
+                  summary: Running code is turned off on this server
+                  value:
+                    message: Running code is turned off on this server
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Check a run access code
+      description: On servers where running code needs an access code, checks the code before the client saves it. Send the same code later in the `X-Run-Code` header.
+      operationId: postRunAccess
+      security: []
+  /auth/register:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            example:
+              email: anna@example.com
+              password: correct-horse-42
+              name: Anna
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+              example:
+                user:
+                  id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                  email: anna@example.com
+                  name: Anna
+                  isGuest: false
+                  emailVerified: false
+                tokens:
+                  accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzZjZjMmExZSJ9.access-token-signature
+                  refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: This email is already registered
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Create an account
+      description: Creates an account with an e-mail and a password (8 to 72 characters) and signs the person in. If the server can send e-mail, a confirmation link is sent; until then `emailVerified` is `false`.
+      operationId: postAuthRegister
+      security: []
+  /auth/login:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              email: anna@example.com
+              password: correct-horse-42
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+              example:
+                user:
+                  id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                  email: anna@example.com
+                  name: Anna
+                  isGuest: false
+                  emailVerified: true
+                tokens:
+                  accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzZjZjMmExZSJ9.access-token-signature
+                  refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          description: Not signed in, or the token has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Wrong email or password
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Sign in
+      description: Signs in with an e-mail and a password. The access token lives 15 minutes, the refresh token 30 days.
+      operationId: postAuthLogin
+      security: []
+  /auth/guest:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuestLoginRequest"
+            example:
+              name: Boris
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+              example:
+                user:
+                  id: 8a1d4e2f-6c3b-4f9e-a7d5-2b8c9e0f1a34
+                  email: guest-8a1d4e2f@guest.local
+                  name: Boris
+                  isGuest: true
+                  emailVerified: false
+                tokens:
+                  accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzZjZjMmExZSJ9.access-token-signature
+                  refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Continue as a guest
+      description: Creates a guest account without an e-mail. A guest can join projects by invite link and later keep the account with `POST /auth/upgrade`. Without a name the server picks one, like `Guest 4821`.
+      operationId: postAuthGuest
+      security: []
+  /auth/refresh:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+            example:
+              refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+              example:
+                user:
+                  id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                  email: anna@example.com
+                  name: Anna
+                  isGuest: false
+                  emailVerified: true
+                tokens:
+                  accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzZjZjMmExZSJ9.access-token-signature
+                  refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          description: Not signed in, or the token has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Your session has expired. Please sign in again.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Get new tokens
+      description: "Swaps a refresh token for a new pair of tokens. Each refresh token works once: the old one stops working, so always save the new pair."
+      operationId: postAuthRefresh
+      security: []
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+            example:
+              refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+      responses:
+        "204":
+          description: Signed out
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Sign out
+      description: Revokes the refresh token. The access token stops working when it expires.
+      operationId: postAuthLogout
+      security: []
+  /auth/me:
+    get:
+      tags:
+        - auth
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    format: uuid
+                required:
+                  - userId
+                additionalProperties: false
+              example:
+                userId: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Check the access token
+      description: Returns the id of the user the token belongs to. Handy to check that a saved token still works.
+      operationId: getAuthMe
+    patch:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+            example:
+              name: Anna K.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                email: anna@example.com
+                name: Anna K.
+                isGuest: false
+                emailVerified: true
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Change the name others see
+      description: Changes the display name shown in presence, chat and the member list.
+      operationId: patchAuthMe
+  /auth/upgrade:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpgradeGuestRequest"
+            example:
+              email: boris@example.com
+              password: another-secret-7
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 8a1d4e2f-6c3b-4f9e-a7d5-2b8c9e0f1a34
+                email: boris@example.com
+                name: Boris
+                isGuest: false
+                emailVerified: false
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: This is already a full account
+                  value:
+                    message: This is already a full account
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: This email is already registered
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Keep a guest account
+      description: Turns the current guest account into a full one with an e-mail and a password. Projects and edits stay.
+      operationId: postAuthUpgrade
+  /auth/delete-account:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountRequest"
+            example:
+              password: correct-horse-42
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: The account is deleted
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Wrong password
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Delete the account
+      description: Deletes the account, the projects it owns, its chat messages and its memberships. A full account must send its password; a guest sends an empty body.
+      operationId: postAuthDeleteAccount
+  /auth/forgot-password:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+            example:
+              email: anna@example.com
+      responses:
+        "204":
+          description: If the account exists, the e-mail is on its way
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Ask for a password reset link
+      description: Sends a reset link if an account with this e-mail exists. The answer is always 204, so nobody can find out which addresses have accounts.
+      operationId: postAuthForgotPassword
+      security: []
+  /auth/reset-password:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+            example:
+              token: Zt3kP9vQ2mX7rL5wN8cB4yH6
+              password: new-secret-2026
+      responses:
+        "204":
+          description: The password is changed
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: This link is not valid or has expired. Ask for a new one.
+                  value:
+                    message: This link is not valid or has expired. Ask for a new one.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Set a new password
+      description: Sets a new password with the token from the reset link. The token works once and for one hour. All sessions are signed out.
+      operationId: postAuthResetPassword
+      security: []
+  /auth/verify-email:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmailRequest"
+            example:
+              token: Vx8nR2kT5pQ9mW3zL7cY4bJ6
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                email: anna@example.com
+                name: Anna
+                isGuest: false
+                emailVerified: true
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: This link is not valid or has expired. Ask for a new one.
+                  value:
+                    message: This link is not valid or has expired. Ask for a new one.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Confirm the e-mail address
+      description: Confirms the address with the token from the confirmation link (it works for 3 days) and returns the updated user.
+      operationId: postAuthVerifyEmail
+      security: []
+  /auth/resend-verification:
+    post:
+      tags:
+        - auth
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: The e-mail is on its way
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: A guest has no email to confirm
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Send the confirmation link again
+      description: Sends a new confirmation link to the current user's address.
+      operationId: postAuthResendVerification
+  /auth/github/start:
+    get:
+      tags:
+        - auth
+      parameters:
+        - schema:
+            type: string
+            maxLength: 500
+          in: query
+          name: redirect
+          required: false
+      responses:
+        "200":
+          description: OK
+        "302":
+          description: Redirect to GitHub
+          headers:
+            Location:
+              schema:
+                type: string
+              example: https://github.com/login/oauth/authorize?client_id=…&state=…
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Sign-in with GitHub is not set up on this server
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Start signing in with GitHub
+      description: Open this address in the browser (not with fetch). It redirects to GitHub. After that the browser comes back to the web app at `/auth/github#code=…`, and the app swaps the code with `POST /auth/github/exchange`.
+      operationId: getAuthGithubStart
+      security: []
+  /auth/github/callback:
+    get:
+      tags:
+        - auth
+      parameters:
+        - schema:
+            type: string
+            maxLength: 200
+          in: query
+          name: code
+          required: false
+        - schema:
+            type: string
+            maxLength: 200
+          in: query
+          name: state
+          required: false
+        - schema:
+            type: string
+          in: query
+          name: error
+          required: false
+      responses:
+        "200":
+          description: OK
+        "302":
+          description: Redirect to the web app
+          headers:
+            Location:
+              schema:
+                type: string
+              example: https://collab.example.com/auth/github#code=…&redirect=%2F
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: GitHub sends the browser back here
+      description: GitHub calls this address after the person agrees. The API redirects the browser to the web app with a one-time code (or an error) in the address hash. Clients do not call it themselves.
+      operationId: getAuthGithubCallback
+      security: []
+  /auth/github/exchange:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubExchangeRequest"
+            example:
+              code: Gh7tQ2mX9pR4vL8kN3cW6zB5
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+              example:
+                user:
+                  id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                  email: anna@example.com
+                  name: Anna
+                  isGuest: false
+                  emailVerified: true
+                tokens:
+                  accessToken: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzZjZjMmExZSJ9.access-token-signature
+                  refreshToken: 4b2f9c1e7a5d8e3f6b0a9c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: The sign-in link has expired. Please try again.
+                  value:
+                    message: The sign-in link has expired. Please try again.
+                case3:
+                  summary: Your GitHub account has no confirmed email. Confirm one o…
+                  value:
+                    message: Your GitHub account has no confirmed email. Confirm one on GitHub and try again.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Finish signing in with GitHub
+      description: Swaps the one-time code from the address hash for tokens. The code works once and for one minute.
+      operationId: postAuthGithubExchange
+      security: []
+  /projects:
+    post:
+      tags:
+        - projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectRequest"
+            example:
+              name: Algorithms homework
+              template: python
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+              example:
+                id: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                name: Algorithms homework
+                ownerId: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                createdAt: 2026-11-20T10:15:00.000Z
+                myRole: owner
+                inviteCode: k7Qm2xVp9LrT
+                inviteRole: editor
+                github: null
+                classId: null
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You have reached the limit of 100 projects. Delete an old project to make room.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Create a project
+      description: "Creates a project owned by the current user. With `template` the project starts with a ready example (`python` or `javascript`): a guide and code that runs."
+      operationId: postProjects
+      security:
+        - bearerAuth: []
+    get:
+      tags:
+        - projects
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+              example:
+                - id: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                  name: Algorithms homework
+                  ownerId: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                  createdAt: 2026-11-20T10:15:00.000Z
+                  myRole: owner
+                  inviteCode: k7Qm2xVp9LrT
+                  inviteRole: editor
+                  github: null
+                  classId: null
+                - id: 0d5f8b2a-7e4c-4a1f-9b6d-3e8a2c5f7b90
+                  name: Team notes
+                  ownerId: 8a1d4e2f-6c3b-4f9e-a7d5-2b8c9e0f1a34
+                  createdAt: 2026-11-20T10:15:00.000Z
+                  myRole: editor
+                  inviteCode: null
+                  inviteRole: editor
+                  github: null
+                  classId: null
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: List my projects
+      description: Lists the projects where the user is the owner, an editor or a viewer, newest first.
+      operationId: getProjects
+      security:
+        - bearerAuth: []
+  /projects/{projectId}:
+    get:
+      tags:
+        - projects
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectWithMembers"
+              example:
+                id: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                name: Algorithms homework
+                ownerId: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                createdAt: 2026-11-20T10:15:00.000Z
+                myRole: owner
+                inviteCode: k7Qm2xVp9LrT
+                inviteRole: editor
+                github: null
+                classId: null
+                members:
+                  - userId: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                    name: Anna
+                    role: owner
+                  - userId: 8a1d4e2f-6c3b-4f9e-a7d5-2b8c9e0f1a34
+                    name: Boris
+                    role: editor
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Get a project with its members
+      description: Returns the project, the current user's role in it and the list of members.
+      operationId: getProjectsByProjectId
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - projects
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "204":
+          description: The project is deleted
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Delete a project
+      description: Only the owner can delete a project. All files, versions and chat messages go with it, and every member is told over the WebSocket. To leave a project, remove yourself with `DELETE /projects/{projectId}/members/{userId}`.
+      operationId: deleteProjectsByProjectId
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/members:
+    post:
+      tags:
+        - projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteMemberRequest"
+            example:
+              email: boris@example.com
+              role: editor
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectMember"
+              example:
+                userId: 8a1d4e2f-6c3b-4f9e-a7d5-2b8c9e0f1a34
+                name: Boris
+                role: editor
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: No user with this email. They need to sign up first
+                  value:
+                    message: No user with this email. They need to sign up first
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: This person is already in the project
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Add a member by e-mail
+      description: The owner adds a person who already has an account. For everyone else use the invite link.
+      operationId: postProjectsByProjectIdMembers
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/members/{userId}:
+    patch:
+      tags:
+        - projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleRequest"
+            example:
+              role: viewer
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: userId
+          required: true
+      responses:
+        "204":
+          description: The role is changed
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: The owner's role cannot be changed
+                  value:
+                    message: The owner's role cannot be changed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Member not found
+                  value:
+                    message: Member not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Change a member's role
+      description: The owner makes a member an editor or a viewer. The member sees the change at once over the WebSocket.
+      operationId: patchProjectsByProjectIdMembersByUserId
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - projects
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: userId
+          required: true
+      responses:
+        "204":
+          description: The member is removed
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: The owner cannot be removed from the project. The project…
+                  value:
+                    message: The owner cannot be removed from the project. The project can only be deleted
+                case3:
+                  summary: The teacher of the class stays in the project
+                  value:
+                    message: The teacher of the class stays in the project
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Only the owner can remove other members
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Member not found
+                  value:
+                    message: Member not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Remove a member, or leave the project
+      description: The owner removes a member, or a member removes themselves to leave the project. The person loses access at once.
+      operationId: deleteProjectsByProjectIdMembersByUserId
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/invite/regenerate:
+    post:
+      tags:
+        - projects
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InviteLink"
+              example:
+                inviteCode: p3Rt8wQz2YxK
+                inviteRole: editor
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Make a new invite link
+      description: Creates a new invite code. The old link stops working.
+      operationId: postProjectsByProjectIdInviteRegenerate
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/invite:
+    patch:
+      tags:
+        - projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleRequest"
+            example:
+              role: viewer
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InviteLink"
+              example:
+                inviteCode: k7Qm2xVp9LrT
+                inviteRole: viewer
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Choose the role the invite link gives
+      description: Sets whether people who join by the link become editors or viewers.
+      operationId: patchProjectsByProjectIdInvite
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/File"
+              example:
+                - id: c9a4f2e7-1b6d-4a8c-9e3f-5d2b7a0c4e18
+                  projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                  path: main.py
+                  type: code
+                  language: python
+                  updatedAt: 2026-11-20T10:42:31.000Z
+                - id: d4b8e1c6-3f9a-4d2e-b7c5-1a6f0e9d8c27
+                  projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                  path: docs/notes.md
+                  type: doc
+                  language: markdown
+                  updatedAt: 2026-11-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: List files
+      description: "Lists the files of the project (not the ones in the trash). The text of a file is not here: it comes over the collaboration WebSocket."
+      operationId: getProjectsByProjectIdFiles
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFileRequest"
+            example:
+              path: utils/sort.py
+              type: code
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+              example:
+                id: d4b8e1c6-3f9a-4d2e-b7c5-1a6f0e9d8c27
+                projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                path: utils/sort.py
+                type: code
+                language: python
+                updatedAt: 2026-11-20T10:15:00.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: You do not have the rights for this in the project
+                  value:
+                    message: You do not have the rights for this in the project
+                case2:
+                  summary: This project has reached the limit of 2000 files.
+                  value:
+                    message: This project has reached the limit of 2000 files.
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: A file with this name already exists
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Create a file
+      description: Creates an empty file. `path` may contain folders (`src/app.py`). `type` is `code`, `doc` (Markdown) or `board` (a drawing board). The language is guessed from the name when it is not given.
+      operationId: postProjectsByProjectIdFiles
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/trash:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrashedFile"
+              example:
+                - id: d4b8e1c6-3f9a-4d2e-b7c5-1a6f0e9d8c27
+                  projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                  path: old.py
+                  type: code
+                  language: python
+                  updatedAt: 2026-11-20T10:42:31.000Z
+                  deletedAt: 2026-11-20T10:42:31.000Z
+                  purgeAt: 2026-12-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: List files in the trash
+      description: Deleted files stay in the trash for 30 days. `purgeAt` says when a file is deleted for good.
+      operationId: getProjectsByProjectIdFilesTrash
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}/restore:
+    post:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+              example:
+                id: d4b8e1c6-3f9a-4d2e-b7c5-1a6f0e9d8c27
+                projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                path: old.py
+                type: code
+                language: python
+                updatedAt: 2026-11-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: The file is not in the trash
+                  value:
+                    message: The file is not in the trash
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: A file with this name already exists. Rename or delete it to restore this one
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Restore a file from the trash
+      description: Brings the file back with its content and history.
+      operationId: postProjectsByProjectIdFilesByFileIdRestore
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}/permanent:
+    delete:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+      responses:
+        "204":
+          description: The file is gone
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: The file is not in the trash
+                  value:
+                    message: The file is not in the trash
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Delete a file for good
+      description: Deletes a file from the trash. This cannot be undone.
+      operationId: deleteProjectsByProjectIdFilesByFileIdPermanent
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+              example:
+                id: c9a4f2e7-1b6d-4a8c-9e3f-5d2b7a0c4e18
+                projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                path: main.py
+                type: code
+                language: python
+                updatedAt: 2026-11-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: File not found
+                  value:
+                    message: File not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Get one file
+      description: Returns the file's name, type and language.
+      operationId: getProjectsByProjectIdFilesByFileId
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFileRequest"
+            example:
+              path: src/main.py
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+              example:
+                id: c9a4f2e7-1b6d-4a8c-9e3f-5d2b7a0c4e18
+                projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                path: src/main.py
+                type: code
+                language: python
+                updatedAt: 2026-11-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: File not found
+                  value:
+                    message: File not found
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: A file with this name already exists
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Rename or move a file, or set its language
+      description: Change `path` to rename or move the file. Set `language` to `null` to guess it from the name again.
+      operationId: patchProjectsByProjectIdFilesByFileId
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+      responses:
+        "204":
+          description: The file is in the trash
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: File not found
+                  value:
+                    message: File not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Move a file to the trash
+      description: The file can be restored for 30 days.
+      operationId: deleteProjectsByProjectIdFilesByFileId
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}/versions:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileVersion"
+              example:
+                - id: e7c3a9f1-5d2b-4e8a-9c6f-0b4d1a7e3f92
+                  createdAt: 2026-11-20T10:42:31.000Z
+                  size: 412
+                  authorName: Anna
+                - id: 2b6d9f1a-4c8e-4a3b-9d7f-1e5a8c2b6d40
+                  createdAt: 2026-11-20T10:15:00.000Z
+                  size: 318
+                  authorName: null
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: File not found
+                  value:
+                    message: File not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: List saved versions of a file
+      description: The collaboration server saves a version when people stop typing. Newest first, without the text.
+      operationId: getProjectsByProjectIdFilesByFileIdVersions
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}/versions/{versionId}:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: versionId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileVersionContent"
+              example:
+                id: e7c3a9f1-5d2b-4e8a-9c6f-0b4d1a7e3f92
+                createdAt: 2026-11-20T10:42:31.000Z
+                size: 42
+                authorName: Anna
+                content: |
+                  def greet(name):
+                      return f"Hello, {name}!"
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: File not found
+                  value:
+                    message: File not found
+                case3:
+                  summary: Version not found
+                  value:
+                    message: Version not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Get the text of a version
+      description: Returns one saved version with its full text, for example to show a diff.
+      operationId: getProjectsByProjectIdFilesByFileIdVersionsByVersionId
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}/versions/{versionId}/restore:
+    post:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: versionId
+          required: true
+      responses:
+        "204":
+          description: The version is restored
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Version not found
+                  value:
+                    message: Version not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Could not restore the version: the collaboration server returned an error"
+        "503":
+          description: Temporarily not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The collaboration server is not available. Please try later
+      summary: Restore a version
+      description: Puts the text of the version back into the live file. Everyone who has the file open sees the change.
+      operationId: postProjectsByProjectIdFilesByFileIdVersionsByVersionIdRestore
+      security:
+        - bearerAuth: []
+  /join/{code}:
+    get:
+      tags:
+        - projects
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          in: path
+          name: code
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitePreview"
+              example:
+                projectName: Algorithms homework
+                ownerName: Anna
+                role: editor
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The invite link is not valid or has expired
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: See where an invite link leads
+      description: Shows the project name, the owner and the role before the person joins. Works without signing in.
+      operationId: getJoinByCode
+      security: []
+    post:
+      tags:
+        - projects
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          in: path
+          name: code
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+              example:
+                id: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                name: Algorithms homework
+                ownerId: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                createdAt: 2026-11-20T10:15:00.000Z
+                myRole: editor
+                inviteCode: k7Qm2xVp9LrT
+                inviteRole: editor
+                github: null
+                classId: null
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The invite link is not valid or has expired
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Join a project by invite link
+      description: Adds the current user to the project with the role of the link. If the user is already a member, nothing changes.
+      operationId: postJoinByCode
+  /projects/{projectId}/class:
+    post:
+      tags:
+        - classes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClassRequest"
+            example:
+              name: Python, group 2
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Class"
+              example:
+                id: a8e2c5f9-4b1d-4e7c-9a3f-6d0b2e8c1f75
+                name: Python, group 2
+                taskProjectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                joinCode: Cl4ssR00mX7q
+                createdAt: 2026-11-20T10:15:00.000Z
+                studentCount: 0
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: A student's copy cannot become a class task
+                  value:
+                    message: A student's copy cannot become a class task
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Turn a project into a class task
+      description: A teacher makes a class from a project. Every student who opens the class link gets their own copy of the task. Calling it again returns the same class.
+      operationId: postProjectsByProjectIdClass
+  /classes:
+    get:
+      tags:
+        - classes
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Class"
+              example:
+                - id: a8e2c5f9-4b1d-4e7c-9a3f-6d0b2e8c1f75
+                  name: Python, group 2
+                  taskProjectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                  joinCode: Cl4ssR00mX7q
+                  createdAt: 2026-11-20T10:15:00.000Z
+                  studentCount: 2
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: List my classes
+      description: Lists the classes where the current user is the teacher.
+      operationId: getClasses
+  /classes/{classId}:
+    get:
+      tags:
+        - classes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: classId
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassDetail"
+              example:
+                id: a8e2c5f9-4b1d-4e7c-9a3f-6d0b2e8c1f75
+                name: Python, group 2
+                taskProjectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                joinCode: Cl4ssR00mX7q
+                createdAt: 2026-11-20T10:15:00.000Z
+                studentCount: 2
+                students:
+                  - projectId: 1c7e9a3d-6f2b-4a8e-b5c1-9d4f0a2e7b63
+                    name: Boris
+                    isGuest: true
+                    joinedAt: 2026-11-20T10:15:00.000Z
+                    lastEditAt: 2026-11-20T10:42:31.000Z
+                    online: true
+                  - projectId: 7a3c1e9f-2d5b-4f8a-b6e4-0c9d3a7f1b52
+                    name: Clara
+                    isGuest: false
+                    joinedAt: 2026-11-20T10:15:00.000Z
+                    lastEditAt: null
+                    online: false
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Class not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: See a class with its students
+      description: Shows every student's copy, when they last edited it and who is online now.
+      operationId: getClassesByClassId
+    delete:
+      tags:
+        - classes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: classId
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: The class is closed
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Class not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Close a class
+      description: The class link stops working. The task and the students' copies stay.
+      operationId: deleteClassesByClassId
+  /classes/{classId}/regenerate-link:
+    post:
+      tags:
+        - classes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: classId
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Class"
+              example:
+                id: a8e2c5f9-4b1d-4e7c-9a3f-6d0b2e8c1f75
+                name: Python, group 2
+                taskProjectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                joinCode: N3wCl4ssL1nk
+                createdAt: 2026-11-20T10:15:00.000Z
+                studentCount: 2
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Class not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Make a new class link
+      description: Creates a new join code. The old class link stops working.
+      operationId: postClassesByClassIdRegenerateLink
+  /class-links/{code}:
+    get:
+      tags:
+        - classes
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          in: path
+          name: code
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassPreview"
+              example:
+                className: Python, group 2
+                teacherName: Anna
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The class link is not valid or has expired
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: See where a class link leads
+      description: Shows the class and the teacher before a student joins. Works without signing in.
+      operationId: getClassLinksByCode
+      security: []
+  /class-links/{code}/join:
+    post:
+      tags:
+        - classes
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          in: path
+          name: code
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JoinClassResult"
+              example:
+                projectId: 1c7e9a3d-6f2b-4a8e-b5c1-9d4f0a2e7b63
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You have reached the limit of 100 projects. Delete an old project to make room.
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The class link is not valid or has expired
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Join a class
+      description: Creates the student's own copy of the task, or returns the copy the student already has.
+      operationId: postClassLinksByCodeJoin
+  /projects/{projectId}/search:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            minLength: 2
+            maxLength: 200
+          in: query
+          name: q
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResult"
+              example:
+                files:
+                  - fileId: c9a4f2e7-1b6d-4a8c-9e3f-5d2b7a0c4e18
+                    path: main.py
+                    matches:
+                      - line: 3
+                        column: 5
+                        length: 5
+                        preview: "def greet(name):"
+                        previewOffset: 0
+                truncated: false
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: Type from 2 to 200 characters to search
+                  value:
+                    message: Type from 2 to 200 characters to search
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Search the text of all files
+      description: Finds text in every file of the project, ignoring case. At most 50 matches per file and 500 in total; `truncated` says that there were more.
+      operationId: getProjectsByProjectIdSearch
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/messages:
+    get:
+      tags:
+        - chat
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: before
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+              example:
+                - id: f1d6b3a8-2e9c-4f7a-8b5d-3c0e6a9f2d41
+                  projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                  author:
+                    id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                    name: Anna
+                    isGuest: false
+                  body: I fixed the loop in main.py, please check line 12
+                  createdAt: 2026-11-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Message not found
+                  value:
+                    message: Message not found
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Read the chat
+      description: Returns the latest messages, oldest first, up to `limit` (50 by default, 100 at most). To load older ones, pass the id of the oldest message you have as `before`.
+      operationId: getProjectsByProjectIdMessages
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageRequest"
+            example:
+              body: I fixed the loop in main.py, please check line 12
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+              example:
+                id: f1d6b3a8-2e9c-4f7a-8b5d-3c0e6a9f2d41
+                projectId: b2e7c4d1-9a3f-4e6b-8c25-7f1d0a9e3b56
+                author:
+                  id: 3f6c2a1e-8b4d-4c7a-9e21-5d0b7f3a9c10
+                  name: Anna
+                  isGuest: false
+                body: I fixed the loop in main.py, please check line 12
+                createdAt: 2026-11-20T10:42:31.000Z
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Send a chat message
+      description: Saves the message and sends it to everyone in the project over the WebSocket (`message.created`). Viewers can write too.
+      operationId: postProjectsByProjectIdMessages
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/files/{fileId}/run:
+    post:
+      tags:
+        - runs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunRequest"
+            example:
+              code: |
+                print("Hello, team!")
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: fileId
+          required: true
+        - in: header
+          name: x-run-code
+          required: false
+          description: The run access code, when the server needs one (see `GET /features`)
+          schema:
+            type: string
+      responses:
+        "202":
+          description: The run is in the queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunAccepted"
+              example:
+                runId: 5e9b2d7a-1c4f-4e8b-a6d3-0f7c2e9b4a18
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: Only JavaScript, Python, C, C++ and Java files can run
+                  value:
+                    message: Only JavaScript, Python, C, C++ and Java files can run
+                case3:
+                  summary: Only code files can run
+                  value:
+                    message: Only code files can run
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: You do not have the rights for this in the project
+                  value:
+                    message: You do not have the rights for this in the project
+                case2:
+                  summary: Running code on this site needs an access code. Enter the…
+                  value:
+                    message: Running code on this site needs an access code. Enter the right code.
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: File not found
+                  value:
+                    message: File not found
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Too many requests. Wait 42 s and try again.
+                  value:
+                    message: Too many requests. Wait 42 s and try again.
+                case2:
+                  summary: You started too many programs in a minute. Wait 25 s and …
+                  value:
+                    message: You started too many programs in a minute. Wait 25 s and try again.
+                case3:
+                  summary: Too many programs are running right now. Please try again…
+                  value:
+                    message: Too many programs are running right now. Please try again in a minute.
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          description: Temporarily not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Running code is not available right now. Please try a bit later.
+      summary: Run a code file
+      description: "Puts the program in the queue and returns at once with a `runId`. The output comes to everyone in the project over the WebSocket: `run.started`, `run.output` and `run.finished`. Send the current text of the file in `code`; other files of the project are sent along so imports work. JavaScript, Python, C, C++ and Java can run, for up to 10 seconds."
+      operationId: postProjectsByProjectIdFilesByFileIdRun
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/runs/{runId}/stop:
+    post:
+      tags:
+        - runs
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: runId
+          required: true
+        - in: header
+          name: x-run-code
+          required: false
+          description: The run access code, when the server needs one (see `GET /features`)
+          schema:
+            type: string
+      responses:
+        "202":
+          description: The stop request is sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                additionalProperties: false
+              example: {}
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          description: Temporarily not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Could not stop the program. It will stop by itself after 10 seconds.
+      summary: Stop a running program
+      description: Any editor can stop a run. Everyone gets `run.finished` with the status `stopped`.
+      operationId: postProjectsByProjectIdRunsByRunIdStop
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/terminal:
+    post:
+      tags:
+        - runs
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+        - in: header
+          name: x-run-code
+          required: false
+          description: The run access code, when the server needs one (see `GET /features`)
+          schema:
+            type: string
+      responses:
+        "201":
+          description: The ticket is ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TerminalTicket"
+              example:
+                ticket: t1ck3t-9f2c7a4e1b8d5f3a6c0e
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: You do not have the rights for this in the project
+                  value:
+                    message: You do not have the rights for this in the project
+                case2:
+                  summary: Running code is turned off on this server
+                  value:
+                    message: Running code is turned off on this server
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Open a terminal
+      description: Returns a ticket for the terminal WebSocket of the runner (`/terminal?ticket=…`). The ticket works once and for 60 seconds. The terminal runs in a sandbox with the project's files in `/project`.
+      operationId: postProjectsByProjectIdTerminal
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/import/github:
+    post:
+      tags:
+        - import
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportGithubRequest"
+            example:
+              url: https://github.com/octo-school/algorithms
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+              example:
+                repo:
+                  owner: octo-school
+                  name: algorithms
+                  ref: null
+                imported: 24
+                skipped:
+                  existing: 1
+                  ignored: 3
+                  binary: 2
+                  tooLarge: 0
+                  overLimit: 0
+                skippedPaths:
+                  - main.py
+                  - logo.png
+                  - data/big.bin
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: This does not look like a GitHub repository link. Example…
+                  value:
+                    message: "This does not look like a GitHub repository link. Example: https://github.com/owner/repo"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Repository or branch not found. Private repositories are …
+                  value:
+                    message: Repository or branch not found. Private repositories are not supported yet.
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The repository is too large (the archive is over 25 MB).
+        "422":
+          description: Could not be processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Could not read the repository archive.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Could not reach GitHub. Please try again.
+      summary: Import a public GitHub repository
+      description: Downloads a public repository (optionally a branch or folder from the link) and adds its text files to the project. Files that already exist, binary files and files over 512 KB are skipped and counted. The archive may be up to 25 MB, with up to 500 files.
+      operationId: postProjectsByProjectIdImportGithub
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/github/branches:
+    post:
+      tags:
+        - github
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubBranchesRequest"
+            example:
+              token: YOUR_GITHUB_TOKEN
+              repoUrl: https://github.com/octo-school/algorithms
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GithubBranchesResult"
+              example:
+                repo:
+                  owner: octo-school
+                  name: algorithms
+                defaultBranch: main
+                branches:
+                  - main
+                  - homework-3
+                canPush: true
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: "GitHub did not accept the token: it is not valid or has e…"
+                  value:
+                    message: "GitHub did not accept the token: it is not valid or has expired."
+                case3:
+                  summary: The project is not linked to a GitHub repository. Give a …
+                  value:
+                    message: The project is not linked to a GitHub repository. Give a link to it.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Repository or branch not found, or the token has no acces…
+                  value:
+                    message: Repository or branch not found, or the token has no access to it.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Could not reach GitHub. Please try again.
+                  value:
+                    message: Could not reach GitHub. Please try again.
+                case2:
+                  summary: GitHub returned an error. Please try again.
+                  value:
+                    message: GitHub returned an error. Please try again.
+      summary: List the branches of the linked repository
+      description: Uses the person's GitHub token (it is not saved) to list branches and to check that the token can push.
+      operationId: postProjectsByProjectIdGithubBranches
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/github/preview:
+    post:
+      tags:
+        - github
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushPreviewRequest"
+            example:
+              token: YOUR_GITHUB_TOKEN
+              branch: main
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushPreview"
+              example:
+                branch: main
+                newBranch: false
+                added:
+                  - utils/sort.py
+                modified:
+                  - main.py
+                conflicts: []
+                unchanged: 22
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: "GitHub did not accept the token: it is not valid or has e…"
+                  value:
+                    message: "GitHub did not accept the token: it is not valid or has expired."
+                case3:
+                  summary: This branch name is not allowed.
+                  value:
+                    message: This branch name is not allowed.
+                case4:
+                  summary: The project is not linked to a GitHub repository. Give a …
+                  value:
+                    message: The project is not linked to a GitHub repository. Give a link to it.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: You do not have the rights for this in the project
+                  value:
+                    message: You do not have the rights for this in the project
+                case2:
+                  summary: The token cannot write to this repository (it needs Conte…
+                  value:
+                    message: "The token cannot write to this repository (it needs Contents: write)."
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Repository or branch not found, or the token has no acces…
+                  value:
+                    message: Repository or branch not found, or the token has no access to it.
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The repository is too large to push changes from the browser.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Could not reach GitHub. Please try again.
+                  value:
+                    message: Could not reach GitHub. Please try again.
+                case2:
+                  summary: GitHub returned an error. Please try again.
+                  value:
+                    message: GitHub returned an error. Please try again.
+      summary: See what a push would change
+      description: "Compares the project with the branch on GitHub. `conflicts` lists files that changed on GitHub after the import; pushing them needs `overwrite: true`."
+      operationId: postProjectsByProjectIdGithubPreview
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/github/push:
+    post:
+      tags:
+        - github
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushRequest"
+            example:
+              token: YOUR_GITHUB_TOKEN
+              message: "Homework 3: sorting"
+              branch: main
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushResult"
+              example:
+                repo:
+                  owner: octo-school
+                  name: algorithms
+                branch: main
+                newBranch: false
+                commitSha: 9fceb02d0ae598e95dc970b74767f19372d61af8
+                commitUrl: https://github.com/octo-school/algorithms/commit/9fceb02d0ae598e95dc970b74767f19372d61af8
+                added: 1
+                modified: 1
+                unchanged: 22
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: "GitHub did not accept the token: it is not valid or has e…"
+                  value:
+                    message: "GitHub did not accept the token: it is not valid or has expired."
+                case3:
+                  summary: This branch name is not allowed.
+                  value:
+                    message: This branch name is not allowed.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: You do not have the rights for this in the project
+                  value:
+                    message: You do not have the rights for this in the project
+                case2:
+                  summary: The token cannot write to this repository (it needs Conte…
+                  value:
+                    message: "The token cannot write to this repository (it needs Contents: write)."
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Repository or branch not found, or the token has no acces…
+                  value:
+                    message: Repository or branch not found, or the token has no access to it.
+        "409":
+          description: Conflict with the current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Nothing to push: the project files match the repository."
+                  value:
+                    message: "Nothing to push: the project files match the repository."
+                case2:
+                  summary: "These files changed on GitHub after the import: main.py. …"
+                  value:
+                    message: "These files changed on GitHub after the import: main.py. Pushing would overwrite those changes."
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The repository is too large to push changes from the browser.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Could not reach GitHub. Please try again.
+                  value:
+                    message: Could not reach GitHub. Please try again.
+                case2:
+                  summary: GitHub returned an error. Please try again.
+                  value:
+                    message: GitHub returned an error. Please try again.
+      summary: Push the project to GitHub
+      description: Makes one commit with all changed files. A branch that does not exist yet is created.
+      operationId: postProjectsByProjectIdGithubPush
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/branches:
+    get:
+      tags:
+        - github
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BranchList"
+              example:
+                repo:
+                  owner: octo-school
+                  name: algorithms
+                active: main
+                defaultBranch: main
+                branches:
+                  - main
+                  - homework-3
+                loaded:
+                  - main
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: The project is not linked to a GitHub repository. Import …
+                  value:
+                    message: The project is not linked to a GitHub repository. Import it first.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Could not find the default branch of the repository. Please try later.
+      summary: List branches of an imported repository
+      description: "For a project imported from GitHub: the active branch, the default one, all branches and the ones already loaded."
+      operationId: getProjectsByProjectIdBranches
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/branch:
+    post:
+      tags:
+        - github
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchSwitchRequest"
+            example:
+              name: homework-3
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BranchSwitchResult"
+              example:
+                branch: homework-3
+                imported: 26
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: "Please check the form: some fields are not valid."
+                  value:
+                    message: "Please check the form: some fields are not valid."
+                case2:
+                  summary: The project is not linked to a GitHub repository. Import …
+                  value:
+                    message: The project is not linked to a GitHub repository. Import it first.
+                case3:
+                  summary: This branch name is not allowed.
+                  value:
+                    message: This branch name is not allowed.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                case1:
+                  summary: Project not found, or you have no access to it
+                  value:
+                    message: Project not found, or you have no access to it
+                case2:
+                  summary: Repository or branch not found. Private repositories are …
+                  value:
+                    message: Repository or branch not found. Private repositories are not supported yet.
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: The repository is too large (the archive is over 25 MB).
+        "422":
+          description: Could not be processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Could not read the repository archive.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          description: An outside service failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Could not reach GitHub. Please try again.
+      summary: Switch the branch for everyone
+      description: Switches the project to another branch of the imported repository. The first time a branch is loaded from GitHub. Everyone in the project gets `project.branch` and sees the files of the new branch.
+      operationId: postProjectsByProjectIdBranch
+      security:
+        - bearerAuth: []
+  /projects/{projectId}/export:
+    get:
+      tags:
+        - files
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: projectId
+          required: true
+      responses:
+        "200":
+          description: The ZIP archive
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: You do not have the rights for this in the project
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: Project not found, or you have no access to it
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Download the project as a ZIP
+      description: Returns all text files of the project in one archive, with their folders.
+      operationId: getProjectsByProjectIdExport
+      security:
+        - bearerAuth: []
+  /client-errors:
+    post:
+      tags:
+        - health
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientError"
+            example:
+              message: Cannot read properties of undefined (reading 'path')
+              url: /projects/b2e7c4d1/files/c9a4f2e7
+              release: production
+      responses:
+        "204":
+          description: The report is logged
+        "400":
+          description: The request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Please check the form: some fields are not valid."
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/ServerError"
+      summary: Report an error from the web app
+      description: The web app sends errors it could not handle. The API only writes them to its log. Query strings are cut from `url`.
+      operationId: postClientErrors
+      security: []
+servers:
+  - url: http://localhost:3001
+    description: Local development
+  - url: https://35-228-155-63.sslip.io/api
+    description: Live demo
+tags:
+  - name: auth
+    description: Accounts, sign-in, tokens, e-mail confirmation and password reset
+  - name: projects
+    description: Projects, members and invite links
+  - name: files
+    description: Files, trash, versions, search and export
+  - name: chat
+    description: Project chat
+  - name: classes
+    description: "Classes: a teacher gives a task, every student gets an own copy"
+  - name: runs
+    description: Running code and the terminal
+  - name: import
+    description: Import from GitHub
+  - name: github
+    description: Push to GitHub and switch branches
+  - name: health
+    description: Health checks and error reports

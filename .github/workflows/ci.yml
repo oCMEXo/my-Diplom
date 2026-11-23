@@ -67,6 +67,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Check the OpenAPI description
+        run: pnpm api:lint
+
       - name: Pull sandbox images for runner tests
         run: docker pull node:22-alpine && docker pull python:3.12-alpine
 

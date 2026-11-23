@@ -2,3 +2,5 @@
 infra/gcp/Caddyfile text eol=lf
 infra/Caddyfile text eol=lf
 *.yml text eol=lf
+docs/api/openapi.json text eol=lf
+docs/api/openapi.yaml text eol=lf

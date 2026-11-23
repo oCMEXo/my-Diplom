@@ -32,13 +32,16 @@ import { previewRoutes } from "./modules/preview/preview.routes.js";
 import { classesRoutes } from "./modules/classes/classes.routes.js";
 import { closeTerminalTickets } from "./lib/terminal-tickets.js";
 import { codeMatches, runMode } from "./lib/run-access.js";
-import { featuresSchema, runAccessSchema } from "@collab/shared";
+import { errorResponseSchema, featuresSchema, healthSchema, readinessSchema, runAccessSchema } from "@collab/shared";
+import { z } from "zod";
 import { closeRunQueue } from "./lib/queue.js";
 import { closeAccessChanges } from "./lib/access-changes.js";
 import { mailConfigured } from "./lib/mailer.js";
 import { githubSignInEnabled } from "./modules/auth/github-signin.service.js";
 import { closeHealthChecks, readiness } from "./lib/health.js";
 import { clientErrorsRoutes } from "./modules/client-errors/client-errors.routes.js";
+import { transformObject } from "./openapi/document.js";
+import { redocPage } from "./openapi/redoc.js";
 
 export interface AppOptions {
   rateLimit?: { perMinute: number; authPerMinute: number };
@@ -122,7 +125,7 @@ export async function buildApp(options: AppOptions = {}) {
 
   await app.register(swagger, {
     openapi: {
-      info: { title: "Collab Code Platform API", version: "0.1.0" },
+      info: { title: "Collab API", version: "1.0.0" },
       components: {
         securitySchemes: {
           bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
@@ -130,11 +133,20 @@ export async function buildApp(options: AppOptions = {}) {
       },
     },
     transform: jsonSchemaTransform,
+    transformObject,
   });
-  await app.register(swaggerUi, { routePrefix: "/docs", indexPrefix: options.pathPrefix ?? env.API_PATH_PREFIX });
+  const pathPrefix = options.pathPrefix ?? env.API_PATH_PREFIX;
+  await app.register(swaggerUi, {
+    routePrefix: "/docs",
+    indexPrefix: pathPrefix,
+    transformSpecification: (spec) => ({ ...spec, servers: [{ url: pathPrefix || "/", description: "This server" }] }),
+  });
+  app.get("/docs/reference", { schema: { hide: true } }, async (_request, reply) =>
+    reply.type("text/html; charset=utf-8").send(redocPage(`${pathPrefix}/docs/json`)),
+  );
 
-  app.get("/health", async () => ({ status: "ok" }));
-  app.get("/health/ready", { schema: { tags: ["health"] } }, async (_request, reply) => {
+  app.get("/health", { schema: { tags: ["health"], response: { 200: healthSchema } } }, async () => ({ status: "ok" as const }));
+  app.get("/health/ready", { schema: { tags: ["health"], response: { 200: readinessSchema, 503: readinessSchema } } }, async (_request, reply) => {
     const result = await readiness();
     return reply.code(result.status === "ok" ? 200 : 503).send(result);
   });
@@ -144,10 +156,10 @@ export async function buildApp(options: AppOptions = {}) {
     { schema: { tags: ["runs"], response: { 200: featuresSchema } } },
     async () => ({ run: runMode(runEnabled, runAccessCode), passwordReset: mailConfigured(), githubSignIn: githubSignInEnabled() }),
   );
-  app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema } }, async (request, reply) => {
+  app.withTypeProvider<ZodTypeProvider>().post("/run-access", { schema: { tags: ["runs"], body: runAccessSchema, response: { 204: z.null(), 403: errorResponseSchema } } }, async (request, reply) => {
     if (!runEnabled) throw new AppError("Running code is turned off on this server", 403);
     if (runAccessCode && !codeMatches(runAccessCode, request.body.code)) throw new AppError("Wrong access code", 403);
-    return reply.code(204).send();
+    return reply.code(204).send(null);
   });
 
   await app.register(authRoutes, { prefix: "/auth" });

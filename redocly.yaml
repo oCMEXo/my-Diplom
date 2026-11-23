@@ -1,0 +1,8 @@
+apis:
+  collab:
+    root: docs/api/openapi.yaml
+extends:
+  - recommended
+rules:
+  info-license: off
+  no-server-example.com: off
